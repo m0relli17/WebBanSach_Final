@@ -157,6 +157,12 @@
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6 small text-secondary">
                                     <div><i class="fa fa-calendar-check-o text-muted me-1"></i> Dự kiến giao: <strong class="text-dark">${order.deliveryDate}</strong></div>
+                                    <div class="mt-1">
+                                        <i class="fa fa-credit-card text-muted me-1"></i> Thanh toán: 
+                                        ${order.isPaid 
+                                            ? '<span class="badge bg-success text-white"><i class="fa fa-check-circle me-1"></i> Thẻ tín dụng (Đã thanh toán)</span>' 
+                                            : '<span class="badge bg-warning text-dark"><i class="fa fa-money me-1"></i> COD (Thu tiền khi nhận)</span>'}
+                                    </div>
                                 </div>
                                 <div class="col-md-6 small text-secondary text-md-end">
                                     <div>Tổng tiền: <strong class="text-danger fs-5">${order.totalFormatted}</strong> (${order.itemCount} sản phẩm)</div>

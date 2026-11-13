@@ -121,11 +121,23 @@ const api = {
     },
 
     // Orders & Checkout
-    checkout: async function(receiverName, receiverPhone, receiverAddress, note = '') {
+    checkout: async function(receiverName, receiverPhone, receiverAddress, note = '', paymentMethod = 'cod', cardData = {}) {
+        const params = new URLSearchParams({
+            receiverName: receiverName,
+            receiverPhone: receiverPhone,
+            receiverAddress: receiverAddress,
+            note: note,
+            paymentMethod: paymentMethod,
+            cardNumber: cardData.cardNumber || '',
+            cardHolder: cardData.cardHolder || '',
+            cardExpiry: cardData.cardExpiry || '',
+            cardCvv: cardData.cardCvv || ''
+        });
+
         const res = await fetch(`${API_BASE}/Checkout`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `receiverName=${encodeURIComponent(receiverName)}&receiverPhone=${encodeURIComponent(receiverPhone)}&receiverAddress=${encodeURIComponent(receiverAddress)}&note=${encodeURIComponent(note)}`,
+            body: params.toString(),
             credentials: 'include'
         });
         return await res.json();

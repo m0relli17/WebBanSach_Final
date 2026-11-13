@@ -631,7 +631,8 @@ namespace WebBanSach.Controllers
         // ==========================================
 
         [HttpPost]
-        public JsonResult Checkout(string receiverName, string receiverPhone, string receiverAddress, string note)
+        public JsonResult Checkout(string receiverName, string receiverPhone, string receiverAddress, string note,
+            string paymentMethod = "cod", string cardNumber = null, string cardHolder = null, string cardExpiry = null, string cardCvv = null)
         {
             try
             {
@@ -658,6 +659,38 @@ namespace WebBanSach.Controllers
                     return Json(new { status = false, message = "Vui lòng nhập đầy đủ thông tin giao hàng." });
                 }
 
+                paymentMethod = (paymentMethod ?? "cod").Trim().ToLowerInvariant();
+                bool isCreditCard = (paymentMethod == "credit_card" || paymentMethod == "card");
+                string maskedCardNumber = "";
+
+                if (isCreditCard)
+                {
+                    var cleanNumber = Regex.Replace(cardNumber ?? "", @"[\s-]", "");
+                    if (string.IsNullOrEmpty(cleanNumber) || cleanNumber.Length < 13 || cleanNumber.Length > 19 || !Regex.IsMatch(cleanNumber, @"^\d+$"))
+                    {
+                        return Json(new { status = false, message = "Số thẻ tín dụng không hợp lệ (yêu cầu từ 13 đến 19 chữ số)." });
+                    }
+
+                    if (string.IsNullOrWhiteSpace(cardHolder))
+                    {
+                        return Json(new { status = false, message = "Vui lòng nhập tên chủ thẻ in trên thẻ tín dụng." });
+                    }
+
+                    var cleanExpiry = (cardExpiry ?? "").Trim();
+                    if (!Regex.IsMatch(cleanExpiry, @"^(0[1-9]|1[0-2])\/([0-9]{2}|[0-9]{4})$"))
+                    {
+                        return Json(new { status = false, message = "Ngày hết hạn thẻ không đúng định dạng MM/YY (ví dụ: 12/28)." });
+                    }
+
+                    var cleanCvv = (cardCvv ?? "").Trim();
+                    if (!Regex.IsMatch(cleanCvv, @"^\d{3,4}$"))
+                    {
+                        return Json(new { status = false, message = "Mã bảo mật CVV/CVC không hợp lệ (yêu cầu 3 hoặc 4 chữ số)." });
+                    }
+
+                    maskedCardNumber = "•••• •••• •••• " + cleanNumber.Substring(cleanNumber.Length - 4);
+                }
+
                 using (var trans = db.Database.BeginTransaction())
                 {
                     var order = new DonDatHang
@@ -665,8 +698,8 @@ namespace WebBanSach.Controllers
                         MaKH = customer.MaKH,
                         NgayDat = DateTime.Now,
                         NgayGiao = DateTime.Now.AddDays(3),
-                        TinhTrang = false,
-                        ThanhToan = 0, // COD
+                        TinhTrang = isCreditCard, // true nếu đã thanh toán bằng thẻ
+                        ThanhToan = isCreditCard ? 1 : 0, // 1: Thẻ tín dụng (Đã thanh toán), 0: COD
                         Tracking = 0  // 0: Chờ xử lý
                     };
 
@@ -708,7 +741,13 @@ namespace WebBanSach.Controllers
                     {
                         status = true,
                         orderId = order.MaDDH,
-                        message = "Đặt hàng thành công! Mã đơn của bạn là #" + order.MaDDH
+                        paymentMethod = isCreditCard ? "credit_card" : "cod",
+                        paymentMethodText = isCreditCard ? "Thẻ tín dụng (Credit Card)" : "Thanh toán khi nhận hàng (COD)",
+                        isPaid = isCreditCard,
+                        maskedCard = isCreditCard ? maskedCardNumber : null,
+                        message = isCreditCard
+                            ? string.Format("Thanh toán thành công qua Thẻ tín dụng! Mã đơn hàng của bạn là #{0}", order.MaDDH)
+                            : string.Format("Đặt hàng thành công! Mã đơn của bạn là #{0}", order.MaDDH)
                     });
                 }
             }
@@ -743,6 +782,7 @@ namespace WebBanSach.Controllers
                 var list = orders.Select(o => {
                     var details = db.ChiTietDDHs.AsNoTracking().Where(d => d.MaDDH == o.MaDDH).Include(d => d.Sach).ToList();
                     decimal total = details.Sum(d => (decimal?)d.DonGia * d.SoLuong).GetValueOrDefault(0);
+                    bool isPaid = (o.ThanhToan == 1);
                     return new
                     {
                         id = o.MaDDH,
@@ -750,6 +790,10 @@ namespace WebBanSach.Controllers
                         deliveryDate = o.NgayGiao.ToString("dd/MM/yyyy"),
                         status = o.Tracking ?? 0,
                         statusText = GetTrackingStatusText(o.Tracking ?? 0),
+                        paymentStatus = o.ThanhToan ?? 0,
+                        paymentMethod = isPaid ? "credit_card" : "cod",
+                        paymentMethodText = isPaid ? "Thẻ tín dụng (Đã thanh toán)" : "COD (Thu tiền khi nhận)",
+                        isPaid = isPaid,
                         total = total,
                         totalFormatted = string.Format("{0:N0} VND", total),
                         itemCount = details.Sum(d => d.SoLuong),
@@ -860,6 +904,7 @@ namespace WebBanSach.Controllers
                 var list = orders.Select(o => {
                     var details = db.ChiTietDDHs.AsNoTracking().Where(d => d.MaDDH == o.MaDDH).Include(d => d.Sach).ToList();
                     decimal total = details.Sum(d => (decimal?)d.DonGia * d.SoLuong).GetValueOrDefault(0);
+                    bool isPaid = (o.ThanhToan == 1);
                     return new
                     {
                         id = o.MaDDH,
@@ -868,6 +913,10 @@ namespace WebBanSach.Controllers
                         orderDate = o.NgayDat.ToString("dd/MM/yyyy HH:mm"),
                         status = o.Tracking ?? 0,
                         statusText = GetTrackingStatusText(o.Tracking ?? 0),
+                        paymentStatus = o.ThanhToan ?? 0,
+                        paymentMethod = isPaid ? "credit_card" : "cod",
+                        paymentMethodText = isPaid ? "Thẻ tín dụng (Đã TT)" : "COD (Chưa TT)",
+                        isPaid = isPaid,
                         total = total,
                         totalFormatted = string.Format("{0:N0} VND", total),
                         itemCount = details.Sum(d => d.SoLuong),

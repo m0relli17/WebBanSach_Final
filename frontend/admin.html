@@ -270,7 +270,12 @@
                     <td><span class="text-muted small">${o.customerPhone || 'N/A'}</span></td>
                     <td><span class="text-muted small">${o.orderDate}</span></td>
                     <td><span class="badge bg-light text-dark border">${o.itemCount} sản phẩm</span></td>
-                    <td class="fw-bold text-danger">${o.totalFormatted}</td>
+                    <td class="fw-bold text-danger">
+                        ${o.totalFormatted}
+                        <div class="small fw-normal mt-1">
+                            ${o.isPaid ? '<span class="badge bg-success text-white"><i class="fa fa-credit-card me-1"></i> Thẻ (Đã TT)</span>' : '<span class="badge bg-warning text-dark"><i class="fa fa-money me-1"></i> COD</span>'}
+                        </div>
+                    </td>
                     <td>
                         ${getStatusBadge(o.status)}
                     </td>

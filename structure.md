@@ -137,8 +137,8 @@ Tất cả các endpoint trả về dữ liệu chuẩn JSON, hỗ trợ CORS v�
 ### 3.4. Đặt hàng & Tra cứu (Orders)
 | Phương thức | Đường dẫn API | Tham số | Mô tả |
 |---|---|---|---|
-| `POST` | `/api/Checkout` | `receiverName`, `receiverPhone`, `receiverAddress`, `note` | Xác nhận đặt hàng COD, trừ tồn kho sách theo transaction, xóa giỏ hàng |
-| `GET` | `/api/MyOrders` | Không | Lấy danh sách lịch sử đơn hàng của tài khoản đang đăng nhập |
+| `POST` | `/api/Checkout` | `receiverName`, `receiverPhone`, `receiverAddress`, `note`, `paymentMethod`, `cardNumber`, `cardHolder`, `cardExpiry`, `cardCvv` | Xác nhận đặt hàng (hỗ trợ COD hoặc Thẻ tín dụng Credit Card trực tuyến), trừ tồn kho an toàn, xóa giỏ hàng |
+| `GET` | `/api/MyOrders` | Không | Lấy danh sách lịch sử đơn hàng của tài khoản đang đăng nhập kèm phương thức thanh toán |
 | `POST` | `/api/CancelOrder` | `id` (int) | Hủy đơn hàng (chỉ khả dụng khi đơn đang ở trạng thái 'Chờ xử lý') và hoàn kho |
 
 ### 3.5. Quản trị (Admin)
