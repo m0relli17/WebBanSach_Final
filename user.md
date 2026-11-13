@@ -47,35 +47,27 @@ Khi thực hiện thanh toán trực tuyến tại trang **[http://localhost:808
 
 ## 3. Cách chạy Script Khởi tạo Dữ liệu Kiểm thử (Init Test Data Script)
 
-Dự án cung cấp file SQL khởi tạo dữ liệu mẫu đầy đủ: `02_DuLieuKiemThu.sql`.
+Dự án cung cấp file SQL khởi tạo dữ liệu mẫu đầy đủ: [02_DuLieuKiemThu.sql](file:///c:/Project/WebBanSach_Final/02_DuLieuKiemThu.sql).
 
-### Cách 1: Tự động chạy khi khởi động Docker (Khuyên dùng)
-Hệ thống đã tích hợp sẵn script vào dịch vụ khởi tạo database `db-init`:
-```bash
-docker compose up -d
-```
-Khi database khởi động, `init-db.sh` sẽ tự động thực thi `02_DuLieuKiemThu.sql` để bảo đảm các tài khoản và đơn hàng mẫu luôn sẵn sàng.
+### Cách 1: Chạy trực tiếp trong SQL Server Management Studio (SSMS)
+1. Mở SSMS và kết nối đến SQL Server cục bộ (ví dụ: `.\SQLEXPRESS` hoặc `localhost`).
+2. Mở file [02_DuLieuKiemThu.sql](file:///c:/Project/WebBanSach_Final/02_DuLieuKiemThu.sql).
+3. Nhấn **Execute (F5)** để nạp toàn bộ tài khoản và đơn hàng kiểm thử vào CSDL `BSDB2`.
 
 ---
 
-### Cách 2: Chạy trực tiếp qua PowerShell (Windows)
-Chạy script PowerShell có sẵn trong thư mục gốc:
+### Cách 2: Chạy qua PowerShell (Windows)
+Mở terminal PowerShell tại thư mục dự án và chạy:
 ```powershell
 .\seed-test-data.ps1
 ```
+*(Mặc định kết nối tới `.\SQLEXPRESS`, nếu dùng instance khác có thể truyền tham số: `.\seed-test-data.ps1 -Server "localhost"`)*
 
 ---
 
-### Cách 3: Chạy trực tiếp qua Shell Script (Linux / macOS / WSL)
-```bash
-bash seed-test-data.sh
-```
-
----
-
-### Cách 4: Chạy bằng lệnh Docker CLI đơn lẻ
-```bash
-Get-Content 02_DuLieuKiemThu.sql | docker exec -i webbansach-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "BookStore@123456" -C
+### Cách 3: Chạy bằng sqlcmd CLI
+```cmd
+sqlcmd -S .\SQLEXPRESS -E -i 02_DuLieuKiemThu.sql
 ```
 
 ---

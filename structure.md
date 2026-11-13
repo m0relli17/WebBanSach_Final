@@ -90,12 +90,7 @@ WebBanSach_Final/
 ├── 00_TaoDatabaseMoi.sql                # Script tạo cấu trúc CSDL và nạp dữ liệu mẫu
 ├── 01_NangCapDatabase.sql               # Script nâng cấp bảng KhachHang (EmailVerified, TrangThai)
 ├── 02_DuLieuKiemThu.sql                 # Script nạp dữ liệu kiểm thử (Users, Orders, Books)
-├── configure-web-config.py              # Script tự động cấu hình Web.config khi build Docker
-├── docker-compose.yml                   # Cấu hình điều phối container (db, db-init, web)
-├── Dockerfile                           # Dockerfile đóng gói Backend & Frontend chạy với Mono XSP4
-├── init-db.sh                           # Shell script tự động khởi tạo SQL Server trong container
-├── seed-test-data.ps1                   # Script PowerShell nạp nhanh dữ liệu test
-├── seed-test-data.sh                    # Script Shell/Bash nạp nhanh dữ liệu test
+├── seed-test-data.ps1                   # Script PowerShell nạp nhanh dữ liệu test vào SQL Server
 ├── structure.md                         # Tài liệu cấu trúc dự án (file này)
 ├── user.md                              # Danh mục tài khoản kiểm thử & kịch bản test
 └── WebBanSach.sln                       # Solution Visual Studio
@@ -170,20 +165,24 @@ Tất cả các endpoint trả về dữ liệu chuẩn JSON, hỗ trợ CORS v�
 
 ---
 
-## 5. Hướng dẫn Chạy Hệ thống với Docker
+## 5. Hướng dẫn Khởi chạy Hệ thống trên Môi trường Cục bộ
 
-### Khởi động toàn bộ hệ thống
-```bash
-docker compose up -d --build
-```
+### 5.1. Khởi tạo Cơ sở Dữ liệu (SQL Server)
+1. Mở **SQL Server Management Studio (SSMS)** kết nối tới instance SQL Server của bạn (ví dụ: `.\SQLEXPRESS`).
+2. Thực thi lần lượt 3 script theo thứ tự:
+   - [00_TaoDatabaseMoi.sql](file:///c:/Project/WebBanSach_Final/00_TaoDatabaseMoi.sql): Tạo database `BSDB2` và các bảng cơ sở.
+   - [01_NangCapDatabase.sql](file:///c:/Project/WebBanSach_Final/01_NangCapDatabase.sql): Nâng cấp cột xác minh email và trạng thái đơn hàng.
+   - [02_DuLieuKiemThu.sql](file:///c:/Project/WebBanSach_Final/02_DuLieuKiemThu.sql): Nạp toàn bộ dữ liệu mẫu, tài khoản test và đơn hàng mẫu.
+   *(Hoặc chạy nhanh bằng PowerShell: `.\seed-test-data.ps1`)*
 
-### Các dịch vụ và cổng truy cập:
-- **Trang chủ Web Khách hàng (Frontend)**: [http://localhost:8089](http://localhost:8089)
-- **Trang Quản trị Đơn hàng (Admin)**: [http://localhost:8089/admin.html](http://localhost:8089/admin.html)
-- **API Trực tiếp (Backend)**: [http://localhost:8084/api/Books](http://localhost:8084/api/Books)
-- **Cơ sở dữ liệu SQL Server**: Cổng `14333` (User: `sa`, Password: `BookStore@123456`)
+### 5.2. Khởi chạy Ứng dụng với Visual Studio
+1. Mở file [WebBanSach.sln](file:///c:/Project/WebBanSach_Final/WebBanSach.sln) bằng **Visual Studio 2017/2019/2022**.
+2. Kiểm tra chuỗi kết nối trong `backend/Web.config` (mặc định trỏ đến `.\SQLEXPRESS` hoặc `localhost`).
+3. Chuột phải vào project `backend` -> Chọn **Set as Startup Project**.
+4. Nhấn **F5** (hoặc `Ctrl + F5`) để khởi chạy IIS Express.
+5. Ứng dụng tự động phục vụ giao diện trang chủ tại root `/` (hoặc `/index.html`), giỏ hàng tại `/cart.html`, thanh toán tại `/checkout.html` và quản trị tại `/admin.html`.
 
-### Tài khoản kiểm thử có sẵn:
+### 5.3. Tài khoản kiểm thử có sẵn (Xem chi tiết tại [user.md](file:///c:/Project/WebBanSach_Final/user.md)):
 - **Khách hàng đã xác minh**: `testuser` / `12345678`
-- **Khách hàng chưa xác minh (thử nghiệm OTP)**: `testotp` / `12345678`
+- **Khách hàng thử nghiệm OTP**: `testotp` / `12345678`
 - **Tài khoản Quản trị viên**: `admin` / `123456`
