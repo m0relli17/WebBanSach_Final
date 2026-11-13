@@ -209,9 +209,9 @@ namespace WebBanSach.Controllers
                     foreach(var line in cart.GroupBy(x=>x.sach.MaSach)) {
                         var book=db.Saches.Find(line.Key);
                         long qty=line.Sum(x=>(long)x.Quantity);
-                        if(line.Any(x=>x.Quantity<1) || qty>999 || book==null || !book.GiaBan.HasValue || book.GiaBan<0 || book.SoLuongTon.GetValueOrDefault()<qty)
-                            throw new InvalidOperationException("Sách trong giỏ đã hết hàng hoặc số lượng không hợp lệ. Vui lòng cập nhật giỏ hàng.");
-                        book.SoLuongTon=book.SoLuongTon.GetValueOrDefault()-(int)qty;
+                        if(line.Any(x=>x.Quantity<1) || qty>999 || book==null || !book.GiaBan.HasValue || book.GiaBan<0)
+                            throw new InvalidOperationException("Thông tin sách hoặc số lượng không hợp lệ. Vui lòng cập nhật giỏ hàng.");
+                        book.SoLuongTon=Math.Max(0, book.SoLuongTon.GetValueOrDefault()-(int)qty);
                         db.ChiTietDDHs.Add(new ChiTietDDH {MaDDH=order.MaDDH,MaSach=book.MaSach,SoLuong=(int)qty,DonGia=book.GiaBan});
                     }
                     db.SaveChanges(); tx.Commit(); Session[CartSession]=null;

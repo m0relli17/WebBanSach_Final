@@ -676,14 +676,17 @@ namespace WebBanSach.Controllers
                     foreach (var item in cart)
                     {
                         var book = db.Saches.Find(item.sach.MaSach);
-                        if (book == null || (book.SoLuongTon ?? 0) < item.Quantity)
+                        if (book == null)
                         {
                             trans.Rollback();
-                            return Json(new { status = false, message = string.Format("Sách '{0}' không đủ số lượng trong kho.", item.sach.TenSach) });
+                            return Json(new { status = false, message = string.Format("Sách '{0}' không tồn tại.", item.sach.TenSach) });
                         }
 
-                        // Trừ tồn kho
-                        book.SoLuongTon -= item.Quantity;
+                        // Cập nhật số lượng tồn kho (nếu có)
+                        if (book.SoLuongTon.HasValue)
+                        {
+                            book.SoLuongTon = Math.Max(0, (book.SoLuongTon ?? 0) - item.Quantity);
+                        }
 
                         var detail = new ChiTietDDH
                         {
