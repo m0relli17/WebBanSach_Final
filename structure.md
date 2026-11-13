@@ -6,7 +6,7 @@
 
 ## 1. Tổng quan Kiến trúc (Architecture Overview)
 
-Hệ thống được tổ chức theo mô hình **Client - Server (Decoupled Architecture)**:
+Hệ thống được tổ chức theo kiến trúc tinh gọn, độc lập và tối giản hạ tầng (không cần Nginx reverse proxy):
 
 ```
 +-------------------------------------------------------------+
@@ -16,29 +16,25 @@ Hệ thống được tổ chức theo mô hình **Client - Server (Decoupled Ar
                         Port 8089 (HTTP)
                                v
 +-------------------------------------------------------------+
-|                    NGINX REVERSE PROXY                     |
-|  - Phục vụ Static Frontend (HTML, CSS, JS, Images)           |
-|  - Reverse Proxy các request /api/* sang Backend Mono        |
+|                   WEBBANSACH WEB SERVICE                    |
+|  - Mono XSP4 Server (Cổng 8084 ánh xạ 8089 ngoài host)      |
+|  - Phục vụ trực tiếp Static Frontend:                       |
+|      * HTML5 (index.html, cart.html, checkout.html...)      |
+|      * CSS (css/style.css), JS (js/api.js, js/auth.js)      |
+|      * Images (images/*)                                    |
+|  - Bộ điều khiển RESTful JSON API:                          |
+|      * ApiController.cs (/api/*)                            |
+|  - Entity Framework 6 kết nối CSDL SQL Server              |
+|  - Quản lý giỏ hàng & phiên làm việc Session an toàn        |
 +-------------------------------------------------------------+
-         |                                           |
-    [Static Files]                              [API Proxy]
-         v                                           v
-+------------------------+              +------------------------------+
-|   FRONTEND (Client)    |              |      BACKEND (REST API)      |
-|  - HTML5               |              |  - ASP.NET MVC / Mono 6.12   |
-|  - Bootstrap 5.3       |  Fetch API   |  - ApiController.cs (JSON)   |
-|  - FontAwesome 4.7     |<============>|  - Entity Framework 6        |
-|  - Vanilla JavaScript  |  (Cookies /  |  - Session-based Cart & Auth |
-|  - Realtime Cart Calc  |   Session)   |  - PBKDF2 Password Hashing   |
-+------------------------+              +------------------------------+
-                                                       |
-                                                  Port 1433 (TDS)
-                                                       v
-                                        +------------------------------+
-                                        |      DATABASE CONTAINER      |
-                                        |  - Microsoft SQL Server 2022 |
-                                        |  - Database: BSDB2           |
-                                        +------------------------------+
+                               |
+                        Port 1433 (TDS)
+                               v
++-------------------------------------------------------------+
+|                     DATABASE CONTAINER                      |
+|  - Microsoft SQL Server 2022 (BSDB2)                        |
+|  - Tự động nạp dữ liệu kiểm thử qua 02_DuLieuKiemThu.sql    |
++-------------------------------------------------------------+
 ```
 
 ---
@@ -93,12 +89,15 @@ WebBanSach_Final/
 │
 ├── 00_TaoDatabaseMoi.sql                # Script tạo cấu trúc CSDL và nạp dữ liệu mẫu
 ├── 01_NangCapDatabase.sql               # Script nâng cấp bảng KhachHang (EmailVerified, TrangThai)
+├── 02_DuLieuKiemThu.sql                 # Script nạp dữ liệu kiểm thử (Users, Orders, Books)
 ├── configure-web-config.py              # Script tự động cấu hình Web.config khi build Docker
-├── docker-compose.yml                   # Cấu hình điều phối 4 container (db, db-init, backend, frontend)
-├── Dockerfile                           # Dockerfile đóng gói và biên dịch Backend với Mono
+├── docker-compose.yml                   # Cấu hình điều phối container (db, db-init, web)
+├── Dockerfile                           # Dockerfile đóng gói Backend & Frontend chạy với Mono XSP4
 ├── init-db.sh                           # Shell script tự động khởi tạo SQL Server trong container
-├── nginx.conf                           # Cấu hình Nginx phục vụ frontend & reverse-proxy /api/
+├── seed-test-data.ps1                   # Script PowerShell nạp nhanh dữ liệu test
+├── seed-test-data.sh                    # Script Shell/Bash nạp nhanh dữ liệu test
 ├── structure.md                         # Tài liệu cấu trúc dự án (file này)
+├── user.md                              # Danh mục tài khoản kiểm thử & kịch bản test
 └── WebBanSach.sln                       # Solution Visual Studio
 ```
 

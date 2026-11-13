@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán đơn hàng - WebBanSach</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 4.7 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fa fa-book"></i> WEBBANSACH
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="index.html"><i class="fa fa-home"></i> Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="cart.html"><i class="fa fa-shopping-cart"></i> Giỏ hàng</a>
+                    </li>
+                    <li class="nav-item" id="navbar-auth-links"></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb -->
+    <div class="bg-light py-2 border-bottom mb-4">
+        <div class="container small">
+            <a href="index.html" class="text-decoration-none text-muted">Trang chủ</a>
+            <span class="mx-2 text-muted">/</span>
+            <a href="cart.html" class="text-decoration-none text-muted">Giỏ hàng</a>
+            <span class="mx-2 text-muted">/</span>
+            <span class="text-dark fw-semibold">Thanh toán</span>
+        </div>
+    </div>
+
+    <main class="container mb-5">
+        <div id="checkoutLoading" class="text-center py-5">
+            <div class="spinner-border text-danger" role="status"></div>
+            <p class="mt-2 text-muted">Đang tải thông tin đơn hàng...</p>
+        </div>
+
+        <div id="checkoutEmpty" class="text-center py-5" style="display: none;">
+            <div class="mb-3 text-muted">
+                <i class="fa fa-shopping-bag fa-4x text-secondary"></i>
+            </div>
+            <h4>Giỏ hàng của bạn đang trống!</h4>
+            <p class="text-muted">Hãy chọn những cuốn sách yêu thích trước khi tiến hành thanh toán.</p>
+            <a href="index.html" class="btn btn-danger mt-3">
+                <i class="fa fa-arrow-left me-1"></i> Khám phá tủ sách ngay
+            </a>
+        </div>
+
+        <div id="checkoutContent" style="display: none;">
+            <div class="row g-4">
+                <!-- Delivery Info Form -->
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm rounded-3 p-4">
+                        <h5 class="fw-bold mb-3 border-bottom pb-2 text-dark">
+                            <i class="fa fa-truck text-danger me-2"></i> 1. Thông tin nhận hàng
+                        </h5>
+
+                        <div id="checkoutAlert" class="alert alert-danger py-2 small" style="display: none;"></div>
+
+                        <form id="checkoutForm" onsubmit="handlePlaceOrder(event)">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary" for="receiverName">
+                                    Họ tên người nhận hàng *
+                                </label>
+                                <input type="text" id="receiverName" class="form-control" required placeholder="Nguyễn Văn A">
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary" for="receiverPhone">
+                                        Số điện thoại *
+                                    </label>
+                                    <input type="tel" id="receiverPhone" class="form-control" required placeholder="09xxxxxxxx">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary" for="receiverEmail">
+                                        Email xác nhận
+                                    </label>
+                                    <input type="email" id="receiverEmail" class="form-control" readonly disabled>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary" for="receiverAddress">
+                                    Địa chỉ giao hàng chi tiết *
+                                </label>
+                                <input type="text" id="receiverAddress" class="form-control" required placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-semibold text-secondary" for="orderNote">
+                                    Ghi chú đơn hàng (tùy chọn)
+                                </label>
+                                <textarea id="orderNote" class="form-control" rows="2" placeholder="Ví dụ: Giao giờ hành chính, gọi điện trước khi giao..."></textarea>
+                            </div>
+
+                            <h5 class="fw-bold mb-3 border-bottom pb-2 text-dark">
+                                <i class="fa fa-credit-card text-danger me-2"></i> 2. Chọn phương thức thanh toán
+                            </h5>
+
+                            <!-- Payment Options Selection -->
+                            <div class="d-flex flex-column gap-3 mb-4">
+                                <!-- Option 1: COD -->
+                                <div class="payment-option active" id="optionCOD" onclick="selectPaymentMethod('cod')">
+                                    <div class="form-check d-flex align-items-center">
+                                        <input class="form-check-input mt-0 me-3" type="radio" name="paymentMethodRadio" id="radioCOD" value="cod" checked>
+                                        <div class="flex-grow-1">
+                                            <label class="form-check-label fw-bold text-dark cursor-pointer" for="radioCOD">
+                                                <i class="fa fa-money text-success me-1"></i> Thanh toán khi nhận hàng (COD)
+                                            </label>
+                                            <div class="small text-muted mt-1">
+                                                Thanh toán tiền mặt trực tiếp cho nhân viên giao hàng khi nhận và kiểm tra sách.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Option 2: Credit Card -->
+                                <div class="payment-option" id="optionCard" onclick="selectPaymentMethod('credit_card')">
+                                    <div class="form-check d-flex align-items-center">
+                                        <input class="form-check-input mt-0 me-3" type="radio" name="paymentMethodRadio" id="radioCard" value="credit_card">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <label class="form-check-label fw-bold text-dark cursor-pointer mb-0" for="radioCard">
+                                                    <i class="fa fa-credit-card text-primary me-1"></i> Thẻ tín dụng / Ghi nợ quốc tế (Credit Card)
+                                                </label>
+                                                <div class="d-flex gap-1">
+                                                    <span class="badge bg-light text-primary border"><i class="fa fa-cc-visa"></i> Visa</span>
+                                                    <span class="badge bg-light text-danger border"><i class="fa fa-cc-mastercard"></i> Mastercard</span>
+                                                    <span class="badge bg-light text-info border"><i class="fa fa-cc-jcb"></i> JCB</span>
+                                                </div>
+                                            </div>
+                                            <div class="small text-muted mt-1">
+                                                Xác thực và thanh toán trực tuyến an toàn. Đơn hàng được xử lý ưu tiên giao ngay.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Credit Card Input Section (Collapsible) -->
+                            <div id="creditCardSection" class="border rounded-3 p-3 bg-light mb-4" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0 text-dark">
+                                        <i class="fa fa-lock text-success me-1"></i> Nhập thông tin thẻ tín dụng
+                                    </h6>
+                                    <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 small" onclick="fillTestCard()">
+                                        <i class="fa fa-magic me-1"></i> Thử thẻ mẫu
+                                    </button>
+                                </div>
+
+                                <!-- Visual Card Preview -->
+                                <div class="credit-card-preview">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="card-chip"></span>
+                                        <span id="previewCardBrand" class="fs-4 text-light"><i class="fa fa-credit-card"></i></span>
+                                    </div>
+                                    <div class="card-number-display" id="previewCardNumber">•••• •••• •••• ••••</div>
+                                    <div class="d-flex justify-content-between align-items-end card-info-display">
+                                        <div>
+                                            <span class="d-block small text-muted" style="font-size: 10px;">Chủ thẻ</span>
+                                            <span id="previewCardHolder" class="fw-bold">HO VA TEN</span>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="d-block small text-muted" style="font-size: 10px;">Hết hạn</span>
+                                            <span id="previewCardExpiry" class="fw-bold">MM/YY</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold text-secondary" for="cardNumberInput">
+                                        Số thẻ tín dụng *
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="fa fa-credit-card text-muted"></i></span>
+                                        <input type="text" id="cardNumberInput" class="form-control" placeholder="4532 1234 5678 9010" maxlength="19" oninput="handleCardNumberInput(this)">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold text-secondary" for="cardHolderInput">
+                                        Tên in trên thẻ (không dấu) *
+                                    </label>
+                                    <input type="text" id="cardHolderInput" class="form-control text-uppercase" placeholder="NGUYEN VAN A" oninput="handleCardHolderInput(this)">
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <label class="form-label small fw-semibold text-secondary" for="cardExpiryInput">
+                                            Ngày hết hạn *
+                                        </label>
+                                        <input type="text" id="cardExpiryInput" class="form-control text-center" placeholder="MM/YY" maxlength="5" oninput="handleCardExpiryInput(this)">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small fw-semibold text-secondary" for="cardCvvInput">
+                                            Mã bảo mật CVV/CVC *
+                                        </label>
+                                        <input type="password" id="cardCvvInput" class="form-control text-center" placeholder="•••" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                    </div>
+                                </div>
+                                <div class="small text-muted mt-2">
+                                    <i class="fa fa-shield text-success me-1"></i> Thông tin thẻ được mã hóa bảo mật chuẩn 256-bit SSL.
+                                </div>
+                            </div>
+
+                            <button type="submit" id="btnPlaceOrder" class="btn btn-danger w-100 py-3 fw-bold fs-5 shadow-sm">
+                                <i class="fa fa-check me-2"></i> Xác nhận & Đặt hàng
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Order Summary Sidebar -->
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm rounded-3 p-4 sticky-top" style="top: 80px;">
+                        <h5 class="fw-bold mb-3 border-bottom pb-2 text-dark">
+                            <i class="fa fa-shopping-basket text-danger me-2"></i> Đơn hàng (<span id="summaryItemCount">0</span> sản phẩm)
+                        </h5>
+
+                        <div id="summaryItemsList" class="overflow-auto mb-3" style="max-height: 280px;">
+                            <!-- Dynamically populated -->
+                        </div>
+
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between mb-2 small">
+                                <span class="text-secondary">Tạm tính:</span>
+                                <span class="fw-semibold" id="summarySubtotal">0 VND</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 small">
+                                <span class="text-secondary">Phí vận chuyển:</span>
+                                <span class="text-success fw-semibold">Miễn phí</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="fw-bold text-dark fs-5">Tổng thanh toán:</span>
+                                <span class="fw-bold text-danger fs-4" id="summaryTotal">0 VND</span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border small text-muted mb-0">
+                            <i class="fa fa-shield text-success me-1"></i> Đảm bảo quyền lợi khách hàng: Hoàn tiền hoặc đổi trả miễn phí trong vòng 7 ngày nếu sách lỗi hoặc hư hỏng do vận chuyển.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Screen -->
+        <div id="checkoutSuccess" class="text-center py-5" style="display: none;">
+            <div class="auth-card mx-auto p-5" style="max-width: 550px;">
+                <div class="text-success mb-3">
+                    <i class="fa fa-check-circle fa-5x"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2" id="successTitle">Đặt hàng thành công!</h3>
+                <p class="text-muted" id="successOrderText">Cảm ơn bạn đã mua hàng tại WebBanSach.</p>
+                <div class="p-3 bg-light rounded-3 my-4 text-start">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary small">Mã đơn hàng:</span>
+                        <h5 class="text-danger fw-bold mb-0" id="successOrderId">#0</h5>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary small">Phương thức thanh toán:</span>
+                        <span class="fw-bold small text-dark" id="successPaymentMethod">COD</span>
+                    </div>
+                    <div class="d-flex justify-content-between" id="successPaymentStatusRow">
+                        <span class="text-secondary small">Trạng thái thanh toán:</span>
+                        <span class="badge bg-success" id="successPaymentStatus">Đã thanh toán</span>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="tracking.html" class="btn btn-outline-danger">
+                        <i class="fa fa-list-alt me-1"></i> Theo dõi đơn hàng
+                    </a>
+                    <a href="index.html" class="btn btn-danger">
+                        <i class="fa fa-home me-1"></i> Về trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center small text-muted">
+            <p class="mb-0">&copy; 2026 WebBanSach - Nhà sách trực tuyến uy tín.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let currentCart = null;
+        let selectedPayment = 'cod';
+
+        function selectPaymentMethod(method) {
+            selectedPayment = method;
+            const optCOD = document.getElementById('optionCOD');
+            const optCard = document.getElementById('optionCard');
+            const radioCOD = document.getElementById('radioCOD');
+            const radioCard = document.getElementById('radioCard');
+            const cardSection = document.getElementById('creditCardSection');
+
+            if (method === 'credit_card') {
+                optCard.classList.add('active');
+                optCOD.classList.remove('active');
+                radioCard.checked = true;
+                cardSection.style.display = 'block';
+                document.getElementById('cardNumberInput').focus();
+            } else {
+                optCOD.classList.add('active');
+                optCard.classList.remove('active');
+                radioCOD.checked = true;
+                cardSection.style.display = 'none';
+            }
+        }
+
+        // Card input formatting and live preview
+        function handleCardNumberInput(input) {
+            let val = input.value.replace(/\D/g, '');
+            if (val.length > 16) val = val.substring(0, 16);
+            let formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+            input.value = formatted;
+
+            const preview = document.getElementById('previewCardNumber');
+            preview.textContent = formatted || '•••• •••• •••• ••••';
+
+            // Detect card brand
+            const brandIcon = document.getElementById('previewCardBrand');
+            if (val.startsWith('4')) {
+                brandIcon.innerHTML = '<i class="fa fa-cc-visa text-primary"></i>';
+            } else if (val.startsWith('5')) {
+                brandIcon.innerHTML = '<i class="fa fa-cc-mastercard text-danger"></i>';
+            } else if (val.startsWith('35')) {
+                brandIcon.innerHTML = '<i class="fa fa-cc-jcb text-info"></i>';
+            } else {
+                brandIcon.innerHTML = '<i class="fa fa-credit-card"></i>';
+            }
+        }
+
+        function handleCardHolderInput(input) {
+            input.value = input.value.toUpperCase();
+            document.getElementById('previewCardHolder').textContent = input.value.trim() || 'HO VA TEN';
+        }
+
+        function handleCardExpiryInput(input) {
+            let val = input.value.replace(/\D/g, '');
+            if (val.length > 4) val = val.substring(0, 4);
+            if (val.length >= 3) {
+                val = val.substring(0, 2) + '/' + val.substring(2);
+            }
+            input.value = val;
+            document.getElementById('previewCardExpiry').textContent = val || 'MM/YY';
+        }
+
+        function fillTestCard() {
+            const cardNum = document.getElementById('cardNumberInput');
+            const cardHolder = document.getElementById('cardHolderInput');
+            const cardExpiry = document.getElementById('cardExpiryInput');
+            const cardCvv = document.getElementById('cardCvvInput');
+
+            cardNum.value = '4532 8888 8888 8888';
+            cardHolder.value = 'NGUYEN VAN TEST';
+            cardExpiry.value = '12/28';
+            cardCvv.value = '888';
+
+            handleCardNumberInput(cardNum);
+            handleCardHolderInput(cardHolder);
+            handleCardExpiryInput(cardExpiry);
+        }
+
+        async function initCheckout() {
+            try {
+                // 1. Check user login
+                const me = await api.getMe();
+                if (!me.isLoggedIn) {
+                    if (me.isPendingOtp) {
+                        window.location.href = `verify-email.html?email=${encodeURIComponent(me.email || '')}`;
+                        return;
+                    }
+                    window.location.href = "login.html?redirect=checkout.html";
+                    return;
+                }
+
+                // Pre-fill user data
+                const user = me.user || {};
+                document.getElementById('receiverName').value = user.name || '';
+                document.getElementById('receiverPhone').value = user.phone || '';
+                document.getElementById('receiverAddress').value = user.address || '';
+                document.getElementById('receiverEmail').value = user.email || '';
+
+                // 2. Load Cart
+                const cart = await api.getCart();
+                currentCart = cart;
+                document.getElementById('checkoutLoading').style.display = 'none';
+
+                if (!cart.items || cart.items.length === 0) {
+                    document.getElementById('checkoutEmpty').style.display = 'block';
+                    return;
+                }
+
+                // Render Order Summary
+                document.getElementById('checkoutContent').style.display = 'block';
+                document.getElementById('summaryItemCount').textContent = cart.totalQuantity || 0;
+                document.getElementById('summarySubtotal').textContent = cart.totalFormatted || '0 VND';
+                document.getElementById('summaryTotal').textContent = cart.totalFormatted || '0 VND';
+
+                const listContainer = document.getElementById('summaryItemsList');
+                listContainer.innerHTML = cart.items.map(item => `
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                        <img src="images/${item.image}" alt="${item.title}" class="rounded me-3 border" style="width: 50px; height: 65px; object-fit: cover;">
+                        <div class="flex-grow-1 min-w-0">
+                            <h6 class="mb-1 text-truncate small fw-semibold text-dark">${item.title}</h6>
+                            <div class="text-muted small">${item.quantity} x ${formatVND(item.price)}</div>
+                        </div>
+                        <div class="text-end fw-semibold small text-danger">
+                            ${formatVND(item.subtotal)}
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('checkoutLoading').innerHTML = `
+                    <div class="alert alert-danger d-inline-block">
+                        Lỗi tải đơn hàng: ${err.message}. Vui lòng thử lại.
+                    </div>
+                `;
+            }
+        }
+
+        async function handlePlaceOrder(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('checkoutAlert');
+            alertBox.style.display = 'none';
+
+            const name = document.getElementById('receiverName').value.trim();
+            const phone = document.getElementById('receiverPhone').value.trim();
+            const address = document.getElementById('receiverAddress').value.trim();
+            const note = document.getElementById('orderNote').value.trim();
+
+            if (!name || !phone || !address) {
+                alertBox.textContent = 'Vui lòng điền đầy đủ họ tên, số điện thoại và địa chỉ giao hàng.';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            let cardData = {};
+            if (selectedPayment === 'credit_card') {
+                const num = document.getElementById('cardNumberInput').value.replace(/\D/g, '');
+                const holder = document.getElementById('cardHolderInput').value.trim();
+                const expiry = document.getElementById('cardExpiryInput').value.trim();
+                const cvv = document.getElementById('cardCvvInput').value.trim();
+
+                if (!num || num.length < 13 || num.length > 19) {
+                    alertBox.textContent = 'Vui lòng nhập đúng định dạng số thẻ tín dụng (13–19 chữ số).';
+                    alertBox.style.display = 'block';
+                    return;
+                }
+                if (!holder) {
+                    alertBox.textContent = 'Vui lòng nhập tên in trên thẻ tín dụng.';
+                    alertBox.style.display = 'block';
+                    return;
+                }
+                if (!expiry || !/^\d{2}\/\d{2}$/.test(expiry)) {
+                    alertBox.textContent = 'Vui lòng nhập ngày hết hạn theo định dạng MM/YY (ví dụ: 12/28).';
+                    alertBox.style.display = 'block';
+                    return;
+                }
+                if (!cvv || cvv.length < 3 || cvv.length > 4) {
+                    alertBox.textContent = 'Vui lòng nhập mã bảo mật CVV/CVC (3 hoặc 4 chữ số).';
+                    alertBox.style.display = 'block';
+                    return;
+                }
+
+                cardData = {
+                    cardNumber: num,
+                    cardHolder: holder,
+                    cardExpiry: expiry,
+                    cardCvv: cvv
+                };
+            }
+
+            const btn = document.getElementById('btnPlaceOrder');
+            btn.disabled = true;
+            btn.innerHTML = selectedPayment === 'credit_card' 
+                ? '<i class="fa fa-spinner fa-spin me-2"></i> Đang xác thực thẻ & thanh toán...'
+                : '<i class="fa fa-spinner fa-spin me-2"></i> Đang xử lý đặt hàng...';
+
+            try {
+                const res = await api.checkout(name, phone, address, note, selectedPayment, cardData);
+                if (res.status) {
+                    document.getElementById('checkoutContent').style.display = 'none';
+                    document.getElementById('checkoutSuccess').style.display = 'block';
+                    document.getElementById('successOrderId').textContent = '#' + res.orderId;
+                    
+                    if (res.isPaid) {
+                        document.getElementById('successTitle').innerHTML = '<i class="fa fa-check-circle text-success me-2"></i> Thanh toán thành công!';
+                        document.getElementById('successPaymentMethod').innerHTML = '<i class="fa fa-credit-card text-primary me-1"></i> Thẻ tín dụng (' + (res.maskedCard || 'Credit Card') + ')';
+                        document.getElementById('successPaymentStatus').className = 'badge bg-success';
+                        document.getElementById('successPaymentStatus').textContent = 'Đã thanh toán trực tuyến';
+                    } else {
+                        document.getElementById('successTitle').textContent = 'Đặt hàng thành công!';
+                        document.getElementById('successPaymentMethod').innerHTML = '<i class="fa fa-money text-success me-1"></i> Tiền mặt khi nhận hàng (COD)';
+                        document.getElementById('successPaymentStatus').className = 'badge bg-warning text-dark';
+                        document.getElementById('successPaymentStatus').textContent = 'Chưa thanh toán (Thu tiền COD)';
+                    }
+
+                    if (auth.updateCartBadge) auth.updateCartBadge();
+                } else {
+                    alertBox.textContent = res.message || 'Đặt hàng không thành công!';
+                    alertBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-check me-2"></i> Xác nhận & Đặt hàng';
+                }
+            } catch (err) {
+                alertBox.textContent = 'Lỗi hệ thống: ' + err.message;
+                alertBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-check me-2"></i> Xác nhận & Đặt hàng';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", initCheckout);
+    </script>
+</body>
+</html>

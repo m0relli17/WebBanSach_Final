@@ -19,7 +19,7 @@ namespace WebBanSach.Areas.Admin.Controllers
         // GET: Admin/Login : trang đăng nhập
         public ActionResult Index()
         {
-            return View();
+            return Redirect("~/admin.html");
         }
 
         //GET : /Admin/Login/AdminProfile : button xem thông tin về người quản lý

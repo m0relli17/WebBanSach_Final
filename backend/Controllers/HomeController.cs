@@ -20,7 +20,12 @@ namespace WebBanSach.Controllers
         //GET : Home/ : trang chủ 
         public ActionResult Index()
         {
-            return View();
+            string indexPath = Server.MapPath("~/index.html");
+            if (System.IO.File.Exists(indexPath))
+            {
+                return File(indexPath, "text/html");
+            }
+            return Redirect("~/index.html");
         }
 
         //GET : /Home/ShowCategory : hiển thị danh mục phía bên trái trang chủ
@@ -45,31 +50,30 @@ namespace WebBanSach.Controllers
         //GET : Show About page
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
-            return View();
+            return Redirect("~/index.html");
         }
 
         //Trang quy định của web
         public ActionResult QuyDinh()
         {
-            return View();
+            return Redirect("~/index.html");
         }
 
         public ActionResult Thanhtoan()
         {
-            return View();
+            return Redirect("~/checkout.html");
         }
         public ActionResult VanChuyen()
         {
-            return View();
+            return Redirect("~/index.html");
         }
         public ActionResult DoiTra()
         {
-            return View();
+            return Redirect("~/index.html");
         }
         public ActionResult Help()
         {
-            return View();
+            return Redirect("~/index.html");
         }
 
         //GET : /Home/Contact : trang liên hệ, phản hồi của khách hàng

@@ -10,10 +10,11 @@ RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list && \
 
 WORKDIR /app
 
-# Copy solution, script and project files
+# Copy solution, script, backend and frontend static assets
 COPY WebBanSach.sln /app/
 COPY configure-web-config.py /app/
 COPY backend /app/backend
+COPY frontend /app/backend
 
 # Adapt Web.config for Mono on Linux
 RUN python3 /app/configure-web-config.py && rm /app/configure-web-config.py

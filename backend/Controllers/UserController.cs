@@ -45,8 +45,8 @@ namespace WebBanSach.Controllers
                 }
             } catch { return false; }
         }
-        public ActionResult Index() { return RedirectToAction("EditUser"); }
-        [HttpGet] public ActionResult Register() { return View(); }
+        public ActionResult Index() { return Redirect("~/index.html"); }
+        [HttpGet] public ActionResult Register() { return Redirect("~/register.html"); }
         [HttpPost, ValidateAntiForgeryToken]
         public ActionResult Register(KhachHang model, string ConfirmPassword)
         {
@@ -76,7 +76,7 @@ namespace WebBanSach.Controllers
             TempData["Message"] = "Tài khoản đã tạo. Bấm gửi mã để xác minh email trước khi mua hàng.";
             return RedirectToAction("VerifyEmail");
         }
-        [HttpGet] public ActionResult LoginPage() { return View(); }
+        [HttpGet] public ActionResult LoginPage() { return Redirect("~/login.html"); }
         [HttpPost, ValidateAntiForgeryToken]
         public ActionResult LoginPage(LoginModel model)
         {
@@ -109,9 +109,7 @@ namespace WebBanSach.Controllers
             return id.HasValue ? db.KhachHangs.Find(id.Value) : null;
         }
         [HttpGet] public ActionResult VerifyEmail() {
-            var kh=Pending(); if(kh==null) return RedirectToAction("LoginPage");
-            ViewBag.Email = MaskEmail(kh.Email);
-            return View();
+            return Redirect("~/verify-email.html");
         }
         private sealed class Counter { public int Value; }
         private static readonly object RateLock = new object();

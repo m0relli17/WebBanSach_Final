@@ -21,7 +21,7 @@ namespace WebBanSach.Areas.Admin.Controllers
         // GET: Admin/Home : trang chủ Admin
         public ActionResult Index()
         {
-            return View();
+            return Redirect("~/admin.html");
         }
 
         #region Sản phẩm
