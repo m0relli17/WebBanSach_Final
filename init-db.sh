@@ -21,7 +21,13 @@ if [ "$DB_CHECK" -eq "0" ]; then
 else
     echo "BSDB2 database already exists. Running upgrade script to ensure latest schema..."
     /opt/mssql-tools18/bin/sqlcmd -S db,1433 -U sa -P "$MSSQL_SA_PASSWORD" -C -i /scripts/01_NangCapDatabase.sql || true
-    echo "Database BSDB2 is up to date."
+    echo "Database BSDB2 schema is up to date."
+fi
+
+if [ -f "/scripts/02_DuLieuKiemThu.sql" ]; then
+    echo "Seeding/updating test data from 02_DuLieuKiemThu.sql..."
+    /opt/mssql-tools18/bin/sqlcmd -S db,1433 -U sa -P "$MSSQL_SA_PASSWORD" -C -i /scripts/02_DuLieuKiemThu.sql || true
+    echo "Test data seeded successfully!"
 fi
 
 echo "=== Database initialization completed ==="

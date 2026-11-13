@@ -27,6 +27,7 @@ services:
     volumes:
       - ./00_TaoDatabaseMoi.sql:/scripts/00_TaoDatabaseMoi.sql:ro
       - ./01_NangCapDatabase.sql:/scripts/01_NangCapDatabase.sql:ro
+      - ./02_DuLieuKiemThu.sql:/scripts/02_DuLieuKiemThu.sql:ro
       - ./init-db.sh:/scripts/init-db.sh:ro
     entrypoint: ["/bin/bash", "/scripts/init-db.sh"]
     restart: "no"
