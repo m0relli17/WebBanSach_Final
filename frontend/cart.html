@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng - WebBanSach</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 4.7 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fa fa-book"></i> WEBBANSACH
+            </a>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav align-items-center ms-auto">
+                    <li class="nav-item me-3">
+                        <a class="nav-link text-dark" href="index.html"><i class="fa fa-home"></i> Trang chủ</a>
+                    </li>
+                    <div id="navbar-auth-links" class="d-flex align-items-center"></div>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold m-0"><i class="fa fa-shopping-cart text-danger me-2"></i> Giỏ hàng của bạn</h3>
+            <span id="cartItemBadge" class="badge bg-danger rounded-pill px-3 py-2">0 sản phẩm</span>
+        </div>
+
+        <div id="cartContent">
+            <div class="text-center py-5 text-muted">
+                <i class="fa fa-spinner fa-spin fa-2x mb-3"></i>
+                <p>Đang tải giỏ hàng...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center small text-muted">
+            <p class="mb-0">&copy; 2026 WebBanSach - Nhà sách trực tuyến uy tín.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let cartData = { items: [], total: 0, totalQuantity: 0 };
+        let syncTimeout = null;
+
+        async function loadCart() {
+            try {
+                cartData = await api.getCart();
+                renderCart();
+            } catch (e) {
+                document.getElementById('cartContent').innerHTML = `<div class="alert alert-danger">Lỗi kết nối tới máy chủ.</div>`;
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartContent');
+            const badge = document.getElementById('cartItemBadge');
+
+            if (!cartData.items || cartData.items.length === 0) {
+                badge.textContent = '0 sản phẩm';
+                container.innerHTML = `
+                    <div class="card p-5 text-center border-0 shadow-sm rounded-4">
+                        <div class="mx-auto mb-3" style="width: 70px; height: 70px; border-radius: 50%; background: #fee2e2; color: #b72935; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                            <i class="fa fa-shopping-basket"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-2">Giỏ hàng của bạn đang trống</h4>
+                        <p class="text-muted mb-4">Chưa có sản phẩm nào trong giỏ hàng. Hãy quay lại tìm kiếm cuốn sách yêu thích!</p>
+                        <a href="index.html" class="btn btn-danger px-4 py-2 mx-auto" style="border-radius: 8px;">
+                            <i class="fa fa-arrow-left me-1"></i> Mua sắm ngay
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            badge.textContent = `${cartData.items.length} sản phẩm`;
+
+            let rows = '';
+            cartData.items.forEach(item => {
+                rows += `
+                    <tr class="cart-row" data-id="${item.id}" data-price="${item.price}">
+                        <td style="width: 45%;">
+                            <div class="d-flex align-items-center">
+                                <img src="images/${item.image}" alt="${item.title}" class="rounded border p-1 me-3" style="width: 65px; height: 80px; object-fit: contain;" onerror="this.src='images/topSach.png'">
+                                <div>
+                                    <a href="book-details.html?id=${item.id}" class="text-dark fw-bold text-decoration-none mb-1 d-block">${item.title}</a>
+                                    <small class="text-muted">Mã sách: #${item.id}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center" style="width: 15%;">
+                            <span class="fw-semibold text-secondary">${formatVND(item.price)}</span>
+                        </td>
+                        <td class="text-center" style="width: 15%;">
+                            <div class="input-group mx-auto" style="width: 125px;">
+                                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="changeQty(${item.id}, -1)">-</button>
+                                <input type="number" class="form-control form-control-sm text-center fw-bold item-qty-input" 
+                                       data-id="${item.id}" value="${item.quantity}" min="1" max="999" 
+                                       oninput="handleInputQty(${item.id}, this)">
+                                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="changeQty(${item.id}, 1)">+</button>
+                            </div>
+                        </td>
+                        <td class="text-end" style="width: 15%;">
+                            <span class="fw-bold text-danger item-subtotal" id="subtotal-${item.id}">
+                                ${formatVND(item.price * item.quantity)}
+                            </span>
+                        </td>
+                        <td class="text-center" style="width: 10%;">
+                            <button class="btn btn-outline-danger btn-sm" onclick="handleDeleteItem(${item.id})" title="Xóa cuốn sách này">
+                                <i class="fa fa-trash-o"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
+                    <div class="table-responsive">
+                        <table class="table cart-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Sản phẩm</th>
+                                    <th class="text-center">Đơn giá</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Thành tiền</th>
+                                    <th class="text-center pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows}
+                            </tbody>
+                            <tfoot class="bg-light">
+                                <tr>
+                                    <td colspan="2" class="ps-4 py-3">
+                                        <a href="index.html" class="btn btn-outline-secondary btn-sm me-2">
+                                            <i class="fa fa-arrow-left me-1"></i> Tiếp tục chọn sách
+                                        </a>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="handleClearCart()">
+                                            <i class="fa fa-trash me-1"></i> Xóa tất cả
+                                        </button>
+                                    </td>
+                                    <td colspan="2" class="text-end py-3">
+                                        <span class="small text-muted text-uppercase fw-bold">Tổng thanh toán:</span><br>
+                                        <strong id="cartTotalText" class="text-danger fs-4">${formatVND(cartData.total)}</strong>
+                                    </td>
+                                    <td class="pe-4 py-3 text-center">
+                                        <a href="checkout.html" class="btn btn-danger w-100 fw-bold py-2">
+                                            Thanh toán <i class="fa fa-angle-right ms-1"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Auto update calculation logic (0ms instantaneous client update)
+        function changeQty(id, delta) {
+            const item = cartData.items.find(x => x.id === id);
+            if (!item) return;
+
+            let newQty = Math.max(1, Math.min(999, item.quantity + delta));
+            item.quantity = newQty;
+
+            // Update UI immediately
+            const input = document.querySelector(`.item-qty-input[data-id="${id}"]`);
+            if (input) input.value = newQty;
+
+            recalculateAndSync();
+        }
+
+        function handleInputQty(id, inputEl) {
+            const item = cartData.items.find(x => x.id === id);
+            if (!item) return;
+
+            let val = parseInt(inputEl.value, 10);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > 999) val = 999;
+            item.quantity = val;
+
+            recalculateAndSync();
+        }
+
+        function recalculateAndSync() {
+            let total = 0;
+            let totalQty = 0;
+
+            cartData.items.forEach(item => {
+                const sub = item.price * item.quantity;
+                total += sub;
+                totalQty += item.quantity;
+
+                const subEl = document.getElementById(`subtotal-${item.id}`);
+                if (subEl) subEl.textContent = formatVND(sub);
+            });
+
+            cartData.total = total;
+            cartData.totalQuantity = totalQty;
+
+            const totalText = document.getElementById('cartTotalText');
+            if (totalText) totalText.textContent = formatVND(total);
+
+            const badge = document.getElementById('cart-badge');
+            if (badge) badge.textContent = totalQty;
+
+            // Debounced sync to server session
+            clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(async () => {
+                const payload = cartData.items.map(x => ({
+                    Quantity: x.quantity,
+                    sach: { MaSach: x.id }
+                }));
+                try {
+                    const serverRes = await api.updateCart(payload);
+                    if (serverRes.status && serverRes.totalFormatted) {
+                        if (totalText) totalText.textContent = serverRes.totalFormatted;
+                    }
+                } catch (e) {
+                    console.error("Sync error:", e);
+                }
+            }, 300);
+        }
+
+        async function handleDeleteItem(id) {
+            if (!confirm("Bạn có chắc chắn muốn bỏ cuốn sách này khỏi giỏ hàng?")) return;
+            try {
+                const res = await api.deleteCartItem(id);
+                if (res.status) {
+                    cartData = res;
+                    renderCart();
+                    auth.updateCartBadge();
+                    showToast("Đã xóa sản phẩm khỏi giỏ hàng");
+                }
+            } catch (e) {
+                showToast("Lỗi khi xóa", "error");
+            }
+        }
+
+        async function handleClearCart() {
+            if (!confirm("Bạn có chắc chắn muốn làm trống giỏ hàng?")) return;
+            try {
+                const res = await api.clearCart();
+                cartData = res;
+                renderCart();
+                auth.updateCartBadge();
+                showToast("Đã làm trống giỏ hàng");
+            } catch (e) {
+                showToast("Lỗi khi xóa", "error");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCart();
+        });
+    </script>
+</body>
+</html>

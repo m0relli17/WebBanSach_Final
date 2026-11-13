@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác minh Email - WebBanSach</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 4.7 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fa fa-book"></i> WEBBANSACH
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="index.html"><i class="fa fa-home"></i> Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="login.html"><i class="fa fa-sign-in"></i> Đăng nhập</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        <div class="auth-wrapper narrow">
+            <div class="auth-card">
+                <div class="text-center mb-4">
+                    <div class="auth-icon-circle bg-warning bg-opacity-10 text-warning">
+                        <i class="fa fa-envelope-open-o"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Xác minh Email</h3>
+                    <p class="text-muted small">Vui lòng nhập mã bảo mật 6 chữ số đã được gửi đến email của bạn</p>
+                    <div id="emailDisplay" class="fw-semibold text-primary small"></div>
+                </div>
+
+                <div id="otpAlert" class="alert alert-info py-2 small" style="display: none;"></div>
+
+                <form onsubmit="handleVerify(event)">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary text-center d-block" for="otpCode">
+                            Mã xác nhận OTP (6 chữ số)
+                        </label>
+                        <input type="text" id="otpCode" class="form-control form-control-lg text-center letter-spacing fw-bold" 
+                               maxlength="6" placeholder="------" pattern="\d{6}" required autofocus style="letter-spacing: 0.5em; font-size: 1.6rem;">
+                    </div>
+
+                    <button type="submit" id="btnVerify" class="btn btn-danger w-100 py-2 fw-semibold mt-3">
+                        <i class="fa fa-check-circle me-1"></i> Xác minh ngay
+                    </button>
+                </form>
+
+                <div class="text-center mt-4 pt-3 border-top small">
+                    <p class="text-muted mb-2">Chưa nhận được mã OTP?</p>
+                    <button type="button" id="btnResend" class="btn btn-outline-secondary btn-sm" onclick="handleResendOtp()">
+                        <i class="fa fa-repeat me-1"></i> Gửi lại mã OTP
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center small text-muted">
+            <p class="mb-0">&copy; 2026 WebBanSach - Nhà sách trực tuyến uy tín.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailParam = urlParams.get('email');
+        if (emailParam) {
+            document.getElementById('emailDisplay').textContent = emailParam;
+        }
+
+        async function initPage() {
+            try {
+                const me = await api.getMe();
+                if (me.isLoggedIn) {
+                    // Already logged in & verified
+                    window.location.href = "index.html";
+                    return;
+                }
+                if (me.email && !emailParam) {
+                    document.getElementById('emailDisplay').textContent = me.email;
+                }
+            } catch (e) { }
+
+            // Auto-request OTP on arrival if needed
+            handleResendOtp(true);
+        }
+
+        async function handleResendOtp(isAuto = false) {
+            const btn = document.getElementById('btnResend');
+            const alertBox = document.getElementById('otpAlert');
+            if (btn) btn.disabled = true;
+
+            try {
+                const res = await api.sendOtp();
+                if (res.status) {
+                    alertBox.className = 'alert alert-info py-2 small';
+                    let msg = res.message || 'Mã xác nhận đã được gửi!';
+                    if (res.testCode) {
+                        msg += ` (Mã kiểm thử: <strong>${res.testCode}</strong>)`;
+                        document.getElementById('otpCode').value = res.testCode;
+                    }
+                    alertBox.innerHTML = msg;
+                    alertBox.style.display = 'block';
+                } else if (!isAuto) {
+                    alertBox.className = 'alert alert-danger py-2 small';
+                    alertBox.textContent = res.message || 'Không thể gửi mã xác minh.';
+                    alertBox.style.display = 'block';
+                }
+            } catch (err) {
+                if (!isAuto) {
+                    alertBox.className = 'alert alert-danger py-2 small';
+                    alertBox.textContent = 'Lỗi kết nối máy chủ.';
+                    alertBox.style.display = 'block';
+                }
+            } finally {
+                setTimeout(() => { if (btn) btn.disabled = false; }, 3000);
+            }
+        }
+
+        async function handleVerify(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('otpAlert');
+            alertBox.style.display = 'none';
+
+            const code = document.getElementById('otpCode').value.trim();
+            if (code.length !== 6) {
+                alertBox.className = 'alert alert-danger py-2 small';
+                alertBox.textContent = 'Vui lòng nhập đủ 6 chữ số.';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('btnVerify');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang xác minh...';
+
+            try {
+                const res = await api.verifyOtp(code);
+                if (res.status) {
+                    alertBox.className = 'alert alert-success py-2 small';
+                    alertBox.textContent = res.message || 'Xác minh thành công! Đang chuyển hướng...';
+                    alertBox.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1000);
+                } else {
+                    alertBox.className = 'alert alert-danger py-2 small';
+                    alertBox.textContent = res.message || 'Mã xác minh không chính xác.';
+                    alertBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-check-circle me-1"></i> Xác minh ngay';
+                }
+            } catch (err) {
+                alertBox.className = 'alert alert-danger py-2 small';
+                alertBox.textContent = 'Lỗi xác minh: ' + err.message;
+                alertBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-check-circle me-1"></i> Xác minh ngay';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

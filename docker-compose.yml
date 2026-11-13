@@ -1,0 +1,63 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: webbansach-db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=BookStore@123456
+    ports:
+      - "14333:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'BookStore@123456' -C -Q 'SELECT 1' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - db_data:/var/opt/mssql
+
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: webbansach-db-init
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - MSSQL_SA_PASSWORD=BookStore@123456
+    volumes:
+      - ./00_TaoDatabaseMoi.sql:/scripts/00_TaoDatabaseMoi.sql:ro
+      - ./01_NangCapDatabase.sql:/scripts/01_NangCapDatabase.sql:ro
+      - ./init-db.sh:/scripts/init-db.sh:ro
+    entrypoint: ["/bin/bash", "/scripts/init-db.sh"]
+    restart: "no"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: webbansach-backend
+    image: webbansach-backend:latest
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    ports:
+      - "8084:8084"
+    volumes:
+      - otp_data:/app/backend/App_Data/OtpEmails
+    restart: unless-stopped
+
+  frontend:
+    image: nginx:alpine
+    container_name: webbansach-frontend
+    depends_on:
+      - backend
+    ports:
+      - "8089:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  otp_data:

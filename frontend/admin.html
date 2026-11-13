@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị hệ thống - WebBanSach Admin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 4.7 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <!-- Admin Navbar -->
+    <nav class="navbar navbar-dark bg-dark sticky-top shadow-sm">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="admin.html">
+                <i class="fa fa-cogs text-danger me-2"></i> WEBBANSACH ADMIN PORTAL
+            </a>
+            <div id="adminUserNav" class="d-flex align-items-center">
+                <a href="index.html" class="btn btn-outline-light btn-sm me-2" target="_blank">
+                    <i class="fa fa-external-link me-1"></i> Xem Website
+                </a>
+                <span id="adminNameDisplay" class="text-light me-3 small fw-semibold" style="display: none;"></span>
+                <button id="btnAdminLogout" class="btn btn-danger btn-sm" onclick="handleAdminLogout()" style="display: none;">
+                    <i class="fa fa-sign-out me-1"></i> Đăng xuất
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid px-4 py-4">
+
+        <!-- Admin Login Screen -->
+        <div id="adminLoginScreen" class="auth-wrapper narrow" style="display: none;">
+            <div class="auth-card">
+                <div class="text-center mb-4">
+                    <div class="auth-icon-circle bg-dark text-white">
+                        <i class="fa fa-shield"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Đăng nhập Quản trị</h3>
+                    <p class="text-muted small">Dành riêng cho ban quản trị và nhân viên xử lý đơn</p>
+                </div>
+
+                <div id="adminAlert" class="alert alert-danger py-2 small" style="display: none;"></div>
+
+                <form onsubmit="handleAdminLogin(event)">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary" for="adminUsername">
+                            <i class="fa fa-user me-1"></i> Tài khoản Admin
+                        </label>
+                        <input type="text" id="adminUsername" class="form-control" required placeholder="Tài khoản quản trị" autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary" for="adminPassword">
+                            <i class="fa fa-lock me-1"></i> Mật khẩu
+                        </label>
+                        <input type="password" id="adminPassword" class="form-control" required placeholder="Mật khẩu quản trị">
+                    </div>
+
+                    <button type="submit" id="btnAdminSubmit" class="btn btn-dark w-100 py-2 fw-semibold mt-3">
+                        <i class="fa fa-sign-in me-1"></i> Đăng nhập hệ thống
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard Screen -->
+        <div id="adminDashboardScreen" style="display: none;">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                <div>
+                    <h4 class="fw-bold text-dark mb-1">
+                        <i class="fa fa-shopping-bag text-primary me-2"></i> Quản lý Đơn đặt hàng
+                    </h4>
+                    <p class="text-muted small mb-0">Theo dõi, điều phối và cập nhật trạng thái các đơn hàng từ khách hàng</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadAdminOrders()">
+                        <i class="fa fa-refresh me-1"></i> Tải lại
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-6 col-lg-8">
+                            <div class="btn-group flex-wrap" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-secondary active" onclick="filterStatus('all', this)">Tất cả (<span id="count-all">0</span>)</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterStatus(0, this)">Chờ xử lý (<span id="count-0">0</span>)</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterStatus(1, this)">Đã đóng gói (<span id="count-1">0</span>)</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterStatus(2, this)">Đang giao (<span id="count-2">0</span>)</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterStatus(3, this)">Hoàn thành (<span id="count-3">0</span>)</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="filterStatus(4, this)">Đã hủy (<span id="count-4">0</span>)</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <input type="text" id="searchOrderInput" class="form-control form-control-sm" placeholder="Tìm kiếm theo mã đơn hoặc tên khách..." oninput="handleSearchOrders()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-secondary">
+                            <tr>
+                                <th style="width: 80px;">Mã ĐH</th>
+                                <th>Khách hàng</th>
+                                <th>Số điện thoại</th>
+                                <th>Ngày đặt</th>
+                                <th>Sản phẩm</th>
+                                <th>Tổng tiền</th>
+                                <th style="width: 170px;">Trạng thái</th>
+                                <th style="width: 180px;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminOrdersTableBody">
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2"></div> Đang tải danh sách đơn hàng...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let allOrders = [];
+        let currentFilter = 'all';
+
+        function checkAdminSession() {
+            const admin = sessionStorage.getItem('adminUser');
+            if (admin) {
+                showDashboard(admin);
+            } else {
+                showLogin();
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('adminLoginScreen').style.display = 'block';
+            document.getElementById('adminDashboardScreen').style.display = 'none';
+            document.getElementById('adminNameDisplay').style.display = 'none';
+            document.getElementById('btnAdminLogout').style.display = 'none';
+        }
+
+        function showDashboard(name) {
+            document.getElementById('adminLoginScreen').style.display = 'none';
+            document.getElementById('adminDashboardScreen').style.display = 'block';
+            document.getElementById('adminNameDisplay').textContent = 'Admin: ' + name;
+            document.getElementById('adminNameDisplay').style.display = 'inline-block';
+            document.getElementById('btnAdminLogout').style.display = 'inline-block';
+            loadAdminOrders();
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('adminAlert');
+            alertBox.style.display = 'none';
+
+            const u = document.getElementById('adminUsername').value.trim();
+            const p = document.getElementById('adminPassword').value.trim();
+            const btn = document.getElementById('btnAdminSubmit');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang đăng nhập...';
+
+            try {
+                const res = await api.adminLogin(u, p);
+                if (res.status) {
+                    sessionStorage.setItem('adminUser', res.admin ? res.admin.name || res.admin.username : u);
+                    showDashboard(sessionStorage.getItem('adminUser'));
+                } else {
+                    alertBox.textContent = res.message || 'Đăng nhập quản trị thất bại!';
+                    alertBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-sign-in me-1"></i> Đăng nhập hệ thống';
+                }
+            } catch (err) {
+                alertBox.textContent = 'Lỗi kết nối: ' + err.message;
+                alertBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-sign-in me-1"></i> Đăng nhập hệ thống';
+            }
+        }
+
+        function handleAdminLogout() {
+            sessionStorage.removeItem('adminUser');
+            showLogin();
+        }
+
+        async function loadAdminOrders() {
+            const tbody = document.getElementById('adminOrdersTableBody');
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Đang tải...</td></tr>`;
+
+            try {
+                const res = await api.getAdminOrders();
+                if (res.status && res.data) {
+                    allOrders = res.data;
+                    updateCounts();
+                    renderOrders();
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Không thể tải danh sách đơn: ${res.message || 'Lỗi'}</td></tr>`;
+                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
+            }
+        }
+
+        function updateCounts() {
+            document.getElementById('count-all').textContent = allOrders.length;
+            document.getElementById('count-0').textContent = allOrders.filter(o => o.status === 0).length;
+            document.getElementById('count-1').textContent = allOrders.filter(o => o.status === 1).length;
+            document.getElementById('count-2').textContent = allOrders.filter(o => o.status === 2).length;
+            document.getElementById('count-3').textContent = allOrders.filter(o => o.status === 3).length;
+            document.getElementById('count-4').textContent = allOrders.filter(o => o.status === 4).length;
+        }
+
+        function filterStatus(status, btn) {
+            currentFilter = status;
+            document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderOrders();
+        }
+
+        function handleSearchOrders() {
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const tbody = document.getElementById('adminOrdersTableBody');
+            const searchKw = (document.getElementById('searchOrderInput').value || '').trim().toLowerCase();
+
+            let filtered = allOrders;
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(o => o.status === Number(currentFilter));
+            }
+            if (searchKw) {
+                filtered = filtered.filter(o => 
+                    String(o.id).includes(searchKw) || 
+                    (o.customerName && o.customerName.toLowerCase().includes(searchKw)) ||
+                    (o.customerPhone && o.customerPhone.includes(searchKw))
+                );
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không tìm thấy đơn hàng nào phù hợp.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(o => `
+                <tr>
+                    <td class="fw-bold">#${o.id}</td>
+                    <td>
+                        <div class="fw-semibold text-dark">${o.customerName}</div>
+                    </td>
+                    <td><span class="text-muted small">${o.customerPhone || 'N/A'}</span></td>
+                    <td><span class="text-muted small">${o.orderDate}</span></td>
+                    <td><span class="badge bg-light text-dark border">${o.itemCount} sản phẩm</span></td>
+                    <td class="fw-bold text-danger">${o.totalFormatted}</td>
+                    <td>
+                        ${getStatusBadge(o.status)}
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm" onchange="changeStatus(${o.id}, this.value)" ${o.status === 3 || o.status === 4 ? 'disabled' : ''}>
+                            <option value="0" ${o.status === 0 ? 'selected' : ''}>0 - Chờ xử lý</option>
+                            <option value="1" ${o.status === 1 ? 'selected' : ''}>1 - Đã đóng gói</option>
+                            <option value="2" ${o.status === 2 ? 'selected' : ''}>2 - Đang giao hàng</option>
+                            <option value="3" ${o.status === 3 ? 'selected' : ''}>3 - Đã giao (Hoàn tất)</option>
+                            <option value="4" ${o.status === 4 ? 'selected' : ''}>4 - Đã hủy</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadge(status) {
+            switch(status) {
+                case 0: return '<span class="badge bg-warning text-dark"><i class="fa fa-clock-o me-1"></i> Chờ xử lý</span>';
+                case 1: return '<span class="badge bg-info text-dark"><i class="fa fa-cube me-1"></i> Đã đóng gói</span>';
+                case 2: return '<span class="badge bg-primary"><i class="fa fa-truck me-1"></i> Đang giao</span>';
+                case 3: return '<span class="badge bg-success"><i class="fa fa-check-circle me-1"></i> Đã giao</span>';
+                case 4: return '<span class="badge bg-secondary"><i class="fa fa-ban me-1"></i> Đã hủy</span>';
+                default: return '<span class="badge bg-secondary">Không xác định</span>';
+            }
+        }
+
+        async function changeStatus(id, newStatus) {
+            try {
+                const res = await api.updateOrderStatus(id, newStatus);
+                if (res.status) {
+                    showToast(res.message || "Cập nhật trạng thái thành công!");
+                    const order = allOrders.find(o => o.id === id);
+                    if (order) order.status = Number(newStatus);
+                    updateCounts();
+                    renderOrders();
+                } else {
+                    alert(res.message || "Không thể cập nhật trạng thái!");
+                    loadAdminOrders();
+                }
+            } catch (err) {
+                alert("Lỗi khi cập nhật trạng thái: " + err.message);
+                loadAdminOrders();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", checkAdminSession);
+    </script>
+</body>
+</html>

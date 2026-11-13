@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết sách - WebBanSach</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 4.7 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fa fa-book"></i> WEBBANSACH
+            </a>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav align-items-center ms-auto">
+                    <li class="nav-item me-3">
+                        <a class="nav-link text-dark" href="index.html"><i class="fa fa-home"></i> Trang chủ</a>
+                    </li>
+                    <li class="nav-item me-3">
+                        <a class="nav-link position-relative text-dark" href="cart.html">
+                            <i class="fa fa-shopping-cart fa-lg"></i> Giỏ hàng
+                            <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+                        </a>
+                    </li>
+                    <div id="navbar-auth-links" class="d-flex align-items-center"></div>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="index.html" class="text-decoration-none">Trang chủ</a></li>
+                <li class="breadcrumb-item active" id="breadcrumbBookTitle">Chi tiết sách</li>
+            </ol>
+        </nav>
+
+        <div id="bookDetailContainer" class="card shadow-sm border-0 rounded-3 p-4 mb-5">
+            <div class="text-center py-5 text-muted">
+                <i class="fa fa-spinner fa-spin fa-2x mb-3"></i>
+                <p>Đang tải thông tin chi tiết...</p>
+            </div>
+        </div>
+
+        <div id="relatedBooksSection" style="display: none;">
+            <h4 class="fw-bold mb-3"><i class="fa fa-bookmark text-danger me-2"></i> Sách cùng thể loại</h4>
+            <div id="relatedBooksGrid" class="row g-3"></div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center small text-muted">
+            <p class="mb-0">&copy; 2026 WebBanSach - Nhà sách trực tuyến uy tín.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookId = urlParams.get('id');
+
+        async function loadBookDetail() {
+            if (!bookId) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            try {
+                const res = await api.getBookDetails(bookId);
+                if (res.status && res.data) {
+                    const b = res.data;
+                    document.title = `${b.title} - WebBanSach`;
+                    document.getElementById('breadcrumbBookTitle').textContent = b.title;
+
+                    document.getElementById('bookDetailContainer').innerHTML = `
+                        <div class="row g-4">
+                            <div class="col-md-4 text-center">
+                                <div class="p-3 border rounded-3 bg-light" style="max-height: 420px; display: flex; align-items: center; justify-content: center;">
+                                    <img src="images/${b.image}" alt="${b.title}" class="img-fluid rounded" style="max-height: 380px; object-fit: contain;" onerror="this.src='images/topSach.png'">
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <span class="badge bg-danger mb-2">${b.categoryName || 'Sách'}</span>
+                                <h2 class="fw-bold text-dark mb-2">${b.title}</h2>
+                                <p class="text-muted mb-3"><i class="fa fa-pencil me-1"></i> Tác giả: <strong>${b.author}</strong> | NXB: <strong>${b.publisher}</strong></p>
+                                
+                                <div class="p-3 rounded-3 mb-4" style="background: #fef2f2; border-left: 4px solid #b72935;">
+                                    <span class="text-muted small">Giá bán ưu đãi:</span>
+                                    <div class="display-6 fw-bold text-danger">${b.priceFormatted}</div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="small text-muted mb-2">Tình trạng: <span class="badge ${b.stock > 0 ? 'bg-success' : 'bg-secondary'}">${b.stock > 0 ? `Còn hàng (${b.stock} cuốn)` : 'Tạm hết hàng'}</span></div>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="input-group" style="width: 140px;">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="adjustQty(-1)">-</button>
+                                            <input id="qtyInput" type="number" class="form-control text-center fw-bold" value="1" min="1" max="${Math.max(1, b.stock)}">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="adjustQty(1)">+</button>
+                                        </div>
+                                        <button class="btn btn-danger px-4 py-2 fw-semibold" onclick="addToCartDetail(${b.id})" ${b.stock <= 0 ? 'disabled' : ''}>
+                                            <i class="fa fa-cart-plus me-1"></i> Thêm vào giỏ hàng
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <hr>
+                                <h5 class="fw-bold mb-2">Mô tả tóm tắt:</h5>
+                                <p class="text-secondary" style="line-height: 1.7; white-space: pre-line;">${b.description || 'Chưa có thông tin mô tả chi tiết cho cuốn sách này.'}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    // Render related
+                    if (res.related && res.related.length > 0) {
+                        document.getElementById('relatedBooksSection').style.display = 'block';
+                        let relHtml = '';
+                        res.related.forEach(r => {
+                            relHtml += `
+                                <div class="col-md-3 col-6">
+                                    <div class="card h-100 p-2 border shadow-sm">
+                                        <a href="book-details.html?id=${r.id}" class="text-decoration-none text-center">
+                                            <img src="images/${r.image}" class="img-fluid rounded mb-2" style="height: 140px; object-fit: contain;" onerror="this.src='images/topSach.png'">
+                                            <h6 class="text-dark small fw-bold mb-1 text-truncate">${r.title}</h6>
+                                            <span class="text-danger small fw-bold">${r.priceFormatted}</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        document.getElementById('relatedBooksGrid').innerHTML = relHtml;
+                    }
+                } else {
+                    document.getElementById('bookDetailContainer').innerHTML = `<div class="alert alert-warning text-center">Không tìm thấy thông tin cuốn sách này.</div>`;
+                }
+            } catch (e) {
+                document.getElementById('bookDetailContainer').innerHTML = `<div class="alert alert-danger text-center">Lỗi khi tải dữ liệu.</div>`;
+            }
+        }
+
+        function adjustQty(delta) {
+            const input = document.getElementById('qtyInput');
+            let val = parseInt(input.value, 10) || 1;
+            val = Math.max(1, val + delta);
+            input.value = val;
+        }
+
+        async function addToCartDetail(id) {
+            const qty = parseInt(document.getElementById('qtyInput').value, 10) || 1;
+            try {
+                const res = await api.addToCart(id, qty);
+                if (res.status) {
+                    showToast(`Đã thêm ${qty} cuốn vào giỏ hàng!`);
+                    auth.updateCartBadge();
+                } else {
+                    showToast(res.message || "Lỗi thêm vào giỏ", "error");
+                }
+            } catch (e) {
+                showToast("Lỗi kết nối", "error");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadBookDetail();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebBanSach - Nhà sách trực tuyến</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 4.7 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fa fa-book"></i> WEBBANSACH
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <form class="d-flex mx-auto col-lg-5 my-2 my-lg-0" onsubmit="event.preventDefault(); handleSearch();">
+                    <div class="input-group w-100">
+                        <input id="searchInput" class="form-control search-input" type="search" placeholder="Tìm kiếm tựa sách, tác giả...">
+                        <button class="btn search-btn px-4" type="submit"><i class="fa fa-search"></i></button>
+                    </div>
+                </form>
+                <ul class="navbar-nav align-items-center ms-auto">
+                    <li class="nav-item me-3">
+                        <a class="nav-link position-relative text-dark" href="cart.html">
+                            <i class="fa fa-shopping-cart fa-lg"></i> Giỏ hàng
+                            <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                0
+                            </span>
+                        </a>
+                    </li>
+                    <div id="navbar-auth-links" class="d-flex align-items-center"></div>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container py-4">
+        <!-- Hero Banner Carousel -->
+        <div id="heroCarousel" class="carousel slide mb-4 rounded-3 overflow-hidden shadow-sm" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="p-5 text-center text-white" style="background: linear-gradient(135deg, #1e293b 0%, #b72935 100%); min-height: 200px;">
+                        <h2 class="display-6 fw-bold mb-3">Chào mừng bạn đến với WebBanSach</h2>
+                        <p class="lead">Khám phá hàng ngàn đầu sách văn học, kinh tế, phát triển bản thân và sách ngoại văn.</p>
+                        <a href="#bookCatalog" class="btn btn-light fw-bold px-4 py-2 mt-2">Xem Ngay</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" id="bookCatalog">
+            <!-- Sidebar: Categories -->
+            <div class="col-lg-3 mb-4">
+                <div class="card shadow-sm border-0 rounded-3 p-3">
+                    <h5 class="fw-bold mb-3 pb-2 border-bottom"><i class="fa fa-th-large text-danger me-2"></i> Danh mục sách</h5>
+                    <div id="categoriesList" class="d-flex flex-column">
+                        <a href="#" class="category-pill active" onclick="filterCategory(null, this)">
+                            <span>Tất cả thể loại</span>
+                        </a>
+                        <div class="text-center py-3 text-muted"><i class="fa fa-spinner fa-spin"></i> Đang tải danh mục...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Books Grid -->
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 id="catalogTitle" class="fw-bold m-0 text-dark">Tất cả sách</h4>
+                    <span id="bookCount" class="text-muted small">Đang tải...</span>
+                </div>
+
+                <div id="booksGrid" class="row g-3">
+                    <div class="col-12 text-center py-5 text-muted">
+                        <i class="fa fa-spinner fa-spin fa-2x mb-3"></i>
+                        <p>Đang tải danh sách sách...</p>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-center mt-4">
+                    <nav id="paginationContainer"></nav>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h5 class="fw-bold text-dark"><i class="fa fa-book text-danger"></i> WEBBANSACH</h5>
+                    <p class="small">Hệ thống phân phối sách uy tín chất lượng, giao hàng tận nơi trên toàn quốc.</p>
+                    <p class="small mb-0">&copy; 2026 WebBanSach - All Rights Reserved.</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-dark">Hỗ trợ khách hàng</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="#" class="text-muted text-decoration-none">Chính sách đổi trả</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Phương thức thanh toán COD</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Chính sách vận chuyển</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-dark">Liên hệ</h6>
+                    <p class="small mb-1"><i class="fa fa-map-marker me-2"></i> 123 Nguyễn Huệ, Quận 1, TP.HCM</p>
+                    <p class="small mb-1"><i class="fa fa-phone me-2"></i> Hotline: 1900 1234</p>
+                    <p class="small mb-0"><i class="fa fa-envelope me-2"></i> contact@webbansach.vn</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- App Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let currentCategory = null;
+        let currentSearch = '';
+        let currentPage = 1;
+
+        async function loadCategories() {
+            try {
+                const res = await api.getCategories();
+                if (res.status && res.data) {
+                    const container = document.getElementById('categoriesList');
+                    let html = `<a href="#" class="category-pill ${!currentCategory ? 'active' : ''}" onclick="filterCategory(null, this)">
+                        <span>Tất cả thể loại</span>
+                    </a>`;
+                    res.data.forEach(c => {
+                        html += `
+                            <a href="#" class="category-pill ${currentCategory === c.id ? 'active' : ''}" onclick="filterCategory(${c.id}, this, '${c.name}')">
+                                <span>${c.name}</span>
+                                <span class="badge bg-light text-muted border">${c.count}</span>
+                            </a>
+                        `;
+                    });
+                    container.innerHTML = html;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadBooks() {
+            const container = document.getElementById('booksGrid');
+            container.innerHTML = `<div class="col-12 text-center py-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x mb-3"></i><p>Đang tải danh sách sách...</p></div>`;
+
+            try {
+                const params = { page: currentPage, pageSize: 9 };
+                if (currentCategory) params.categoryId = currentCategory;
+                if (currentSearch) params.search = currentSearch;
+
+                const res = await api.getBooks(params);
+                if (res.status && res.data) {
+                    document.getElementById('bookCount').textContent = `Hiển thị ${res.data.length} / ${res.totalItems} cuốn sách`;
+
+                    if (res.data.length === 0) {
+                        container.innerHTML = `
+                            <div class="col-12 text-center py-5">
+                                <i class="fa fa-search fa-3x text-muted mb-3"></i>
+                                <h5>Không tìm thấy cuốn sách nào</h5>
+                                <p class="text-muted small">Hãy thử tìm với từ khóa khác hoặc chuyển danh mục.</p>
+                            </div>
+                        `;
+                        document.getElementById('paginationContainer').innerHTML = '';
+                        return;
+                    }
+
+                    let html = '';
+                    res.data.forEach(book => {
+                        html += `
+                            <div class="col-md-4 col-sm-6">
+                                <div class="book-card">
+                                    <a href="book-details.html?id=${book.id}" class="book-img-wrapper text-decoration-none">
+                                        <img src="images/${book.image}" alt="${book.title}" onerror="this.src='images/topSach.png'">
+                                    </a>
+                                    <a href="book-details.html?id=${book.id}" class="book-title text-decoration-none" title="${book.title}">
+                                        ${book.title}
+                                    </a>
+                                    <div class="book-author"><i class="fa fa-pencil me-1"></i> ${book.author}</div>
+                                    <div class="book-price">${book.priceFormatted}</div>
+                                    <div class="d-flex gap-2">
+                                        <a href="book-details.html?id=${book.id}" class="btn btn-outline-secondary btn-book-action flex-fill">Chi tiết</a>
+                                        <button class="btn btn-danger btn-book-action" onclick="handleAddToCart(${book.id})" title="Thêm vào giỏ">
+                                            <i class="fa fa-cart-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                    renderPagination(res.page, res.totalPages);
+                }
+            } catch (e) {
+                container.innerHTML = `<div class="col-12 text-center text-danger py-4">Có lỗi khi kết nối tới máy chủ.</div>`;
+            }
+        }
+
+        function renderPagination(cur, total) {
+            const container = document.getElementById('paginationContainer');
+            if (total <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            let html = '<ul class="pagination pagination-sm">';
+            for (let i = 1; i <= total; i++) {
+                html += `<li class="page-item ${i === cur ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                </li>`;
+            }
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        function changePage(p) {
+            currentPage = p;
+            loadBooks();
+            window.scrollTo({ top: 350, behavior: 'smooth' });
+        }
+
+        function filterCategory(catId, el, catName = 'Tất cả sách') {
+            currentCategory = catId;
+            currentPage = 1;
+            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+            if (el) el.classList.add('active');
+            document.getElementById('catalogTitle').textContent = catName;
+            loadBooks();
+        }
+
+        function handleSearch() {
+            currentSearch = document.getElementById('searchInput').value.trim();
+            currentPage = 1;
+            loadBooks();
+        }
+
+        async function handleAddToCart(id) {
+            try {
+                const res = await api.addToCart(id, 1);
+                if (res.status) {
+                    showToast("Đã thêm sách vào giỏ hàng!");
+                    auth.updateCartBadge();
+                } else {
+                    showToast(res.message || "Không thể thêm vào giỏ hàng", "error");
+                }
+            } catch (e) {
+                showToast("Lỗi kết nối", "error");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCategories();
+            loadBooks();
+        });
+    </script>
+</body>
+</html>
