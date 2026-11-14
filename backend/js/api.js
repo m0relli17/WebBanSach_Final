@@ -190,6 +190,16 @@ function formatVND(amount) {
     return Number(amount || 0).toLocaleString('vi-VN') + ' VND';
 }
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function showToast(msg, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed`;

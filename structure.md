@@ -58,7 +58,7 @@ WebBanSach_Final/
 │   │   │   ├── TacGia.cs                # Entity Tác giả
 │   │   │   ├── NhaXuatBan.cs            # Entity Nhà xuất bản
 │   │   │   ├── KhachHang.cs             # Entity Khách hàng (TaiKhoan, MatKhau, Email, EmailVerified...)
-│   │   │   ├── DonDatHang.cs            # Entity Đơn đặt hàng (MaDDH, NgayDat, Tracking...)
+│   │   │   ├── DonDatHang.cs            # Entity Đơn đặt hàng (MaDDH, NgayDat, Tracking, ThanhToan, GhiChu...)
 │   │   │   ├── ChiTietDDH.cs            # Entity Chi tiết đơn hàng (MaDDH, MaSach, SoLuong, DonGia)
 │   │   │   ├── Admin.cs                 # Entity Quản trị viên
 │   │   │   ├── FeedBack.cs              # Entity Phản hồi khách hàng
@@ -160,13 +160,14 @@ Tất cả các endpoint trả về dữ liệu chuẩn JSON, hỗ trợ CORS v�
 3. **Form Đăng ký / Đăng nhập Chuẩn UI/UX**:
    - Tích hợp nút con mắt bật/tắt xem mật khẩu ngay trong ô nhập liệu.
    - Kiểm tra định dạng client-side tức thì (khớp mật khẩu, email hợp lệ).
-4. **Quy trình Đặt hàng & Xác minh Email Chặt chẽ**:
-   - Luồng kích hoạt tài khoản bằng mã OTP 6 chữ số có giao diện trực quan, hỗ trợ gửi lại mã.
-   - Trang thanh toán tự động điền sẵn thông tin khách hàng từ hồ sơ cá nhân.
-   - Trang theo dõi đơn hàng hiển thị huy hiệu trạng thái sắc nét theo chu trình vận chuyển.
-5. **Trang Quản trị (Admin Dashboard)**:
-   - Cho phép lọc đơn hàng theo từng trạng thái (Chờ xử lý, Đã đóng gói, Đang giao, Đã giao, Đã hủy).
-   - Cho phép nhân viên thay đổi trạng thái đơn hàng chỉ với một thao tác chọn nhanh.
+4. **Quy trình Đặt hàng & Ghi chú Đơn hàng (Order Notes)**:
+   - Cho phép khách hàng nhập ghi chú giao hàng (ví dụ: giờ giao, gọi trước, hướng dẫn gửi hàng).
+   - Ghi chú được lưu trữ an toàn trong cột `GhiChu` bảng `DonDatHang`.
+   - Hiển thị nổi bật tại trang hoàn tất đặt hàng, lịch sử theo dõi đơn (`tracking.html`) và màn hình quản trị (`admin.html`).
+5. **Trang Quản trị (Admin Dashboard & Order Detail Modal)**:
+   - Bảng điều khiển quản lý toàn bộ đơn hàng với cột **"Ghi chú của khách"** hiển thị badge vàng nổi bật.
+   - **Modal Chi tiết Đơn hàng**: Xem đầy đủ thông tin khách hàng, số điện thoại, địa chỉ nhận hàng, hộp thoại ghi chú, phương thức thanh toán, và danh sách các cuốn sách kèm hình ảnh, đơn giá và thành tiền.
+   - Cho phép lọc đơn hàng theo từng trạng thái (Chờ xử lý, Đã đóng gói, Đang giao, Đã giao, Đã hủy) và cập nhật tiến độ đơn hàng trực tiếp từ bảng hoặc trong modal.
 
 ---
 
