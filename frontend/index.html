@@ -90,11 +90,15 @@
             </button>
         </div>
 
-        <div class="row" id="bookCatalog">
-            <!-- Sidebar: Categories -->
-            <div class="col-lg-3 mb-4">
+        <section id="bookCatalog" class="mt-4">
+            <button id="categoriesToggle" class="btn btn-light border shadow-sm fw-bold mb-3" type="button"
+                    aria-expanded="false" aria-controls="categoriesPanel" onclick="toggleCategories()">
+                <i class="fa fa-th-large text-danger me-2" aria-hidden="true"></i> Danh mục sách
+                <i class="fa fa-chevron-down ms-2 catalog-chevron" aria-hidden="true"></i>
+            </button>
+            <div class="catalog-layout">
+            <aside id="categoriesPanel" class="catalog-sidebar" aria-hidden="true" inert>
                 <div class="card shadow-sm border-0 rounded-3 p-3">
-                    <h5 class="fw-bold mb-3 pb-2 border-bottom"><i class="fa fa-th-large text-danger me-2"></i> Danh mục sách</h5>
                     <div id="categoriesList" class="d-flex flex-column">
                         <a href="javascript:void(0)" class="category-pill active" onclick="filterCategory(event, null, this, 'Tất cả thể loại')">
                             <span>Tất cả thể loại</span>
@@ -102,16 +106,16 @@
                         <div class="text-center py-3 text-muted"><i class="fa fa-spinner fa-spin"></i> Đang tải danh mục...</div>
                     </div>
                 </div>
-            </div>
+            </aside>
 
             <!-- Books Grid -->
-            <div class="col-lg-9">
+            <div class="catalog-products">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 id="catalogTitle" class="fw-bold m-0 text-dark">Tất cả sách</h4>
                     <span id="bookCount" class="text-muted small">Đang tải...</span>
                 </div>
 
-                <div id="booksGrid" class="row g-3">
+                <div id="booksGrid" class="row g-3 justify-content-center">
                     <div class="col-12 text-center py-5 text-muted">
                         <i class="fa fa-spinner fa-spin fa-2x mb-3"></i>
                         <p>Đang tải danh sách sách...</p>
@@ -123,7 +127,8 @@
                     <nav id="paginationContainer"></nav>
                 </div>
             </div>
-        </div>
+            </div>
+        </section>
     </main>
 
     <!-- Footer -->
@@ -159,6 +164,15 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
+        function toggleCategories() {
+            const catalog = document.getElementById('bookCatalog');
+            const isOpen = catalog.classList.toggle('categories-open');
+            document.getElementById('categoriesToggle').setAttribute('aria-expanded', String(isOpen));
+            const panel = document.getElementById('categoriesPanel');
+            panel.setAttribute('aria-hidden', String(!isOpen));
+            panel.inert = !isOpen;
+        }
+
         let currentCategory = null;
         let currentSearch = '';
         let currentPage = 1;

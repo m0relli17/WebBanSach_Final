@@ -303,3 +303,42 @@ footer {
     letter-spacing: 1px;
 }
 
+
+/* The category sidebar expands left of the centered product area. */
+.catalog-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0fr) minmax(0, 3fr);
+    gap: 0;
+    align-items: start;
+    transition: grid-template-columns .3s ease, gap .3s ease;
+}
+.categories-open .catalog-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+    gap: 24px;
+}
+.catalog-sidebar {
+    min-width: 0;
+    overflow: hidden;
+    visibility: hidden;
+    max-height: 0;
+}
+.categories-open .catalog-sidebar {
+    visibility: visible;
+    max-height: none;
+}
+.catalog-products {
+    min-width: 0;
+    width: 100%;
+    max-width: 960px;
+    justify-self: center;
+}
+.catalog-chevron { transition: transform .3s ease; }
+.categories-open .catalog-chevron { transform: rotate(180deg); }
+@media (max-width: 767.98px) {
+    .catalog-layout,
+    .categories-open .catalog-layout { grid-template-columns: minmax(0, 1fr); }
+    .categories-open .catalog-layout { gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .catalog-layout, .catalog-chevron { transition: none; }
+}

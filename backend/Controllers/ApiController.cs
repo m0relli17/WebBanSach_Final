@@ -694,6 +694,15 @@ namespace WebBanSach.Controllers
 
                 using (var trans = db.Database.BeginTransaction())
                 {
+                    if (!string.IsNullOrWhiteSpace(receiverAddress))
+                    {
+                        customer.DiaChi = receiverAddress.Trim();
+                    }
+                    if (!string.IsNullOrWhiteSpace(receiverPhone))
+                    {
+                        customer.DienThoai = receiverPhone.Trim();
+                    }
+
                     var order = new DonDatHang
                     {
                         MaKH = customer.MaKH,
@@ -701,7 +710,8 @@ namespace WebBanSach.Controllers
                         NgayGiao = DateTime.Now.AddDays(3),
                         TinhTrang = isCreditCard, // true nếu đã thanh toán bằng thẻ
                         ThanhToan = isCreditCard ? 1 : 0, // 1: Thẻ tín dụng (Đã thanh toán), 0: COD
-                        Tracking = 0  // 0: Chờ xử lý
+                        Tracking = 0, // 0: Chờ xử lý
+                        GhiChu = string.IsNullOrWhiteSpace(note) ? null : note.Trim()
                     };
 
                     db.DonDatHangs.Add(order);
@@ -787,6 +797,9 @@ namespace WebBanSach.Controllers
                     return new
                     {
                         id = o.MaDDH,
+                        customerName = customer.TenKH,
+                        customerPhone = customer.DienThoai,
+                        customerAddress = customer.DiaChi,
                         orderDate = o.NgayDat.ToString("dd/MM/yyyy HH:mm"),
                         deliveryDate = o.NgayGiao.ToString("dd/MM/yyyy"),
                         status = o.Tracking ?? 0,
@@ -795,6 +808,7 @@ namespace WebBanSach.Controllers
                         paymentMethod = isPaid ? "credit_card" : "cod",
                         paymentMethodText = isPaid ? "Thẻ tín dụng (Đã thanh toán)" : "COD (Thu tiền khi nhận)",
                         isPaid = isPaid,
+                        note = o.GhiChu ?? "",
                         total = total,
                         totalFormatted = string.Format("{0:N0} VND", total),
                         itemCount = details.Sum(d => d.SoLuong),
@@ -805,7 +819,9 @@ namespace WebBanSach.Controllers
                             image = d.Sach != null ? d.Sach.AnhBia : "topSach.png",
                             quantity = d.SoLuong,
                             price = d.DonGia,
-                            priceFormatted = string.Format("{0:N0} VND", d.DonGia)
+                            priceFormatted = string.Format("{0:N0} VND", d.DonGia),
+                            subtotal = d.DonGia * d.SoLuong,
+                            subtotalFormatted = string.Format("{0:N0} VND", d.DonGia * d.SoLuong)
                         }).ToList()
                     };
                 }).ToList();
@@ -911,13 +927,17 @@ namespace WebBanSach.Controllers
                         id = o.MaDDH,
                         customerName = o.KhachHang != null ? o.KhachHang.TenKH : "Khách",
                         customerPhone = o.KhachHang != null ? o.KhachHang.DienThoai : "",
+                        customerAddress = o.KhachHang != null ? o.KhachHang.DiaChi : "",
+                        customerEmail = o.KhachHang != null ? o.KhachHang.Email : "",
                         orderDate = o.NgayDat.ToString("dd/MM/yyyy HH:mm"),
+                        deliveryDate = o.NgayGiao.ToString("dd/MM/yyyy"),
                         status = o.Tracking ?? 0,
                         statusText = GetTrackingStatusText(o.Tracking ?? 0),
                         paymentStatus = o.ThanhToan ?? 0,
                         paymentMethod = isPaid ? "credit_card" : "cod",
                         paymentMethodText = isPaid ? "Thẻ tín dụng (Đã TT)" : "COD (Chưa TT)",
                         isPaid = isPaid,
+                        note = o.GhiChu ?? "",
                         total = total,
                         totalFormatted = string.Format("{0:N0} VND", total),
                         itemCount = details.Sum(d => d.SoLuong),
@@ -925,8 +945,12 @@ namespace WebBanSach.Controllers
                         {
                             bookId = d.MaSach,
                             title = d.Sach != null ? d.Sach.TenSach : "",
+                            image = d.Sach != null ? d.Sach.AnhBia : "topSach.png",
                             quantity = d.SoLuong,
-                            price = d.DonGia
+                            price = d.DonGia,
+                            priceFormatted = string.Format("{0:N0} VND", d.DonGia),
+                            subtotal = d.DonGia * d.SoLuong,
+                            subtotalFormatted = string.Format("{0:N0} VND", d.DonGia * d.SoLuong)
                         }).ToList()
                     };
                 }).ToList();
