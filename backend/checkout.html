@@ -277,9 +277,13 @@
                         <span class="text-secondary small">Phương thức thanh toán:</span>
                         <span class="fw-bold small text-dark" id="successPaymentMethod">COD</span>
                     </div>
-                    <div class="d-flex justify-content-between" id="successPaymentStatusRow">
+                    <div class="d-flex justify-content-between mb-2" id="successPaymentStatusRow">
                         <span class="text-secondary small">Trạng thái thanh toán:</span>
                         <span class="badge bg-success" id="successPaymentStatus">Đã thanh toán</span>
+                    </div>
+                    <div class="d-flex justify-content-between" id="successOrderNoteRow" style="display: none;">
+                        <span class="text-secondary small">Ghi chú giao hàng:</span>
+                        <span class="small text-dark fw-semibold" id="successOrderNote"></span>
                     </div>
                 </div>
                 <div class="d-flex justify-content-center gap-2">
@@ -520,6 +524,15 @@
                         document.getElementById('successPaymentMethod').innerHTML = '<i class="fa fa-money text-success me-1"></i> Tiền mặt khi nhận hàng (COD)';
                         document.getElementById('successPaymentStatus').className = 'badge bg-warning text-dark';
                         document.getElementById('successPaymentStatus').textContent = 'Chưa thanh toán (Thu tiền COD)';
+                    }
+
+                    const noteRow = document.getElementById('successOrderNoteRow');
+                    const noteElem = document.getElementById('successOrderNote');
+                    if (note) {
+                        noteElem.textContent = note;
+                        noteRow.style.display = 'flex';
+                    } else {
+                        noteRow.style.display = 'none';
                     }
 
                     if (auth.updateCartBadge) auth.updateCartBadge();

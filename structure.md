@@ -58,7 +58,7 @@ WebBanSach_Final/
 │   │   │   ├── TacGia.cs                # Entity Tác giả
 │   │   │   ├── NhaXuatBan.cs            # Entity Nhà xuất bản
 │   │   │   ├── KhachHang.cs             # Entity Khách hàng (TaiKhoan, MatKhau, Email, EmailVerified...)
-│   │   │   ├── DonDatHang.cs            # Entity Đơn đặt hàng (MaDDH, NgayDat, Tracking...)
+│   │   │   ├── DonDatHang.cs            # Entity Đơn đặt hàng (MaDDH, NgayDat, Tracking, ThanhToan, GhiChu...)
 │   │   │   ├── ChiTietDDH.cs            # Entity Chi tiết đơn hàng (MaDDH, MaSach, SoLuong, DonGia)
 │   │   │   ├── Admin.cs                 # Entity Quản trị viên
 │   │   │   ├── FeedBack.cs              # Entity Phản hồi khách hàng
@@ -88,11 +88,13 @@ WebBanSach_Final/
 │   └── admin.html                       # Trang quản trị: Đăng nhập admin & Quản lý cập nhật trạng thái đơn
 │
 ├── 00_TaoDatabaseMoi.sql                # Script tạo cấu trúc CSDL và nạp dữ liệu mẫu
-├── 01_NangCapDatabase.sql               # Script nâng cấp bảng KhachHang (EmailVerified, TrangThai)
+├── 01_NangCapDatabase.sql               # Script nâng cấp bảng KhachHang & DonDatHang
 ├── 02_DuLieuKiemThu.sql                 # Script nạp dữ liệu kiểm thử (Users, Orders, Books)
 ├── seed-test-data.ps1                   # Script PowerShell nạp nhanh dữ liệu test vào SQL Server
 ├── structure.md                         # Tài liệu cấu trúc dự án (file này)
 ├── user.md                              # Danh mục tài khoản kiểm thử & kịch bản test
+├── HUONG_DAN_MVS.md                     # Hướng dẫn chi tiết chạy dự án trên Visual Studio
+├── README.md                            # Giới thiệu tổng quan dự án
 └── WebBanSach.sln                       # Solution Visual Studio
 ```
 
@@ -155,34 +157,31 @@ Tất cả các endpoint trả về dữ liệu chuẩn JSON, hỗ trợ CORS v�
 3. **Form Đăng ký / Đăng nhập Chuẩn UI/UX**:
    - Tích hợp nút con mắt bật/tắt xem mật khẩu ngay trong ô nhập liệu.
    - Kiểm tra định dạng client-side tức thì (khớp mật khẩu, email hợp lệ).
-4. **Quy trình Đặt hàng & Xác minh Email Chặt chẽ**:
-   - Luồng kích hoạt tài khoản bằng mã OTP 6 chữ số có giao diện trực quan, hỗ trợ gửi lại mã.
-   - Trang thanh toán tự động điền sẵn thông tin khách hàng từ hồ sơ cá nhân.
-   - Trang theo dõi đơn hàng hiển thị huy hiệu trạng thái sắc nét theo chu trình vận chuyển.
-5. **Trang Quản trị (Admin Dashboard)**:
-   - Cho phép lọc đơn hàng theo từng trạng thái (Chờ xử lý, Đã đóng gói, Đang giao, Đã giao, Đã hủy).
-   - Cho phép nhân viên thay đổi trạng thái đơn hàng chỉ với một thao tác chọn nhanh.
+4. **Quy trình Đặt hàng & Ghi chú Đơn hàng (Order Notes)**:
+   - Cho phép khách hàng nhập ghi chú giao hàng (ví dụ: giờ giao, gọi trước, hướng dẫn gửi hàng).
+   - Ghi chú được lưu trữ an toàn trong cột `GhiChu` bảng `DonDatHang`.
+   - Hiển thị nổi bật tại trang hoàn tất đặt hàng, lịch sử theo dõi đơn (`tracking.html`) và màn hình quản trị (`admin.html`).
+5. **Trang Quản trị (Admin Dashboard & Order Detail Modal)**:
+   - Bảng điều khiển quản lý toàn bộ đơn hàng với cột **"Ghi chú của khách"** hiển thị badge vàng nổi bật.
+   - **Modal Chi tiết Đơn hàng**: Xem đầy đủ thông tin khách hàng, số điện thoại, địa chỉ nhận hàng, hộp thoại ghi chú, phương thức thanh toán, và danh sách các cuốn sách kèm hình ảnh, đơn giá và thành tiền.
+   - Cho phép lọc đơn hàng theo từng trạng thái (Chờ xử lý, Đã đóng gói, Đang giao, Đã giao, Đã hủy) và cập nhật tiến độ đơn hàng trực tiếp từ bảng hoặc trong modal.
 
 ---
 
-## 5. Hướng dẫn Khởi chạy Hệ thống trên Môi trường Cục bộ
+## 5. Hướng dẫn Khởi chạy Dự án trên Visual Studio (IIS Express)
 
-### 5.1. Khởi tạo Cơ sở Dữ liệu (SQL Server)
-1. Mở **SQL Server Management Studio (SSMS)** kết nối tới instance SQL Server của bạn (ví dụ: `.\SQLEXPRESS`).
-2. Thực thi lần lượt 3 script theo thứ tự:
-   - [00_TaoDatabaseMoi.sql](file:///c:/Project/WebBanSach_Final/00_TaoDatabaseMoi.sql): Tạo database `BSDB2` và các bảng cơ sở.
-   - [01_NangCapDatabase.sql](file:///c:/Project/WebBanSach_Final/01_NangCapDatabase.sql): Nâng cấp cột xác minh email và trạng thái đơn hàng.
-   - [02_DuLieuKiemThu.sql](file:///c:/Project/WebBanSach_Final/02_DuLieuKiemThu.sql): Nạp toàn bộ dữ liệu mẫu, tài khoản test và đơn hàng mẫu.
-   *(Hoặc chạy nhanh bằng PowerShell: `.\seed-test-data.ps1`)*
+### Các bước thực hiện:
+1. **Khởi tạo CSDL**: Mở SSMS, chạy lần lượt `00_TaoDatabaseMoi.sql` $\rightarrow$ `01_NangCapDatabase.sql` $\rightarrow$ `02_DuLieuKiemThu.sql`.
+2. **Mở Solution**: Nhấp đúp mở `WebBanSach.sln` bằng Visual Studio.
+3. **Cấu hình kết nối**: Kiểm tra chuỗi kết nối trong `backend/Web.config` (mặc định: `Data Source=.\SQLEXPRESS;Initial Catalog=BSDB2;Integrated Security=True;`).
+4. **Build & Run**: Rebuild Solution (`Ctrl + Shift + B`), nhấn `Ctrl + F5` để chạy trên IIS Express.
 
-### 5.2. Khởi chạy Ứng dụng với Visual Studio
-1. Mở file [WebBanSach.sln](file:///c:/Project/WebBanSach_Final/WebBanSach.sln) bằng **Visual Studio 2017/2019/2022**.
-2. Kiểm tra chuỗi kết nối trong `backend/Web.config` (mặc định trỏ đến `.\SQLEXPRESS` hoặc `localhost`).
-3. Chuột phải vào project `backend` -> Chọn **Set as Startup Project**.
-4. Nhấn **F5** (hoặc `Ctrl + F5`) để khởi chạy IIS Express.
-5. Ứng dụng tự động phục vụ giao diện trang chủ tại root `/` (hoặc `/index.html`), giỏ hàng tại `/cart.html`, thanh toán tại `/checkout.html` và quản trị tại `/admin.html`.
+### Các trang chính:
+- **Trang chủ Khách hàng**: `http://localhost:<PORT>/index.html`
+- **Trang Quản trị Đơn hàng**: `http://localhost:<PORT>/admin.html`
+- **Tài khoản kiểm thử có sẵn**:
+  - Khách hàng đã xác minh: `testuser` / `12345678`
+  - Khách hàng chưa xác minh (thử nghiệm OTP): `testotp` / `12345678`
+  - Quản trị viên: `admin` / `123456`
 
-### 5.3. Tài khoản kiểm thử có sẵn (Xem chi tiết tại [user.md](file:///c:/Project/WebBanSach_Final/user.md)):
-- **Khách hàng đã xác minh**: `testuser` / `12345678`
-- **Khách hàng thử nghiệm OTP**: `testotp` / `12345678`
-- **Tài khoản Quản trị viên**: `admin` / `123456`
+> Hướng dẫn từng bước chi tiết xem tại **[HUONG_DAN_MVS.md](HUONG_DAN_MVS.md)**.

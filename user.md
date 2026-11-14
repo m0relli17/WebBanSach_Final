@@ -47,42 +47,35 @@ Khi thực hiện thanh toán trực tuyến tại trang **[http://localhost:808
 
 ## 3. Cách chạy Script Khởi tạo Dữ liệu Kiểm thử (Init Test Data Script)
 
-Dự án cung cấp file SQL khởi tạo dữ liệu mẫu đầy đủ: [02_DuLieuKiemThu.sql](file:///c:/Project/WebBanSach_Final/02_DuLieuKiemThu.sql).
+Dự án cung cấp file SQL khởi tạo dữ liệu mẫu đầy đủ: `02_DuLieuKiemThu.sql`.
 
-### Cách 1: Chạy trực tiếp trong SQL Server Management Studio (SSMS)
-1. Mở SSMS và kết nối đến SQL Server cục bộ (ví dụ: `.\SQLEXPRESS` hoặc `localhost`).
-2. Mở file [02_DuLieuKiemThu.sql](file:///c:/Project/WebBanSach_Final/02_DuLieuKiemThu.sql).
-3. Nhấn **Execute (F5)** để nạp toàn bộ tài khoản và đơn hàng kiểm thử vào CSDL `BSDB2`.
+### Cách 1: Chạy trực tiếp bằng SSMS (Khuyên dùng)
+1. Mở SQL Server Management Studio (SSMS), kết nối vào SQL Server (`.\SQLEXPRESS`).
+2. Mở file `02_DuLieuKiemThu.sql` (`Ctrl + O`).
+3. Nhấn phím **`F5`** (Execute). Hệ thống sẽ nạp lại tồn kho 100 cuốn/đầu sách, tạo sẵn tài khoản `testuser`, `admin`, `manager` và 5 đơn hàng mẫu bao quát toàn bộ trạng thái.
 
 ---
 
-### Cách 2: Chạy qua PowerShell (Windows)
-Mở terminal PowerShell tại thư mục dự án và chạy:
+### Cách 2: Chạy trực tiếp qua PowerShell
+Chạy script PowerShell có sẵn trong thư mục gốc:
 ```powershell
 .\seed-test-data.ps1
 ```
-*(Mặc định kết nối tới `.\SQLEXPRESS`, nếu dùng instance khác có thể truyền tham số: `.\seed-test-data.ps1 -Server "localhost"`)*
-
----
-
-### Cách 3: Chạy bằng sqlcmd CLI
-```cmd
-sqlcmd -S .\SQLEXPRESS -E -i 02_DuLieuKiemThu.sql
-```
+*(Mặc định script kết nối vào `.\SQLEXPRESS`. Nếu bạn dùng instance khác, có thể truyền tham số: `.\seed-test-data.ps1 -ServerInstance "localhost"`).*
 
 ---
 
 ## 4. Các Đơn hàng Kiểm thử Mẫu có sẵn trong CSDL
 
-Tài khoản `testuser` được nạp sẵn 5 đơn hàng minh họa trọn vẹn vòng đời giao hàng để tiện kiểm thử tại **[tracking.html](http://localhost:8089/tracking.html)**:
+Tài khoản `testuser` được nạp sẵn 5 đơn hàng minh họa trọn vẹn vòng đời giao hàng và ghi chú đơn hàng để tiện kiểm thử tại **[tracking.html](http://localhost:8089/tracking.html)**:
 
-| Trạng thái | Tên trạng thái | Hình thức thanh toán | Tình trạng thanh toán | Hành động có thể test |
-|---|---|---|---|---|
-| **0** | **Chờ xử lý** | Tiền mặt (COD) | Chưa thanh toán | Khách hàng có thể bấm nút **"Hủy đơn"** (hoàn lại tồn kho). |
-| **1** | **Đã đóng gói** | Tiền mặt (COD) | Chưa thanh toán | Đơn hàng đang được kho chuẩn bị, không cho phép hủy. |
-| **2** | **Đang giao hàng**| Tiền mặt (COD) | Chưa thanh toán | Bưu tá đang giao, hiển thị huy hiệu xanh dương. |
-| **3** | **Đã giao thành công** | **Thẻ tín dụng (Credit Card)** | **Đã thanh toán trực tuyến** | Hoàn tất chu trình mua sách trực tuyến. |
-| **4** | **Đã hủy** | Tiền mặt (COD) | Đã hủy | Đơn hàng đã bị hủy bỏ thành công. |
+| Trạng thái | Tên trạng thái | Hình thức thanh toán | Tình trạng thanh toán | Ghi chú đơn hàng mẫu | Hành động có thể test |
+|---|---|---|---|---|---|
+| **0** | **Chờ xử lý** | Tiền mặt (COD) | Chưa thanh toán | `Giao trong giờ hành chính, gọi điện trước khi giao` | Khách hàng có thể bấm nút **"Hủy đơn"** (hoàn lại tồn kho). |
+| **1** | **Đã đóng gói** | Tiền mặt (COD) | Chưa thanh toán | `Bọc bìa cẩn thận giúp tôi, cảm ơn shop!` | Đơn hàng đang được kho chuẩn bị, không cho phép hủy. |
+| **2** | **Đang giao hàng**| Tiền mặt (COD) | Chưa thanh toán | `Gửi tại quầy lễ tân nếu không có nhà` | Bưu tá đang giao, hiển thị huy hiệu xanh dương. |
+| **3** | **Đã giao thành công** | **Thẻ tín dụng (Credit Card)** | **Đã thanh toán trực tuyến** | `Đã thanh toán thẻ tín dụng, giao tận tay người nhận` | Hoàn tất chu trình mua sách trực tuyến. |
+| **4** | **Đã hủy** | Tiền mặt (COD) | Đã hủy | `Khách gọi đổi địa chỉ` | Đơn hàng đã bị hủy bỏ thành công. |
 
 ---
 
@@ -116,6 +109,19 @@ Tài khoản `testuser` được nạp sẵn 5 đơn hàng minh họa trọn v�
 1. Mở trang quản trị: [http://localhost:8089/admin.html](http://localhost:8089/admin.html).
 2. Đăng nhập: `admin` / `123456`.
 3. Bảng điều khiển tải toàn bộ đơn hàng của hệ thống.
-4. Thử các bộ lọc trạng thái: **"Chờ xử lý"**, **"Đang giao"**, **"Hoàn thành"**.
-5. Tại cột **"Hành động"**, chọn dropdown để chuyển một đơn từ `0 - Chờ xử lý` sang `1 - Đã đóng gói` hoặc `2 - Đang giao hàng`.
-6. Hệ thống cập nhật trạng thái ngay lập tức trên máy chủ.
+4. Cột **"Ghi chú của khách"** hiển thị nổi bật các yêu cầu giao hàng riêng biệt.
+5. Thử các bộ lọc trạng thái: **"Chờ xử lý"**, **"Đang giao"**, **"Hoàn thành"**.
+6. Bấm nút **"Chi tiết"** trên đơn bất kỳ để xem Modal Chi tiết Đơn hàng (Thông tin người nhận, địa chỉ, hộp alert ghi chú, bảng sách và ảnh).
+7. Tại cột **"Hành động"** (hoặc trong Modal), chọn dropdown để chuyển một đơn từ `0 - Chờ xử lý` sang `1 - Đã đóng gói` hoặc `2 - Đang giao hàng`.
+8. Hệ thống cập nhật trạng thái ngay lập tức trên máy chủ.
+
+---
+
+### Kịch bản 4: Kiểm thử Ghi chú Đơn hàng (Order Note Flow)
+1. Vào [checkout.html](http://localhost:8089/checkout.html) khi đã đăng nhập `testuser`.
+2. Điền thông tin giao hàng và nhập ô **Ghi chú**: `Giao sau 18h tối, gọi trước khi đến`.
+3. Bấm **"Xác nhận & Đặt hàng"**.
+4. Màn hình xác nhận đặt hàng thành công hiển thị rõ dòng **Ghi chú giao hàng**.
+5. Mở [tracking.html](http://localhost:8089/tracking.html): Đơn hàng mới hiển thị hộp thông báo vàng:  
+   `Ghi chú đơn hàng: Giao sau 18h tối, gọi trước khi đến`.
+6. Mở [admin.html](http://localhost:8089/admin.html): Đơn hàng xuất hiện ở đầu bảng với badge ghi chú; bấm **"Chi tiết"** để xem hộp thoại chi tiết toàn bộ đơn hàng.

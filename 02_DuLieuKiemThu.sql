@@ -115,8 +115,8 @@ BEGIN
     -- 4.1. Đơn hàng 1: Trạng thái 0 (Chờ xử lý, Thanh toán COD)
     IF NOT EXISTS (SELECT 1 FROM DonDatHang WHERE MaKH = @UserId AND Tracking = 0 AND ThanhToan = 0)
     BEGIN
-        INSERT INTO DonDatHang (NgayDat, NgayGiao, TinhTrang, MaKH, ThanhToan, Tracking)
-        VALUES (DATEADD(HOUR, -2, GETDATE()), DATEADD(DAY, 3, GETDATE()), 0, @UserId, 0, 0);
+        INSERT INTO DonDatHang (NgayDat, NgayGiao, TinhTrang, MaKH, ThanhToan, Tracking, GhiChu)
+        VALUES (DATEADD(HOUR, -2, GETDATE()), DATEADD(DAY, 3, GETDATE()), 0, @UserId, 0, 0, N'Giao trong giờ hành chính, gọi điện trước khi giao');
         
         DECLARE @OrderId0 INT = SCOPE_IDENTITY();
         INSERT INTO ChiTietDDH (MaDDH, MaSach, SoLuong, DonGia)
@@ -126,8 +126,8 @@ BEGIN
     -- 4.2. Đơn hàng 2: Trạng thái 1 (Đã đóng gói, Thanh toán COD)
     IF NOT EXISTS (SELECT 1 FROM DonDatHang WHERE MaKH = @UserId AND Tracking = 1)
     BEGIN
-        INSERT INTO DonDatHang (NgayDat, NgayGiao, TinhTrang, MaKH, ThanhToan, Tracking)
-        VALUES (DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, 2, GETDATE()), 0, @UserId, 0, 1);
+        INSERT INTO DonDatHang (NgayDat, NgayGiao, TinhTrang, MaKH, ThanhToan, Tracking, GhiChu)
+        VALUES (DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, 2, GETDATE()), 0, @UserId, 0, 1, N'Bọc bìa cẩn thận giúp tôi, cảm ơn shop!');
         
         DECLARE @OrderId1 INT = SCOPE_IDENTITY();
         INSERT INTO ChiTietDDH (MaDDH, MaSach, SoLuong, DonGia)
@@ -137,8 +137,8 @@ BEGIN
     -- 4.3. Đơn hàng 3: Trạng thái 2 (Đang giao hàng, Thanh toán COD)
     IF NOT EXISTS (SELECT 1 FROM DonDatHang WHERE MaKH = @UserId AND Tracking = 2)
     BEGIN
-        INSERT INTO DonDatHang (NgayDat, NgayGiao, TinhTrang, MaKH, ThanhToan, Tracking)
-        VALUES (DATEADD(DAY, -2, GETDATE()), DATEADD(DAY, 1, GETDATE()), 0, @UserId, 0, 2);
+        INSERT INTO DonDatHang (NgayDat, NgayGiao, TinhTrang, MaKH, ThanhToan, Tracking, GhiChu)
+        VALUES (DATEADD(DAY, -2, GETDATE()), DATEADD(DAY, 1, GETDATE()), 0, @UserId, 0, 2, N'Gửi tại quầy lễ tân nếu không có nhà');
         
         DECLARE @OrderId2 INT = SCOPE_IDENTITY();
         INSERT INTO ChiTietDDH (MaDDH, MaSach, SoLuong, DonGia)
@@ -150,8 +150,8 @@ BEGIN
     -- 4.4. Đơn hàng 4: Trạng thái 3 (Đã giao thành công, Thanh toán qua Thẻ tín dụng Credit Card - Đã thanh toán)
     IF NOT EXISTS (SELECT 1 FROM DonDatHang WHERE MaKH = @UserId AND Tracking = 3 AND ThanhToan = 1)
     BEGIN
-        INSERT INTO DonDatHang (NgayDat, NgayGiao, TinhTrang, MaKH, ThanhToan, Tracking)
-        VALUES (DATEADD(DAY, -5, GETDATE()), DATEADD(DAY, -2, GETDATE()), 1, @UserId, 1, 3);
+        INSERT INTO DonDatHang (NgayDat, NgayGiao, TinhTrang, MaKH, ThanhToan, Tracking, GhiChu)
+        VALUES (DATEADD(DAY, -5, GETDATE()), DATEADD(DAY, -2, GETDATE()), 1, @UserId, 1, 3, N'Đã thanh toán thẻ tín dụng, giao tận tay người nhận');
         
         DECLARE @OrderId3 INT = SCOPE_IDENTITY();
         INSERT INTO ChiTietDDH (MaDDH, MaSach, SoLuong, DonGia)
@@ -161,8 +161,8 @@ BEGIN
     -- 4.5. Đơn hàng 5: Trạng thái 4 (Đã hủy)
     IF NOT EXISTS (SELECT 1 FROM DonDatHang WHERE MaKH = @UserId AND Tracking = 4)
     BEGIN
-        INSERT INTO DonDatHang (NgayDat, NgayGiao, TinhTrang, MaKH, ThanhToan, Tracking)
-        VALUES (DATEADD(DAY, -7, GETDATE()), DATEADD(DAY, -4, GETDATE()), 0, @UserId, 0, 4);
+        INSERT INTO DonDatHang (NgayDat, NgayGiao, TinhTrang, MaKH, ThanhToan, Tracking, GhiChu)
+        VALUES (DATEADD(DAY, -7, GETDATE()), DATEADD(DAY, -4, GETDATE()), 0, @UserId, 0, 4, N'Khách gọi đổi địa chỉ giao');
         
         DECLARE @OrderId4 INT = SCOPE_IDENTITY();
         INSERT INTO ChiTietDDH (MaDDH, MaSach, SoLuong, DonGia)

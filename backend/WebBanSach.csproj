@@ -1072,6 +1072,16 @@
     <Content Include="Content\Client\fonts\fontawesome-webfont.woff2" />
     <Content Include="Content\Client\fonts\FontAwesome.otf" />
     <Content Include="EmailTemplate\Text.cshtml" />
+    <Content Include="index.html" />
+    <Content Include="cart.html" />
+    <Content Include="checkout.html" />
+    <Content Include="tracking.html" />
+    <Content Include="login.html" />
+    <Content Include="register.html" />
+    <Content Include="admin.html" />
+    <Content Include="verify-email.html" />
+    <Content Include="book-details.html" />
+    <Content Include="js\api.js" />
     <None Include="Properties\PublishProfiles\123.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
