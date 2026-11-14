@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Cryptography;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
@@ -40,7 +41,7 @@ namespace WebBanSach.Controllers
         // ==========================================
 
         [HttpGet]
-        public JsonResult Books(int? categoryId = null, string search = null, int? page = 1, int? pageSize = 12, bool? bestSeller = null)
+        public JsonResult Books(int? categoryId = null, string search = null, int? page = 1, int? pageSize = 12, bool? bestSeller = null, string sortBy = "newest")
         {
             try
             {
@@ -58,13 +59,34 @@ namespace WebBanSach.Controllers
                                              (s.TacGia != null && s.TacGia.TenTG.ToLower().Contains(kw)));
                 }
 
-                if (bestSeller.HasValue && bestSeller.Value)
+                var hotSince = DateTime.Now.AddDays(-30);
+                switch ((sortBy ?? "newest").Trim().ToLowerInvariant())
                 {
-                    query = query.OrderByDescending(s => s.MaSach);
-                }
-                else
-                {
-                    query = query.OrderByDescending(s => s.NgayCapNhat).ThenByDescending(s => s.MaSach);
+                    case "price-asc":
+                        query = query.OrderBy(s => (s.GiaBan ?? 0) * (100 - s.GiamGia) / 100m).ThenByDescending(s => s.MaSach);
+                        break;
+                    case "price-desc":
+                        query = query.OrderByDescending(s => (s.GiaBan ?? 0) * (100 - s.GiamGia) / 100m).ThenByDescending(s => s.MaSach);
+                        break;
+                    case "hot":
+                        query = query.OrderByDescending(s => db.ChiTietDDHs.Where(d => d.MaSach == s.MaSach && d.DonDatHang.Tracking != 4 && d.DonDatHang.NgayDat >= hotSince).Sum(d => (int?)d.SoLuong) ?? 0).ThenByDescending(s => s.MaSach);
+                        break;
+                    case "popular":
+                        query = query.OrderByDescending(s => db.DanhGiaSaches.Where(r => r.MaSach == s.MaSach).Select(r => (double?)r.SoSao).Average() ?? 0).ThenByDescending(s => db.DanhGiaSaches.Count(r => r.MaSach == s.MaSach)).ThenByDescending(s => s.MaSach);
+                        break;
+                    case "sales":
+                        query = query.OrderByDescending(s => db.ChiTietDDHs.Where(d => d.MaSach == s.MaSach && d.DonDatHang.Tracking != 4).Sum(d => (int?)d.SoLuong) ?? 0).ThenByDescending(s => s.MaSach);
+                        break;
+                    default:
+                        if (bestSeller.HasValue && bestSeller.Value)
+                        {
+                            query = query.OrderByDescending(s => db.ChiTietDDHs.Where(d => d.MaSach == s.MaSach && d.DonDatHang.Tracking != 4).Sum(d => (int?)d.SoLuong) ?? 0).ThenByDescending(s => s.MaSach);
+                        }
+                        else
+                        {
+                            query = query.OrderByDescending(s => s.NgayCapNhat).ThenByDescending(s => s.MaSach);
+                        }
+                        break;
                 }
 
                 int totalItems = query.Count();
@@ -72,13 +94,33 @@ namespace WebBanSach.Controllers
                 int limit = Math.Max(1, Math.Min(100, pageSize ?? 12));
 
                 var items = query.Skip((curPage - 1) * limit).Take(limit).ToList();
+                var bookIds = items.Select(s => s.MaSach).ToList();
+                var reviewStats = db.DanhGiaSaches.AsNoTracking().Where(r => bookIds.Contains(r.MaSach))
+                    .GroupBy(r => r.MaSach)
+                    .Select(g => new { BookId = g.Key, Average = g.Average(r => r.SoSao), Count = g.Count() })
+                    .ToDictionary(x => x.BookId);
+                var salesStats = db.ChiTietDDHs.AsNoTracking().Where(d => bookIds.Contains(d.MaSach) && d.DonDatHang.Tracking != 4)
+                    .GroupBy(d => d.MaSach)
+                    .Select(g => new { BookId = g.Key, Count = g.Sum(d => (int?)d.SoLuong) ?? 0 })
+                    .ToDictionary(x => x.BookId, x => x.Count);
+                var hotStats = db.ChiTietDDHs.AsNoTracking().Where(d => bookIds.Contains(d.MaSach) && d.DonDatHang.Tracking != 4 && d.DonDatHang.NgayDat >= hotSince)
+                    .GroupBy(d => d.MaSach)
+                    .Select(g => new { BookId = g.Key, Count = g.Sum(d => (int?)d.SoLuong) ?? 0 })
+                    .ToDictionary(x => x.BookId, x => x.Count);
 
                 var result = items.Select(s => new
                 {
                     id = s.MaSach,
                     title = s.TenSach,
-                    price = s.GiaBan ?? 0,
-                    priceFormatted = string.Format("{0:N0} VND", s.GiaBan ?? 0),
+                    price = s.GiaSauGiam,
+                    priceFormatted = string.Format("{0:N0} VND", s.GiaSauGiam),
+                    originalPrice = s.GiaBan ?? 0,
+                    originalPriceFormatted = string.Format("{0:N0} VND", s.GiaBan ?? 0),
+                    discountPercent = s.GiamGia,
+                    averageRating = reviewStats.ContainsKey(s.MaSach) ? reviewStats[s.MaSach].Average : 0,
+                    reviewCount = reviewStats.ContainsKey(s.MaSach) ? reviewStats[s.MaSach].Count : 0,
+                    salesCount = salesStats.ContainsKey(s.MaSach) ? salesStats[s.MaSach] : 0,
+                    hotSalesCount = hotStats.ContainsKey(s.MaSach) ? hotStats[s.MaSach] : 0,
                     image = string.IsNullOrEmpty(s.AnhBia) ? "topSach.png" : s.AnhBia,
                     stock = s.SoLuongTon ?? 0,
                     categoryId = s.MaLoai,
@@ -115,15 +157,23 @@ namespace WebBanSach.Controllers
                     return Json(new { status = false, message = "Không tìm thấy sách" }, JsonRequestBehavior.AllowGet);
                 }
 
-                var related = db.Saches.AsNoTracking()
+                var relatedBooks = db.Saches.AsNoTracking()
                     .Where(x => x.MaLoai == s.MaLoai && x.MaSach != s.MaSach)
                     .Take(4)
-                    .Select(r => new
+                    .ToList();
+                var averageRating = db.DanhGiaSaches.Where(r => r.MaSach == id).Select(r => (double?)r.SoSao).Average() ?? 0;
+                var reviewCount = db.DanhGiaSaches.Count(r => r.MaSach == id);
+                var related = relatedBooks.Select(r => new
                     {
                         id = r.MaSach,
                         title = r.TenSach,
-                        price = r.GiaBan ?? 0,
-                        priceFormatted = string.Format("{0:N0} VND", r.GiaBan ?? 0),
+                        price = r.GiaSauGiam,
+                        priceFormatted = string.Format("{0:N0} VND", r.GiaSauGiam),
+                        originalPrice = r.GiaBan ?? 0,
+                        originalPriceFormatted = string.Format("{0:N0} VND", r.GiaBan ?? 0),
+                        discountPercent = r.GiamGia,
+                        averageRating = db.DanhGiaSaches.Where(review => review.MaSach == r.MaSach).Select(review => (double?)review.SoSao).Average() ?? 0,
+                        reviewCount = db.DanhGiaSaches.Count(review => review.MaSach == r.MaSach),
                         image = string.IsNullOrEmpty(r.AnhBia) ? "topSach.png" : r.AnhBia
                     }).ToList();
 
@@ -134,8 +184,13 @@ namespace WebBanSach.Controllers
                     {
                         id = s.MaSach,
                         title = s.TenSach,
-                        price = s.GiaBan ?? 0,
-                        priceFormatted = string.Format("{0:N0} VND", s.GiaBan ?? 0),
+                        price = s.GiaSauGiam,
+                        priceFormatted = string.Format("{0:N0} VND", s.GiaSauGiam),
+                        originalPrice = s.GiaBan ?? 0,
+                        originalPriceFormatted = string.Format("{0:N0} VND", s.GiaBan ?? 0),
+                        discountPercent = s.GiamGia,
+                        averageRating = averageRating,
+                        reviewCount = reviewCount,
                         image = string.IsNullOrEmpty(s.AnhBia) ? "topSach.png" : s.AnhBia,
                         stock = s.SoLuongTon ?? 0,
                         categoryId = s.MaLoai,
@@ -152,6 +207,97 @@ namespace WebBanSach.Controllers
             {
                 return Json(new { status = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
+        }
+
+        [HttpGet]
+        public JsonResult BookReviews(int id)
+        {
+            try
+            {
+                if (!db.Saches.Any(s => s.MaSach == id))
+                {
+                    return Json(new { status = false, message = "Không tìm thấy sách." }, JsonRequestBehavior.AllowGet);
+                }
+
+                var count = db.DanhGiaSaches.Count(r => r.MaSach == id);
+                var average = db.DanhGiaSaches.Where(r => r.MaSach == id).Select(r => (double?)r.SoSao).Average() ?? 0;
+                var reviews = db.DanhGiaSaches.AsNoTracking().Where(r => r.MaSach == id)
+                    .OrderByDescending(r => r.NgayDanhGia).Take(100).ToList();
+                var customerIds = reviews.Select(r => r.MaKH).Distinct().ToList();
+                var customerNames = db.KhachHangs.AsNoTracking().Where(k => customerIds.Contains(k.MaKH))
+                    .ToDictionary(k => k.MaKH, k => k.TenKH);
+
+                var userId = Session["UserId"] as int?;
+                var customer = userId.HasValue
+                    ? db.KhachHangs.AsNoTracking().FirstOrDefault(k => k.MaKH == userId.Value && k.TrangThai && k.EmailVerified)
+                    : null;
+                var myReview = customer == null ? null : reviews.FirstOrDefault(r => r.MaKH == customer.MaKH);
+                if (customer != null && myReview == null)
+                {
+                    myReview = db.DanhGiaSaches.AsNoTracking().FirstOrDefault(r => r.MaSach == id && r.MaKH == customer.MaKH);
+                }
+
+                return Json(new
+                {
+                    status = true,
+                    averageRating = average,
+                    reviewCount = count,
+                    canReview = customer != null,
+                    myReview = myReview == null ? null : new { rating = myReview.SoSao, comment = myReview.NoiDung },
+                    data = reviews.Select(r => new
+                    {
+                        rating = r.SoSao,
+                        comment = r.NoiDung,
+                        date = r.NgayDanhGia.ToString("dd/MM/yyyy"),
+                        customerName = customerNames.ContainsKey(r.MaKH) ? customerNames[r.MaKH] : "Khách hàng"
+                    }).ToList()
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public JsonResult SubmitBookReview(int bookId, int rating, string comment)
+        {
+            var userId = Session["UserId"] as int?;
+            if (!userId.HasValue)
+            {
+                Response.StatusCode = 401;
+                return Json(new { status = false, message = "Vui lòng đăng nhập để đánh giá sách." });
+            }
+
+            var customer = db.KhachHangs.FirstOrDefault(k => k.MaKH == userId.Value && k.TrangThai && k.EmailVerified);
+            if (customer == null)
+            {
+                Response.StatusCode = 403;
+                return Json(new { status = false, message = "Tài khoản cần hoạt động và xác minh email để đánh giá." });
+            }
+
+            if (rating < 1 || rating > 5 || (comment ?? "").Trim().Length > 1000)
+            {
+                return Json(new { status = false, message = "Điểm đánh giá phải từ 1 đến 5 sao; bình luận tối đa 1000 ký tự." });
+            }
+
+            if (!db.Saches.Any(s => s.MaSach == bookId))
+            {
+                return Json(new { status = false, message = "Không tìm thấy sách." });
+            }
+
+            var review = db.DanhGiaSaches.FirstOrDefault(r => r.MaSach == bookId && r.MaKH == customer.MaKH);
+            if (review == null)
+            {
+                review = new DanhGiaSach { MaSach = bookId, MaKH = customer.MaKH };
+                db.DanhGiaSaches.Add(review);
+            }
+
+            review.SoSao = rating;
+            review.NoiDung = (comment ?? "").Trim();
+            review.NgayDanhGia = DateTime.Now;
+            db.SaveChanges();
+            return Json(new { status = true, message = "Đã lưu đánh giá của bạn." });
         }
 
         [HttpGet]
@@ -203,8 +349,11 @@ namespace WebBanSach.Controllers
                 {
                     id = x.sach.MaSach,
                     title = x.sach.TenSach,
-                    price = x.sach.GiaBan ?? 0,
-                    priceFormatted = string.Format("{0:N0} VND", x.sach.GiaBan ?? 0),
+                    price = x.sach.GiaSauGiam,
+                    priceFormatted = string.Format("{0:N0} VND", x.sach.GiaSauGiam),
+                    originalPrice = x.sach.GiaBan ?? 0,
+                    originalPriceFormatted = string.Format("{0:N0} VND", x.sach.GiaBan ?? 0),
+                    discountPercent = x.sach.GiamGia,
                     image = string.IsNullOrEmpty(x.sach.AnhBia) ? "topSach.png" : x.sach.AnhBia,
                     quantity = x.Quantity,
                     subtotal = x.Total.GetValueOrDefault(0),
@@ -726,7 +875,7 @@ namespace WebBanSach.Controllers
                             MaDDH = order.MaDDH,
                             MaSach = item.sach.MaSach,
                             SoLuong = item.Quantity,
-                            DonGia = item.sach.GiaBan ?? 0
+                            DonGia = book.GiaSauGiam
                         };
                         db.ChiTietDDHs.Add(detail);
                     }
@@ -895,9 +1044,153 @@ namespace WebBanSach.Controllers
             }
         }
 
+        [HttpPost]
+        public JsonResult AdminLogout()
+        {
+            Session.Remove("AdminUser");
+            Session.Remove("AdminName");
+            return Json(new { status = true });
+        }
+
+        [HttpGet]
+        public JsonResult AdminCatalog()
+        {
+            if (!IsAdminAuthenticated())
+            {
+                Response.StatusCode = 401;
+                return Json(new { status = false, message = "Vui lòng đăng nhập tài khoản admin." }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new
+            {
+                status = true,
+                categories = db.TheLoais.AsNoTracking().OrderBy(x => x.TenLoai).Select(x => new { id = x.MaLoai, name = x.TenLoai }).ToList(),
+                authors = db.TacGias.AsNoTracking().OrderBy(x => x.TenTG).Select(x => new { id = x.MaTG, name = x.TenTG }).ToList(),
+                publishers = db.NhaXuatBans.AsNoTracking().OrderBy(x => x.TenNXB).Select(x => new { id = x.MaNXB, name = x.TenNXB }).ToList()
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult AdminCreateBook(string title, decimal? price, int? discountPercent, int? categoryId, string authorName, int? publisherId, int? stock, string translator, string description, HttpPostedFileBase cover)
+        {
+            if (!IsAdminAuthenticated())
+            {
+                Response.StatusCode = 401;
+                return Json(new { status = false, message = "Vui lòng đăng nhập tài khoản admin." });
+            }
+
+            title = (title ?? "").Trim();
+            authorName = (authorName ?? "").Trim();
+            translator = (translator ?? "").Trim();
+            description = (description ?? "").Trim();
+
+            if (title.Length == 0 || title.Length > 250 || authorName.Length == 0 || authorName.Length > 50 || translator.Length > 50 || description.Length > 500 ||
+                !price.HasValue || price.Value < 0 || !discountPercent.HasValue || discountPercent.Value < 0 || discountPercent.Value > 100 || !stock.HasValue || stock.Value < 0 ||
+                !categoryId.HasValue || !publisherId.HasValue ||
+                !db.TheLoais.Any(x => x.MaLoai == categoryId.Value) ||
+                !db.NhaXuatBans.Any(x => x.MaNXB == publisherId.Value))
+            {
+                return Json(new { status = false, message = "Vui lòng kiểm tra các thông tin sản phẩm." });
+            }
+
+            if (cover == null || cover.ContentLength == 0 || cover.ContentLength > 4 * 1024 * 1024)
+            {
+                return Json(new { status = false, message = "Vui lòng chọn ảnh bìa hợp lệ, dung lượng tối đa 4 MB." });
+            }
+
+            var extension = Path.GetExtension(cover.FileName).ToLowerInvariant();
+            if (extension != ".jpg" && extension != ".jpeg" && extension != ".jfif" && extension != ".png" && extension != ".gif" && extension != ".bmp")
+            {
+                return Json(new { status = false, message = "Ảnh bìa chỉ hỗ trợ JPG, JFIF, PNG, GIF hoặc BMP." });
+            }
+
+            string coverPath = null;
+            try
+            {
+                Guid imageFormat;
+                using (var image = System.Drawing.Image.FromStream(cover.InputStream))
+                {
+                    imageFormat = image.RawFormat.Guid;
+                    if (image.Width > 8000 || image.Height > 8000 || (long)image.Width * image.Height > 40000000)
+                    {
+                        return Json(new { status = false, message = "Kích thước ảnh bìa quá lớn." });
+                    }
+                }
+
+                var allowedFormats = new[]
+                {
+                    System.Drawing.Imaging.ImageFormat.Jpeg.Guid,
+                    System.Drawing.Imaging.ImageFormat.Png.Guid,
+                    System.Drawing.Imaging.ImageFormat.Gif.Guid,
+                    System.Drawing.Imaging.ImageFormat.Bmp.Guid
+                };
+                var expectedFormat = extension == ".jpg" || extension == ".jpeg" || extension == ".jfif"
+                    ? System.Drawing.Imaging.ImageFormat.Jpeg.Guid
+                    : extension == ".png"
+                        ? System.Drawing.Imaging.ImageFormat.Png.Guid
+                        : extension == ".gif"
+                            ? System.Drawing.Imaging.ImageFormat.Gif.Guid
+                            : System.Drawing.Imaging.ImageFormat.Bmp.Guid;
+                if (!allowedFormats.Contains(imageFormat) || imageFormat != expectedFormat)
+                {
+                    return Json(new { status = false, message = "Tệp tải lên không phải ảnh hợp lệ." });
+                }
+
+                cover.InputStream.Position = 0;
+                var fileName = Guid.NewGuid().ToString("N") + extension;
+                coverPath = Server.MapPath("~/images/" + fileName);
+                cover.SaveAs(coverPath);
+
+                using (var transaction = db.Database.BeginTransaction())
+                {
+                    var author = db.TacGias.FirstOrDefault(x => x.TenTG.Trim() == authorName);
+                    if (author == null)
+                    {
+                        author = new TacGia { TenTG = authorName };
+                        db.TacGias.Add(author);
+                        db.SaveChanges();
+                    }
+
+                    var book = new Sach
+                    {
+                        TenSach = title,
+                        GiaBan = price.Value,
+                        GiamGia = discountPercent.Value,
+                        MaLoai = categoryId.Value,
+                        MaTG = author.MaTG,
+                        MaNXB = publisherId.Value,
+                        SoLuongTon = stock.Value,
+                        NguoiDich = translator.Length == 0 ? null : translator,
+                        Mota = description.Length == 0 ? null : description,
+                        AnhBia = fileName,
+                        NgayCapNhat = DateTime.Now
+                    };
+
+                    db.Saches.Add(book);
+                    db.SaveChanges();
+                    transaction.Commit();
+                    return Json(new { status = true, message = "Thêm sản phẩm thành công.", id = book.MaSach });
+                }
+            }
+            catch (Exception)
+            {
+                if (!string.IsNullOrEmpty(coverPath) && System.IO.File.Exists(coverPath))
+                {
+                    System.IO.File.Delete(coverPath);
+                }
+                return Json(new { status = false, message = "Không thể lưu sản phẩm. Vui lòng thử lại." });
+            }
+        }
+
         [HttpGet]
         public JsonResult AdminOrders()
         {
+            if (!IsAdminAuthenticated())
+            {
+                Response.StatusCode = 401;
+                return Json(new { status = false, message = "Vui lòng đăng nhập tài khoản admin." }, JsonRequestBehavior.AllowGet);
+            }
+
             try
             {
                 var orders = db.DonDatHangs.AsNoTracking().Include(o => o.KhachHang).OrderByDescending(o => o.NgayDat).ToList();
@@ -941,6 +1234,12 @@ namespace WebBanSach.Controllers
         [HttpPost]
         public JsonResult AdminUpdateOrderStatus(int id, int status)
         {
+            if (!IsAdminAuthenticated())
+            {
+                Response.StatusCode = 401;
+                return Json(new { status = false, message = "Vui lòng đăng nhập tài khoản admin." });
+            }
+
             try
             {
                 var order = db.DonDatHangs.Find(id);
@@ -976,6 +1275,11 @@ namespace WebBanSach.Controllers
                 case 4: return "Đã hủy";
                 default: return "Đang xử lý";
             }
+        }
+
+        private bool IsAdminAuthenticated()
+        {
+            return Session["AdminUser"] != null;
         }
     }
 }

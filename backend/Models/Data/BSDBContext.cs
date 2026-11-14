@@ -15,6 +15,7 @@
         }
 
         public virtual DbSet<Admin> Admins { get; set; }
+        public virtual DbSet<DanhGiaSach> DanhGiaSaches { get; set; }
         public virtual DbSet<ChiTietDDH> ChiTietDDHs { get; set; }
         public virtual DbSet<DonDatHang> DonDatHangs { get; set; }
         public virtual DbSet<KhachHang> KhachHangs { get; set; }

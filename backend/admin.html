@@ -77,11 +77,77 @@
                     <p class="text-muted small mb-0">Theo dõi, điều phối và cập nhật trạng thái các đơn hàng từ khách hàng</p>
                 </div>
                 <div class="d-flex gap-2">
+                    <button class="btn btn-danger btn-sm" type="button" onclick="toggleAddBookForm()">
+                        <i class="fa fa-plus me-1"></i> Thêm sản phẩm
+                    </button>
                     <button class="btn btn-outline-primary btn-sm" onclick="loadAdminOrders()">
                         <i class="fa fa-refresh me-1"></i> Tải lại
                     </button>
                 </div>
             </div>
+
+            <section id="adminAddBookPanel" class="card border-0 shadow-sm mb-4" style="display: none;">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fa fa-book text-danger me-2"></i>Thông tin sản phẩm mới</h5>
+                </div>
+                <div class="card-body">
+                    <div id="adminBookAlert" class="alert alert-danger py-2 small" style="display: none;"></div>
+                    <form id="adminBookForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="bookTitle">Tên sách</label>
+                                <input id="bookTitle" name="title" class="form-control" maxlength="250" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label" for="bookPrice">Giá gốc (VND)</label>
+                                <input id="bookPrice" name="price" type="number" class="form-control" min="0" step="1000" placeholder="0" onfocus="this.select()" oninput="normalizeNumberInput(this)" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label" for="bookDiscount">Giảm giá (%)</label>
+                                <input id="bookDiscount" name="discountPercent" type="number" class="form-control" min="0" max="100" step="1" value="0" onfocus="this.select()" oninput="normalizeNumberInput(this)" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label" for="bookStock">Số lượng tồn</label>
+                                <input id="bookStock" name="stock" type="number" class="form-control" min="0" step="1" placeholder="0" onfocus="this.select()" oninput="normalizeNumberInput(this)" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="bookCategory">Thể loại</label>
+                                <select id="bookCategory" name="categoryId" class="form-select" required>
+                                    <option value="">Đang tải...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="bookAuthor">Tác giả</label>
+                                <input id="bookAuthor" name="authorName" class="form-control" list="bookAuthorSuggestions" maxlength="50" autocomplete="off" required>
+                                <datalist id="bookAuthorSuggestions"></datalist>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="bookPublisher">Nhà xuất bản</label>
+                                <select id="bookPublisher" name="publisherId" class="form-select" required>
+                                    <option value="">Đang tải...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="bookTranslator">Người dịch</label>
+                                <input id="bookTranslator" name="translator" class="form-control" maxlength="50">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="bookCover">Ảnh bìa</label>
+                                <input id="bookCover" name="cover" type="file" class="form-control" accept=".jpg,.jpeg,.jfif,.png,.gif,.bmp" required>
+                                <div class="form-text">JPG, JFIF, PNG, GIF hoặc BMP, tối đa 4 MB</div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="bookDescription">Mô tả</label>
+                                <textarea id="bookDescription" name="description" class="form-control" rows="3" maxlength="500"></textarea>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <button type="button" class="btn btn-outline-secondary" onclick="toggleAddBookForm(false)">Đóng</button>
+                            <button id="btnSaveBook" type="submit" class="btn btn-danger"><i class="fa fa-save me-1"></i>Lưu sản phẩm</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
 
             <!-- Filter Tabs -->
             <div class="card border-0 shadow-sm rounded-3 mb-4">
@@ -164,6 +230,79 @@
             document.getElementById('adminNameDisplay').style.display = 'inline-block';
             document.getElementById('btnAdminLogout').style.display = 'inline-block';
             loadAdminOrders();
+            loadAdminCatalog();
+        }
+
+        function toggleAddBookForm(forceOpen) {
+            const panel = document.getElementById('adminAddBookPanel');
+            const open = typeof forceOpen === 'boolean' ? forceOpen : panel.style.display === 'none';
+            panel.style.display = open ? 'block' : 'none';
+            if (open) loadAdminCatalog();
+        }
+
+        function populateAdminSelect(id, items, placeholder) {
+            const select = document.getElementById(id);
+            select.innerHTML = '';
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.textContent = placeholder;
+            select.appendChild(placeholderOption);
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name;
+                select.appendChild(option);
+            });
+        }
+
+        function populateAdminDatalist(id, items) {
+            const datalist = document.getElementById(id);
+            datalist.innerHTML = '';
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.name;
+                datalist.appendChild(option);
+            });
+        }
+
+        function normalizeNumberInput(input) {
+            input.value = input.value.replace(/^0+(?=\d)/, '');
+        }
+
+        async function loadAdminCatalog() {
+            try {
+                const res = await api.getAdminCatalog();
+                if (!res.status) throw new Error(res.message || 'Không thể tải danh mục sản phẩm.');
+                populateAdminSelect('bookCategory', res.categories || [], 'Chọn thể loại');
+                populateAdminDatalist('bookAuthorSuggestions', res.authors || []);
+                populateAdminSelect('bookPublisher', res.publishers || [], 'Chọn nhà xuất bản');
+            } catch (err) {
+                const alertBox = document.getElementById('adminBookAlert');
+                alertBox.textContent = err.message;
+                alertBox.style.display = 'block';
+            }
+        }
+
+        async function handleAddBook(event) {
+            event.preventDefault();
+            const form = document.getElementById('adminBookForm');
+            const alertBox = document.getElementById('adminBookAlert');
+            const submitButton = document.getElementById('btnSaveBook');
+            alertBox.style.display = 'none';
+            submitButton.disabled = true;
+
+            try {
+                const res = await api.addAdminBook(new FormData(form));
+                if (!res.status) throw new Error(res.message || 'Không thể thêm sản phẩm.');
+                showToast(res.message || 'Thêm sản phẩm thành công.');
+                form.reset();
+                toggleAddBookForm(false);
+            } catch (err) {
+                alertBox.textContent = err.message;
+                alertBox.style.display = 'block';
+            } finally {
+                submitButton.disabled = false;
+            }
         }
 
         async function handleAdminLogin(e) {
@@ -197,7 +336,12 @@
             }
         }
 
-        function handleAdminLogout() {
+        async function handleAdminLogout() {
+            try {
+                await api.adminLogout();
+            } catch (err) {
+                console.error('Admin logout error:', err);
+            }
             sessionStorage.removeItem('adminUser');
             showLogin();
         }
@@ -322,6 +466,7 @@
             }
         }
 
+        document.getElementById('adminBookForm').addEventListener('submit', handleAddBook);
         document.addEventListener("DOMContentLoaded", checkAdminSession);
     </script>
 </body>

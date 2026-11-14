@@ -86,6 +86,27 @@ BEGIN
     UPDATE Admin SET MatKhau = '123456', HoTen = N'Điều Phối Viên Đơn Hàng', TrangThai = 1 WHERE TaiKhoan = 'manager';
 END;
 
+-- Thêm các thể loại và nhà xuất bản phổ biến nếu chưa có
+IF NOT EXISTS (SELECT 1 FROM TheLoai WHERE TenLoai = N'Manga - Truyện Tranh')
+    INSERT INTO TheLoai (TenLoai) VALUES (N'Manga - Truyện Tranh');
+IF NOT EXISTS (SELECT 1 FROM TheLoai WHERE TenLoai = N'Kinh Dị')
+    INSERT INTO TheLoai (TenLoai) VALUES (N'Kinh Dị');
+IF NOT EXISTS (SELECT 1 FROM TheLoai WHERE TenLoai = N'Trinh Thám')
+    INSERT INTO TheLoai (TenLoai) VALUES (N'Trinh Thám');
+IF NOT EXISTS (SELECT 1 FROM TheLoai WHERE TenLoai = N'Khoa Học Viễn Tưởng')
+    INSERT INTO TheLoai (TenLoai) VALUES (N'Khoa Học Viễn Tưởng');
+
+IF NOT EXISTS (SELECT 1 FROM NhaXuatBan WHERE LTRIM(RTRIM(TenNXB)) = N'NXB Kim Đồng')
+    INSERT INTO NhaXuatBan (TenNXB) VALUES (N'NXB Kim Đồng');
+IF NOT EXISTS (SELECT 1 FROM NhaXuatBan WHERE LTRIM(RTRIM(TenNXB)) = N'NXB Giáo Dục Việt Nam')
+    INSERT INTO NhaXuatBan (TenNXB) VALUES (N'NXB Giáo Dục Việt Nam');
+IF NOT EXISTS (SELECT 1 FROM NhaXuatBan WHERE LTRIM(RTRIM(TenNXB)) = N'NXB Văn Học')
+    INSERT INTO NhaXuatBan (TenNXB) VALUES (N'NXB Văn Học');
+IF NOT EXISTS (SELECT 1 FROM NhaXuatBan WHERE LTRIM(RTRIM(TenNXB)) = N'NXB Tổng Hợp TP.HCM')
+    INSERT INTO NhaXuatBan (TenNXB) VALUES (N'NXB Tổng Hợp TP.HCM');
+IF NOT EXISTS (SELECT 1 FROM NhaXuatBan WHERE LTRIM(RTRIM(TenNXB)) = N'NXB Dân Trí')
+    INSERT INTO NhaXuatBan (TenNXB) VALUES (N'NXB Dân Trí');
+
 -- ====================================================================
 -- 3. CẬP NHẬT TỒN KHO & GIÁ BÁN SÁCH
 -- ====================================================================

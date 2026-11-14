@@ -380,6 +380,7 @@ namespace WebBanSach.Models.Process
                 sach.MaTG = entity.MaTG;
                 sach.TenSach = entity.TenSach;
                 sach.GiaBan = entity.GiaBan;
+                sach.GiamGia = entity.GiamGia;
                 sach.Mota = entity.Mota;
                 sach.NguoiDich = entity.NguoiDich;
                 sach.AnhBia = entity.AnhBia;

@@ -427,6 +427,7 @@
                         <img src="images/${item.image}" alt="${item.title}" class="rounded me-3 border" style="width: 50px; height: 65px; object-fit: cover;">
                         <div class="flex-grow-1 min-w-0">
                             <h6 class="mb-1 text-truncate small fw-semibold text-dark">${item.title}</h6>
+                            ${item.discountPercent > 0 ? `<div class="text-muted small"><del>${item.originalPriceFormatted}</del> -${item.discountPercent}%</div>` : ''}
                             <div class="text-muted small">${item.quantity} x ${formatVND(item.price)}</div>
                         </div>
                         <div class="text-end fw-semibold small text-danger">

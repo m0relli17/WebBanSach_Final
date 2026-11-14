@@ -13,7 +13,7 @@ namespace WebBanSach.Models
         public int Quantity { get; set; }
         public decimal? Total
         {
-            get { return Quantity * sach.GiaBan; }
+            get { return Quantity * sach.GiaSauGiam; }
         }
     }
 }

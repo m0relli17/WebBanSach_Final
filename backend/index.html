@@ -75,9 +75,19 @@
 
             <!-- Books Grid -->
             <div class="col-lg-9">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                     <h4 id="catalogTitle" class="fw-bold m-0 text-dark">Tất cả sách</h4>
-                    <span id="bookCount" class="text-muted small">Đang tải...</span>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <select id="sortSelect" class="form-select form-select-sm" aria-label="Sắp xếp sách" onchange="changeSort(this.value)">
+                            <option value="newest">Mới cập nhật</option>
+                            <option value="price-asc">Giá thấp đến cao</option>
+                            <option value="price-desc">Giá cao đến thấp</option>
+                            <option value="hot">Độ hot (30 ngày)</option>
+                            <option value="popular">Phổ biến (đánh giá)</option>
+                            <option value="sales">Lượt bán</option>
+                        </select>
+                        <span id="bookCount" class="text-muted small">Đang tải...</span>
+                    </div>
                 </div>
 
                 <div id="booksGrid" class="row g-3">
@@ -131,6 +141,15 @@
         let currentCategory = null;
         let currentSearch = '';
         let currentPage = 1;
+        let currentSort = 'newest';
+
+        function renderRatingSummary(average, count) {
+            const score = Number(average) || 0;
+            const stars = Array.from({ length: 5 }, (_, index) =>
+                `<i class="fa ${index < Math.round(score) ? 'fa-star' : 'fa-star-o'}"></i>`
+            ).join('');
+            return `<span class="text-warning" aria-label="${score.toFixed(1)} trên 5 sao">${stars}</span> <span class="small text-muted">${score.toFixed(1)} (${count || 0})</span>`;
+        }
 
         async function loadCategories() {
             try {
@@ -160,7 +179,7 @@
             container.innerHTML = `<div class="col-12 text-center py-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x mb-3"></i><p>Đang tải danh sách sách...</p></div>`;
 
             try {
-                const params = { page: currentPage, pageSize: 9 };
+                const params = { page: currentPage, pageSize: 9, sortBy: currentSort };
                 if (currentCategory) params.categoryId = currentCategory;
                 if (currentSearch) params.search = currentSearch;
 
@@ -192,7 +211,11 @@
                                         ${book.title}
                                     </a>
                                     <div class="book-author"><i class="fa fa-pencil me-1"></i> ${book.author}</div>
-                                    <div class="book-price">${book.priceFormatted}</div>
+                                    <div class="mb-1">${renderRatingSummary(book.averageRating, book.reviewCount)}</div>
+                                    <div class="book-price">
+                                        ${book.discountPercent > 0 ? `<div><del class="text-muted small">${book.originalPriceFormatted}</del> <span class="badge bg-danger">-${book.discountPercent}%</span></div>` : ''}
+                                        <div>${book.priceFormatted}</div>
+                                    </div>
                                     <div class="d-flex gap-2">
                                         <a href="book-details.html?id=${book.id}" class="btn btn-outline-secondary btn-book-action flex-fill">Chi tiết</a>
                                         <button class="btn btn-danger btn-book-action" onclick="handleAddToCart(${book.id})" title="Thêm vào giỏ">
@@ -244,6 +267,12 @@
 
         function handleSearch() {
             currentSearch = document.getElementById('searchInput').value.trim();
+            currentPage = 1;
+            loadBooks();
+        }
+
+        function changeSort(sortBy) {
+            currentSort = sortBy;
             currentPage = 1;
             loadBooks();
         }

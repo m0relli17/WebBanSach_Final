@@ -40,6 +40,20 @@
         [Display(Name = "Giá bán")]
         public decimal? GiaBan { get; set; }
 
+        [Range(0, 100)]
+        [Display(Name = "Giảm giá (%)")]
+        public int GiamGia { get; set; }
+
+        [NotMapped]
+        public decimal GiaSauGiam
+        {
+            get
+            {
+                var discount = Math.Max(0, Math.Min(100, GiamGia));
+                return decimal.Round(GiaBan.GetValueOrDefault() * (100 - discount) / 100m, 0, MidpointRounding.AwayFromZero);
+            }
+        }
+
         [StringLength(500)]
         [Display(Name = "Mô tả")]
         public string Mota { get; set; }

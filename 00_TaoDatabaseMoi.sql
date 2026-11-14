@@ -214,6 +214,7 @@ CREATE TABLE [dbo].[Sach](
 	[MaTG] [int] NOT NULL,
 	[TenSach] [nvarchar](250) NULL,
 	[GiaBan] [money] NULL,
+	[GiamGia] [int] NOT NULL CONSTRAINT [DF_Sach_GiamGia] DEFAULT (0),
 	[Mota] [nvarchar](500) NULL,
 	[NguoiDich] [nvarchar](50) NULL,
 	[AnhBia] [varchar](50) NULL,
@@ -227,6 +228,21 @@ PRIMARY KEY CLUSTERED
 
 GO
 SET ANSI_PADDING OFF
+GO
+CREATE TABLE [dbo].[DanhGiaSach](
+	[MaDanhGia] [int] IDENTITY(1,1) NOT NULL,
+	[MaSach] [int] NOT NULL,
+	[MaKH] [int] NOT NULL,
+	[SoSao] [int] NOT NULL,
+	[NoiDung] [nvarchar](1000) NULL,
+	[NgayDanhGia] [datetime] NOT NULL CONSTRAINT [DF_DanhGiaSach_NgayDanhGia] DEFAULT (getdate()),
+	CONSTRAINT [CK_DanhGiaSach_SoSao] CHECK ([SoSao] >= 1 AND [SoSao] <= 5),
+	CONSTRAINT [FK_DanhGiaSach_Sach] FOREIGN KEY ([MaSach]) REFERENCES [dbo].[Sach]([MaSach]),
+	CONSTRAINT [FK_DanhGiaSach_KhachHang] FOREIGN KEY ([MaKH]) REFERENCES [dbo].[KhachHang]([MaKH]),
+	CONSTRAINT [PK_DanhGiaSach] PRIMARY KEY CLUSTERED ([MaDanhGia] ASC)
+) ON [PRIMARY]
+GO
+CREATE UNIQUE INDEX [UX_DanhGiaSach_MaSach_MaKH] ON [dbo].[DanhGiaSach]([MaSach], [MaKH])
 GO
 /****** Object:  Table [dbo].[TacGia]    Script Date: 11/1/2016 11:25:55 PM ******/
 SET ANSI_NULLS ON
@@ -264,7 +280,7 @@ PRIMARY KEY CLUSTERED
 GO
 SET IDENTITY_INSERT [dbo].[Admin] ON 
 
-INSERT [dbo].[Admin] ([IDAdmin], [TaiKhoan], [MatKhau], [HoTen], [TrangThai]) VALUES (1, N'admin', N'admin', N'Phong', 1)
+INSERT [dbo].[Admin] ([IDAdmin], [TaiKhoan], [MatKhau], [HoTen], [TrangThai]) VALUES (1, N'admin', N'123456', N'Phong', 1)
 INSERT [dbo].[Admin] ([IDAdmin], [TaiKhoan], [MatKhau], [HoTen], [TrangThai]) VALUES (3, N'vhp', N'123456', N'VHP', NULL)
 SET IDENTITY_INSERT [dbo].[Admin] OFF
 INSERT [dbo].[ChiTietDDH] ([MaSach], [MaDDH], [SoLuong], [DonGia]) VALUES (14, 2, 2, 475000.0000)
@@ -299,6 +315,11 @@ INSERT [dbo].[NhaXuatBan] ([MaNXB], [TenNXB], [DiaChi], [DienThoai]) VALUES (8, 
 INSERT [dbo].[NhaXuatBan] ([MaNXB], [TenNXB], [DiaChi], [DienThoai]) VALUES (9, N'Nxb Hội Nhà Văn', NULL, NULL)
 INSERT [dbo].[NhaXuatBan] ([MaNXB], [TenNXB], [DiaChi], [DienThoai]) VALUES (10, N'Nxb Khoa học xã hội', NULL, NULL)
 INSERT [dbo].[NhaXuatBan] ([MaNXB], [TenNXB], [DiaChi], [DienThoai]) VALUES (11, N' NXB Chính Trị Quốc Gia', NULL, NULL)
+INSERT [dbo].[NhaXuatBan] ([MaNXB], [TenNXB], [DiaChi], [DienThoai]) VALUES (12, N'NXB Kim Đồng', NULL, NULL)
+INSERT [dbo].[NhaXuatBan] ([MaNXB], [TenNXB], [DiaChi], [DienThoai]) VALUES (13, N'NXB Giáo Dục Việt Nam', NULL, NULL)
+INSERT [dbo].[NhaXuatBan] ([MaNXB], [TenNXB], [DiaChi], [DienThoai]) VALUES (14, N'NXB Văn Học', NULL, NULL)
+INSERT [dbo].[NhaXuatBan] ([MaNXB], [TenNXB], [DiaChi], [DienThoai]) VALUES (15, N'NXB Tổng Hợp TP.HCM', NULL, NULL)
+INSERT [dbo].[NhaXuatBan] ([MaNXB], [TenNXB], [DiaChi], [DienThoai]) VALUES (16, N'NXB Dân Trí', NULL, NULL)
 SET IDENTITY_INSERT [dbo].[NhaXuatBan] OFF
 SET IDENTITY_INSERT [dbo].[Sach] ON 
 
@@ -359,6 +380,10 @@ INSERT [dbo].[TheLoai] ([MaLoai], [TenLoai]) VALUES (9, N'Sách Chuyên Ngành')
 INSERT [dbo].[TheLoai] ([MaLoai], [TenLoai]) VALUES (10, N'Sách Giáo Khoa - Giáo Trình')
 INSERT [dbo].[TheLoai] ([MaLoai], [TenLoai]) VALUES (13, N'Sách Văn Học-Tiều Thuyết')
 INSERT [dbo].[TheLoai] ([MaLoai], [TenLoai]) VALUES (14, N'Tạp Chí - Văn Phòng Phẩm')
+INSERT [dbo].[TheLoai] ([MaLoai], [TenLoai]) VALUES (15, N'Manga - Truyện Tranh')
+INSERT [dbo].[TheLoai] ([MaLoai], [TenLoai]) VALUES (16, N'Kinh Dị')
+INSERT [dbo].[TheLoai] ([MaLoai], [TenLoai]) VALUES (17, N'Trinh Thám')
+INSERT [dbo].[TheLoai] ([MaLoai], [TenLoai]) VALUES (18, N'Khoa Học Viễn Tưởng')
 SET IDENTITY_INSERT [dbo].[TheLoai] OFF
 ALTER TABLE [dbo].[ChiTietDDH]  WITH CHECK ADD FOREIGN KEY([MaDDH])
 REFERENCES [dbo].[DonDatHang] ([MaDDH])

@@ -9,6 +9,22 @@ IF COL_LENGTH('dbo.DonDatHang','ThanhToan') IS NULL
     ALTER TABLE dbo.DonDatHang ADD ThanhToan INT NULL;
 IF COL_LENGTH('dbo.DonDatHang','Tracking') IS NULL
     ALTER TABLE dbo.DonDatHang ADD Tracking INT NULL;
+IF COL_LENGTH('dbo.Sach','GiamGia') IS NULL
+    ALTER TABLE dbo.Sach ADD GiamGia INT NOT NULL CONSTRAINT DF_Sach_GiamGia DEFAULT(0);
+IF OBJECT_ID('dbo.DanhGiaSach','U') IS NULL
+BEGIN
+    CREATE TABLE dbo.DanhGiaSach(
+        MaDanhGia INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_DanhGiaSach PRIMARY KEY,
+        MaSach INT NOT NULL,
+        MaKH INT NOT NULL,
+        SoSao INT NOT NULL CONSTRAINT CK_DanhGiaSach_SoSao CHECK(SoSao BETWEEN 1 AND 5),
+        NoiDung NVARCHAR(1000) NULL,
+        NgayDanhGia DATETIME NOT NULL CONSTRAINT DF_DanhGiaSach_NgayDanhGia DEFAULT(GETDATE()),
+        CONSTRAINT FK_DanhGiaSach_Sach FOREIGN KEY(MaSach) REFERENCES dbo.Sach(MaSach),
+        CONSTRAINT FK_DanhGiaSach_KhachHang FOREIGN KEY(MaKH) REFERENCES dbo.KhachHang(MaKH)
+    );
+    CREATE UNIQUE INDEX UX_DanhGiaSach_MaSach_MaKH ON dbo.DanhGiaSach(MaSach, MaKH);
+END;
 IF EXISTS(SELECT TaiKhoan FROM dbo.KhachHang GROUP BY TaiKhoan HAVING COUNT(*)>1)
     THROW 50001, 'Duplicate usernames: review before upgrading.', 1;
 IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE name='UX_KhachHang_TaiKhoan' AND object_id=OBJECT_ID('dbo.KhachHang'))

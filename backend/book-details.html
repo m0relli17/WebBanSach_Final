@@ -51,6 +51,34 @@
             </div>
         </div>
 
+        <section id="bookReviewsSection" class="mb-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h4 class="fw-bold mb-0"><i class="fa fa-star text-warning me-2"></i>Đánh giá sản phẩm</h4>
+                <div id="bookReviewSectionSummary" class="small"></div>
+            </div>
+            <div id="reviewAccessMessage" class="small text-muted mb-3"></div>
+            <form id="bookReviewForm" class="row g-2 mb-4" style="display: none;">
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold" for="reviewRating">Số sao</label>
+                    <select id="reviewRating" class="form-select" required>
+                        <option value="5">5 sao - Rất tốt</option>
+                        <option value="4">4 sao - Tốt</option>
+                        <option value="3">3 sao - Bình thường</option>
+                        <option value="2">2 sao - Chưa tốt</option>
+                        <option value="1">1 sao - Kém</option>
+                    </select>
+                </div>
+                <div class="col-md-9">
+                    <label class="form-label small fw-semibold" for="reviewComment">Nhận xét</label>
+                    <textarea id="reviewComment" class="form-control" rows="2" maxlength="1000" placeholder="Chia sẻ cảm nhận của bạn"></textarea>
+                </div>
+                <div class="col-12 text-end">
+                    <button id="submitReviewButton" type="submit" class="btn btn-danger btn-sm"><i class="fa fa-paper-plane me-1"></i>Gửi đánh giá</button>
+                </div>
+            </form>
+            <div id="bookReviewsList" class="border-top"></div>
+        </section>
+
         <div id="relatedBooksSection" style="display: none;">
             <h4 class="fw-bold mb-3"><i class="fa fa-bookmark text-danger me-2"></i> Sách cùng thể loại</h4>
             <div id="relatedBooksGrid" class="row g-3"></div>
@@ -71,6 +99,20 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const bookId = urlParams.get('id');
+
+        function renderRatingSummary(average, count) {
+            const score = Number(average) || 0;
+            const stars = Array.from({ length: 5 }, (_, index) =>
+                `<i class="fa ${index < Math.round(score) ? 'fa-star' : 'fa-star-o'}"></i>`
+            ).join('');
+            return `<span class="text-warning" aria-label="${score.toFixed(1)} trên 5 sao">${stars}</span> <span class="text-muted">${score.toFixed(1)} / 5 (${count || 0} đánh giá)</span>`;
+        }
+
+        function escapeReviewText(value) {
+            const element = document.createElement('span');
+            element.textContent = value || '';
+            return element.innerHTML;
+        }
 
         async function loadBookDetail() {
             if (!bookId) {
@@ -95,10 +137,12 @@
                             <div class="col-md-8">
                                 <span class="badge bg-danger mb-2">${b.categoryName || 'Sách'}</span>
                                 <h2 class="fw-bold text-dark mb-2">${b.title}</h2>
+                                <div id="bookReviewSummary" class="mb-2">${renderRatingSummary(b.averageRating, b.reviewCount)}</div>
                                 <p class="text-muted mb-3"><i class="fa fa-pencil me-1"></i> Tác giả: <strong>${b.author}</strong> | NXB: <strong>${b.publisher}</strong></p>
                                 
                                 <div class="p-3 rounded-3 mb-4" style="background: #fef2f2; border-left: 4px solid #b72935;">
                                     <span class="text-muted small">Giá bán ưu đãi:</span>
+                                    ${b.discountPercent > 0 ? `<div class="mb-1"><del class="text-muted">${b.originalPriceFormatted}</del> <span class="badge bg-danger">-${b.discountPercent}%</span></div>` : ''}
                                     <div class="display-6 fw-bold text-danger">${b.priceFormatted}</div>
                                 </div>
 
@@ -107,7 +151,7 @@
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="input-group" style="width: 140px;">
                                             <button class="btn btn-outline-secondary" type="button" onclick="adjustQty(-1)">-</button>
-                                            <input id="qtyInput" type="number" class="form-control text-center fw-bold" value="1" min="1" max="999">
+                                            <input id="qtyInput" type="number" class="form-control text-center fw-bold" value="1" min="1" max="999" oninput="if (this.value > 999) this.value = 999" onchange="normalizeQty(this)">
                                             <button class="btn btn-outline-secondary" type="button" onclick="adjustQty(1)">+</button>
                                         </div>
                                         <button class="btn btn-danger px-4 py-2 fw-semibold" onclick="addToCartDetail(${b.id})">
@@ -123,6 +167,8 @@
                         </div>
                     `;
 
+                    loadBookReviews(b.id);
+
                     // Render related
                     if (res.related && res.related.length > 0) {
                         document.getElementById('relatedBooksSection').style.display = 'block';
@@ -134,6 +180,7 @@
                                         <a href="book-details.html?id=${r.id}" class="text-decoration-none text-center">
                                             <img src="images/${r.image}" class="img-fluid rounded mb-2" style="height: 140px; object-fit: contain;" onerror="this.src='images/topSach.png'">
                                             <h6 class="text-dark small fw-bold mb-1 text-truncate">${r.title}</h6>
+                                            ${r.discountPercent > 0 ? `<div><del class="text-muted small">${r.originalPriceFormatted}</del> <span class="badge bg-danger">-${r.discountPercent}%</span></div>` : ''}
                                             <span class="text-danger small fw-bold">${r.priceFormatted}</span>
                                         </a>
                                     </div>
@@ -153,12 +200,19 @@
         function adjustQty(delta) {
             const input = document.getElementById('qtyInput');
             let val = parseInt(input.value, 10) || 1;
-            val = Math.max(1, val + delta);
+            val = Math.max(1, Math.min(999, val + delta));
             input.value = val;
         }
 
+        function normalizeQty(input) {
+            const val = parseInt(input.value, 10);
+            input.value = Number.isNaN(val) ? 1 : Math.max(1, Math.min(999, val));
+        }
+
         async function addToCartDetail(id) {
-            const qty = parseInt(document.getElementById('qtyInput').value, 10) || 1;
+            const input = document.getElementById('qtyInput');
+            normalizeQty(input);
+            const qty = parseInt(input.value, 10);
             try {
                 const res = await api.addToCart(id, qty);
                 if (res.status) {
@@ -172,6 +226,64 @@
             }
         }
 
+        async function loadBookReviews(id) {
+            const list = document.getElementById('bookReviewsList');
+            const form = document.getElementById('bookReviewForm');
+            const accessMessage = document.getElementById('reviewAccessMessage');
+            try {
+                const res = await api.getBookReviews(id);
+                if (!res.status) throw new Error(res.message || 'Không thể tải đánh giá.');
+                const summary = document.getElementById('bookReviewSummary');
+                if (summary) summary.innerHTML = renderRatingSummary(res.averageRating, res.reviewCount);
+                document.getElementById('bookReviewSectionSummary').innerHTML = renderRatingSummary(res.averageRating, res.reviewCount);
+
+                form.style.display = res.canReview ? 'flex' : 'none';
+                accessMessage.innerHTML = res.canReview
+                    ? (res.myReview ? 'Bạn đã đánh giá sách này; gửi lại để cập nhật.' : '')
+                    : 'Đăng nhập và xác minh email để gửi đánh giá. <a href="login.html">Đăng nhập</a>';
+                if (res.myReview) {
+                    document.getElementById('reviewRating').value = res.myReview.rating;
+                    document.getElementById('reviewComment').value = res.myReview.comment || '';
+                }
+
+                list.innerHTML = res.data.length
+                    ? res.data.map(review => `
+                        <article class="py-3 border-bottom">
+                            <div class="d-flex justify-content-between gap-2">
+                                <strong>${escapeReviewText(review.customerName)}</strong>
+                                <time class="small text-muted">${escapeReviewText(review.date)}</time>
+                            </div>
+                            <div class="text-warning small">${'<i class="fa fa-star"></i>'.repeat(review.rating)}${'<i class="fa fa-star-o"></i>'.repeat(5 - review.rating)}</div>
+                            ${review.comment ? `<p class="mb-0 mt-1 text-secondary">${escapeReviewText(review.comment)}</p>` : ''}
+                        </article>
+                    `).join('')
+                    : '<p class="py-3 text-muted mb-0">Chưa có đánh giá. Hãy là người đầu tiên đánh giá sản phẩm này.</p>';
+            } catch (error) {
+                list.innerHTML = `<p class="py-3 text-danger mb-0">${escapeReviewText(error.message)}</p>`;
+            }
+        }
+
+        async function handleSubmitReview(event) {
+            event.preventDefault();
+            const button = document.getElementById('submitReviewButton');
+            button.disabled = true;
+            try {
+                const result = await api.submitBookReview(
+                    bookId,
+                    document.getElementById('reviewRating').value,
+                    document.getElementById('reviewComment').value
+                );
+                if (!result.status) throw new Error(result.message || 'Không thể gửi đánh giá.');
+                showToast(result.message || 'Đã lưu đánh giá.');
+                await loadBookReviews(bookId);
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        document.getElementById('bookReviewForm').addEventListener('submit', handleSubmitReview);
         document.addEventListener("DOMContentLoaded", () => {
             loadBookDetail();
         });

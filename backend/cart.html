@@ -104,6 +104,7 @@
                             </div>
                         </td>
                         <td class="text-center" style="width: 15%;">
+                            ${item.discountPercent > 0 ? `<div><del class="text-muted small">${item.originalPriceFormatted}</del> <span class="badge bg-danger">-${item.discountPercent}%</span></div>` : ''}
                             <span class="fw-semibold text-secondary">${formatVND(item.price)}</span>
                         </td>
                         <td class="text-center" style="width: 15%;">

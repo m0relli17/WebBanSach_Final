@@ -14,6 +14,21 @@ const api = {
         return await res.json();
     },
 
+    getBookReviews: async function(id) {
+        const res = await fetch(`${API_BASE}/BookReviews?id=${id}`, { credentials: 'include' });
+        return await res.json();
+    },
+
+    submitBookReview: async function(bookId, rating, comment) {
+        const res = await fetch(`${API_BASE}/SubmitBookReview`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ bookId, rating, comment }).toString(),
+            credentials: 'include'
+        });
+        return await res.json();
+    },
+
     getCategories: async function() {
         const res = await fetch(`${API_BASE}/Categories`, { credentials: 'include' });
         return await res.json();
@@ -169,8 +184,30 @@ const api = {
         return await res.json();
     },
 
+    adminLogout: async function() {
+        const res = await fetch(`${API_BASE}/AdminLogout`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        return await res.json();
+    },
+
     getAdminOrders: async function() {
         const res = await fetch(`${API_BASE}/AdminOrders`, { credentials: 'include' });
+        return await res.json();
+    },
+
+    getAdminCatalog: async function() {
+        const res = await fetch(`${API_BASE}/AdminCatalog`, { credentials: 'include' });
+        return await res.json();
+    },
+
+    addAdminBook: async function(formData) {
+        const res = await fetch(`${API_BASE}/AdminCreateBook`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
         return await res.json();
     },
 

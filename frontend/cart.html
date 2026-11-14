@@ -104,6 +104,7 @@
                             </div>
                         </td>
                         <td class="text-center" style="width: 15%;">
+                            ${item.discountPercent > 0 ? `<div><del class="text-muted small">${item.originalPriceFormatted}</del> <span class="badge bg-danger">-${item.discountPercent}%</span></div>` : ''}
                             <span class="fw-semibold text-secondary">${formatVND(item.price)}</span>
                         </td>
                         <td class="text-center" style="width: 15%;">
@@ -111,7 +112,7 @@
                                 <button class="btn btn-outline-secondary btn-sm" type="button" onclick="changeQty(${item.id}, -1)">-</button>
                                 <input type="number" class="form-control form-control-sm text-center fw-bold item-qty-input" 
                                        data-id="${item.id}" value="${item.quantity}" min="1" max="999" 
-                                       oninput="handleInputQty(${item.id}, this)">
+                                        oninput="handleInputQty(${item.id}, this)" onblur="handleInputQty(${item.id}, this)">
                                 <button class="btn btn-outline-secondary btn-sm" type="button" onclick="changeQty(${item.id}, 1)">+</button>
                             </div>
                         </td>
@@ -194,6 +195,7 @@
             let val = parseInt(inputEl.value, 10);
             if (isNaN(val) || val < 1) val = 1;
             if (val > 999) val = 999;
+            inputEl.value = val;
             item.quantity = val;
 
             recalculateAndSync();
