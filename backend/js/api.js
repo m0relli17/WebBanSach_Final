@@ -144,7 +144,7 @@ const api = {
     },
 
     getMyOrders: async function() {
-        const res = await fetch(`${API_BASE}/MyOrders`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/MyOrders?_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
         return await res.json();
     },
 
@@ -170,7 +170,7 @@ const api = {
     },
 
     getAdminOrders: async function() {
-        const res = await fetch(`${API_BASE}/AdminOrders`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/AdminOrders?_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
         return await res.json();
     },
 

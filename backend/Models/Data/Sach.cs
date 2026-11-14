@@ -57,7 +57,7 @@
         public DateTime? NgayCapNhat { get; set; }
 
         [Display(Name = "Số lượng tồn")]
-        public int? SoLuongTon { get; set; }
+        public long? SoLuongTon { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ChiTietDDH> ChiTietDDHs { get; set; }

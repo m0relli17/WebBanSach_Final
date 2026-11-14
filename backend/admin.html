@@ -69,6 +69,8 @@
 
         <!-- Admin Dashboard Screen -->
         <div id="adminDashboardScreen" style="display: none;">
+            <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailTitle" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 id="orderDetailTitle">Chi tiết đơn hàng</h5><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div><div id="orderDetailBody" class="modal-body"></div></div></div></div>
+
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
                 <div>
                     <h4 class="fw-bold text-dark mb-1">
@@ -139,6 +141,7 @@
                                 <th>Số điện thoại</th>
                                 <th>Ngày đặt</th>
                                 <th>Sản phẩm</th>
+                                <th style="min-width: 200px;">Ghi chú đơn hàng</th>
                                 <th>Tổng tiền</th>
                                 <th style="width: 170px;">Trạng thái</th>
                                 <th style="width: 180px;">Hành động</th>
@@ -146,7 +149,7 @@
                         </thead>
                         <tbody id="adminOrdersTableBody">
                             <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">
+                                <td colspan="9" class="text-center py-4 text-muted">
                                     <div class="spinner-border spinner-border-sm text-primary me-2"></div> Đang tải danh sách đơn hàng...
                                 </td>
                             </tr>
@@ -165,13 +168,11 @@
         let allOrders = [];
         let currentFilter = 'all';
 
-        function checkAdminSession() {
-            const admin = sessionStorage.getItem('adminUser');
-            if (admin) {
-                showDashboard(admin);
-            } else {
-                showLogin();
-            }
+        async function checkAdminSession() {
+            try {
+                const session = await adminRequest('AdminSession');
+                adminToken = session.token; showDashboard(session.name);
+            } catch(error) { showLogin(); }
         }
 
         function showLogin() {
@@ -206,7 +207,7 @@
                 const res = await api.adminLogin(u, p);
                 if (res.status) {
                     sessionStorage.setItem('adminUser', res.admin ? res.admin.name || res.admin.username : u);
-                    showDashboard(sessionStorage.getItem('adminUser'));
+                    await checkAdminSession();
                 } else {
                     alertBox.textContent = res.message || 'Đăng nhập quản trị thất bại!';
                     alertBox.style.display = 'block';
@@ -221,14 +222,14 @@
             }
         }
 
-        function handleAdminLogout() {
-            sessionStorage.removeItem('adminUser');
-            showLogin();
+        async function handleAdminLogout() {
+            try { await adminRequest('AdminLogout', new URLSearchParams()); sessionStorage.removeItem('adminUser'); adminToken = ''; showLogin(); }
+            catch(error) { alert(error.message); }
         }
 
         async function loadAdminOrders() {
             const tbody = document.getElementById('adminOrdersTableBody');
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Đang tải...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Đang tải...</td></tr>`;
 
             try {
                 const res = await api.getAdminOrders();
@@ -237,10 +238,10 @@
                     updateCounts();
                     renderOrders();
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Không thể tải danh sách đơn: ${res.message || 'Lỗi'}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger">Không thể tải danh sách đơn: ${res.message || 'Lỗi'}</td></tr>`;
                 }
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
             }
         }
 
@@ -281,19 +282,20 @@
             }
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không tìm thấy đơn hàng nào phù hợp.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">Không tìm thấy đơn hàng nào phù hợp.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = filtered.map(o => `
                 <tr>
-                    <td class="fw-bold">#${o.id}</td>
+                    <td><button class="btn btn-link p-0 fw-bold" onclick="showOrderDetail(${o.id})">#${o.id}</button></td>
                     <td>
                         <div class="fw-semibold text-dark">${o.customerName}</div>
                     </td>
                     <td><span class="text-muted small">${o.customerPhone || 'N/A'}</span></td>
                     <td><span class="text-muted small">${o.orderDate}</span></td>
                     <td><span class="badge bg-light text-dark border">${o.itemCount} sản phẩm</span></td>
+                    <td class="small" style="white-space: pre-wrap; overflow-wrap: anywhere; max-width: 300px;">${escapeAdmin(String(o.note || "").trim() || "Không có ghi chú")}</td>
                     <td class="fw-bold text-danger">
                         ${o.totalFormatted}
                         <div class="small fw-normal mt-1">
@@ -304,6 +306,7 @@
                         ${getStatusBadge(o.status)}
                     </td>
                     <td>
+                        <button class="btn btn-outline-secondary btn-sm mb-2 w-100" onclick="showOrderDetail(${o.id})"><i class="fa fa-eye me-1" aria-hidden="true"></i>Xem chi tiết</button>
                         <select class="form-select form-select-sm" onchange="changeStatus(${o.id}, this.value)" ${o.status === 3 || o.status === 4 ? 'disabled' : ''}>
                             <option value="0" ${o.status === 0 ? 'selected' : ''}>0 - Chờ xử lý</option>
                             <option value="1" ${o.status === 1 ? 'selected' : ''}>1 - Đã đóng gói</option>
@@ -344,6 +347,28 @@
                 alert("Lỗi khi cập nhật trạng thái: " + err.message);
                 loadAdminOrders();
             }
+        }
+
+
+        let adminToken = '';
+        const escapeAdmin = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        async function adminRequest(action, data) {
+            const options = { credentials: 'include', cache: 'no-store' };
+            if (data) {
+                options.method = 'POST'; options.body = data;
+                options.headers = { 'X-Admin-Token': adminToken };
+            }
+            const response = await fetch(API_BASE + '/' + action, options);
+            const result = await response.json();
+            if (response.status === 401) { showLogin(); throw new Error('Phiên quản trị đã hết hạn.'); }
+            if (!result.status) throw new Error(result.message || 'Không thể thực hiện thao tác.');
+            return result;
+        }
+        function showOrderDetail(id) {
+            const order = allOrders.find(o => o.id === id); if (!order) return;
+            document.getElementById('orderDetailTitle').textContent = 'Đơn hàng #' + id;
+            document.getElementById('orderDetailBody').innerHTML = `<p><strong>${escapeAdmin(order.customerName)}</strong> · ${escapeAdmin(order.customerPhone)}</p><p>${escapeAdmin(order.customerAddress)}</p><div class="bg-light rounded p-3 mb-3"><strong>Ghi chú</strong><div style="white-space:pre-wrap;overflow-wrap:anywhere">${escapeAdmin(order.note || 'Không có ghi chú')}</div></div>${order.items.map(i => `<div class="d-flex justify-content-between border-bottom py-2"><span>${escapeAdmin(i.title)} × ${i.quantity}</span><span>${escapeAdmin(i.subtotalFormatted)}</span></div>`).join('')}<p class="text-end fw-bold text-danger mt-3">${escapeAdmin(order.totalFormatted)}</p>`;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('orderDetailModal')).show();
         }
 
         document.addEventListener("DOMContentLoaded", checkAdminSession);

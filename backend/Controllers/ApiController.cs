@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -30,6 +30,24 @@ namespace WebBanSach.Controllers
             {
                 filterContext.Result = new HttpStatusCodeResult(200);
                 return;
+            }
+
+            var action = filterContext.ActionDescriptor.ActionName;
+            if (action.StartsWith("Admin", StringComparison.OrdinalIgnoreCase) && action != "AdminLogin")
+            {
+                if (Session["AdminUser"] == null)
+                {
+                    Response.StatusCode = 401;
+                    filterContext.Result = Json(new { status = false, message = "Vui lòng đăng nhập quản trị." }, JsonRequestBehavior.AllowGet);
+                    return;
+                }
+                if (Request.HttpMethod == "POST" && action != "AdminUpdateOrderStatus" &&
+                    (Session["AdminToken"] == null || Request.Headers["X-Admin-Token"] != (string)Session["AdminToken"]))
+                {
+                    Response.StatusCode = 403;
+                    filterContext.Result = Json(new { status = false, message = "Phiên không hợp lệ. Hãy tải lại trang." });
+                    return;
+                }
             }
 
             base.OnActionExecuting(filterContext);
@@ -64,7 +82,7 @@ namespace WebBanSach.Controllers
                 }
                 else
                 {
-                    query = query.OrderByDescending(s => s.NgayCapNhat).ThenByDescending(s => s.MaSach);
+                    query = query.OrderByDescending(s => s.MaSach);
                 }
 
                 int totalItems = query.Count();
@@ -194,8 +212,14 @@ namespace WebBanSach.Controllers
         public JsonResult Cart()
         {
             var cart = GetSessionCart();
+            foreach (var item in cart)
+            {
+                var current = db.Saches.AsNoTracking().FirstOrDefault(x => x.MaSach == item.sach.MaSach);
+                if (current != null) item.sach = current;
+                else item.sach.SoLuongTon = 0;
+            }
             decimal total = cart.Sum(x => x.Total).GetValueOrDefault(0);
-            int count = cart.Sum(x => x.Quantity);
+            long count = cart.Sum(x => x.Quantity);
 
             return Json(new
             {
@@ -208,6 +232,7 @@ namespace WebBanSach.Controllers
                     priceFormatted = string.Format("{0:N0} VND", x.sach.GiaBan ?? 0),
                     image = string.IsNullOrEmpty(x.sach.AnhBia) ? "topSach.png" : x.sach.AnhBia,
                     quantity = x.Quantity,
+                    stock = x.sach.SoLuongTon ?? 0,
                     subtotal = x.Total.GetValueOrDefault(0),
                     subtotalFormatted = string.Format("{0:N0} VND", x.Total.GetValueOrDefault(0))
                 }).ToList(),
@@ -219,9 +244,9 @@ namespace WebBanSach.Controllers
         }
 
         [HttpPost]
-        public JsonResult AddToCart(int id, int quantity = 1)
+        public JsonResult AddToCart(int id, long quantity = 1)
         {
-            if (quantity < 1 || quantity > 999) quantity = 1;
+            if (!ModelState.IsValid || quantity < 1) return Json(new { status = false, message = "Số lượng phải là số nguyên dương." });
             var book = db.Saches.Find(id);
             if (book == null)
             {
@@ -230,9 +255,15 @@ namespace WebBanSach.Controllers
 
             var cart = GetSessionCart();
             var existing = cart.FirstOrDefault(x => x.sach.MaSach == id);
+            long existingQuantity = existing != null ? existing.Quantity : 0;
+            long available = book.SoLuongTon ?? 0;
+            // Check the remaining capacity before adding, so long cannot overflow.
+            if (available < existingQuantity || quantity > available - existingQuantity)
+                return Json(new { status = false, message = string.Format("Sách '{0}' chỉ còn {1} cuốn. Giỏ hàng đã có {2} cuốn.", book.TenSach, available, existingQuantity) });
+            long requested = existingQuantity + quantity;
             if (existing != null)
             {
-                existing.Quantity = Math.Min(999, existing.Quantity + quantity);
+                existing.Quantity = requested;
             }
             else
             {
@@ -252,10 +283,18 @@ namespace WebBanSach.Controllers
                 var cart = GetSessionCart();
                 if (jsonCart != null)
                 {
+                    foreach (var updated in jsonCart)
+                    {
+                        if (updated.sach == null || updated.Quantity < 1)
+                            return Json(new { status = false, message = "Số lượng phải là số nguyên dương." });
+                        var current = db.Saches.AsNoTracking().FirstOrDefault(x => x.MaSach == updated.sach.MaSach);
+                        if (current == null || updated.Quantity > (current.SoLuongTon ?? 0))
+                            return Json(new { status = false, message = current == null ? "Sách không còn tồn tại." : string.Format("Sách '{0}' chỉ còn {1} cuốn.", current.TenSach, current.SoLuongTon ?? 0) });
+                    }
                     foreach (var item in cart)
                     {
                         var updated = jsonCart.FirstOrDefault(x => x.sach != null && x.sach.MaSach == item.sach.MaSach);
-                        if (updated != null && updated.Quantity >= 1 && updated.Quantity <= 999)
+                        if (updated != null && updated.Quantity >= 1)
                         {
                             item.Quantity = updated.Quantity;
                         }
@@ -692,6 +731,9 @@ namespace WebBanSach.Controllers
                     maskedCardNumber = "•••• •••• •••• " + cleanNumber.Substring(cleanNumber.Length - 4);
                 }
 
+                if (cart.Any(x => x.Quantity < 1))
+                    return Json(new { status = false, message = "Số lượng trong giỏ không hợp lệ." });
+
                 using (var trans = db.Database.BeginTransaction())
                 {
                     if (!string.IsNullOrWhiteSpace(receiverAddress))
@@ -719,17 +761,21 @@ namespace WebBanSach.Controllers
 
                     foreach (var item in cart)
                     {
-                        var book = db.Saches.Find(item.sach.MaSach);
+                        var book = db.Saches.AsNoTracking().FirstOrDefault(x => x.MaSach == item.sach.MaSach);
                         if (book == null)
                         {
                             trans.Rollback();
                             return Json(new { status = false, message = string.Format("Sách '{0}' không tồn tại.", item.sach.TenSach) });
                         }
 
-                        // Cập nhật số lượng tồn kho (nếu có)
-                        if (book.SoLuongTon.HasValue)
+                        // Atomic conditional update also protects concurrent checkouts.
+                        int reserved = db.Database.ExecuteSqlCommand(
+                            "UPDATE dbo.Sach SET SoLuongTon = SoLuongTon - @p0 WHERE MaSach = @p1 AND SoLuongTon >= @p0",
+                            item.Quantity, book.MaSach);
+                        if (reserved != 1)
                         {
-                            book.SoLuongTon = Math.Max(0, (book.SoLuongTon ?? 0) - item.Quantity);
+                            trans.Rollback();
+                            return Json(new { status = false, message = string.Format("Sách '{0}' không đủ tồn kho. Vui lòng cập nhật giỏ hàng.", book.TenSach) });
                         }
 
                         var detail = new ChiTietDDH
@@ -737,7 +783,7 @@ namespace WebBanSach.Controllers
                             MaDDH = order.MaDDH,
                             MaSach = item.sach.MaSach,
                             SoLuong = item.Quantity,
-                            DonGia = item.sach.GiaBan ?? 0
+                            DonGia = book.GiaBan ?? 0
                         };
                         db.ChiTietDDHs.Add(detail);
                     }
@@ -910,6 +956,20 @@ namespace WebBanSach.Controllers
             {
                 return Json(new { status = false, message = ex.Message });
             }
+        }
+
+        [HttpGet]
+        public JsonResult AdminSession()
+        {
+            if (Session["AdminToken"] == null) Session["AdminToken"] = Guid.NewGuid().ToString("N");
+            return Json(new { status = true, name = Session["AdminName"] ?? Session["AdminUser"], token = Session["AdminToken"] }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult AdminLogout()
+        {
+            Session.Remove("AdminUser"); Session.Remove("AdminName"); Session.Remove("AdminToken");
+            return Json(new { status = true });
         }
 
         [HttpGet]

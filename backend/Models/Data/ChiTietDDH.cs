@@ -21,7 +21,7 @@
         public int MaDDH { get; set; }
 
         [Display(Name = "Số lượng")]
-        public int? SoLuong { get; set; }
+        public long? SoLuong { get; set; }
 
         [Display(Name = "Đơn giá")]
         public decimal? DonGia { get; set; }

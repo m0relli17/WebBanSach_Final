@@ -1,7 +1,12 @@
-﻿USE [BSDB2];
+USE [BSDB2];
 GO
 SET XACT_ABORT ON;
 BEGIN TRANSACTION;
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Sach') AND name = 'SoLuongTon' AND TYPE_NAME(system_type_id) = 'int')
+    ALTER TABLE dbo.Sach ALTER COLUMN SoLuongTon BIGINT NULL;
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.ChiTietDDH') AND name = 'SoLuong' AND TYPE_NAME(system_type_id) = 'int')
+    ALTER TABLE dbo.ChiTietDDH ALTER COLUMN SoLuong BIGINT NULL;
+
 IF COL_LENGTH('dbo.KhachHang','EmailVerified') IS NULL
     ALTER TABLE dbo.KhachHang ADD EmailVerified BIT NOT NULL CONSTRAINT DF_KhachHang_EmailVerified DEFAULT(0);
 ALTER TABLE dbo.KhachHang ALTER COLUMN MatKhau VARCHAR(256) NOT NULL;

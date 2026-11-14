@@ -100,7 +100,7 @@ GO
 CREATE TABLE [dbo].[ChiTietDDH](
 	[MaSach] [int] NOT NULL,
 	[MaDDH] [int] NOT NULL,
-	[SoLuong] [int] NULL,
+	[SoLuong] [bigint] NULL,
 	[DonGia] [money] NULL,
 PRIMARY KEY CLUSTERED 
 (
@@ -221,7 +221,7 @@ CREATE TABLE [dbo].[Sach](
 	[NguoiDich] [nvarchar](50) NULL,
 	[AnhBia] [varchar](50) NULL,
 	[NgayCapNhat] [smalldatetime] NULL DEFAULT (getdate()),
-	[SoLuongTon] [int] NULL,
+	[SoLuongTon] [bigint] NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[MaSach] ASC
