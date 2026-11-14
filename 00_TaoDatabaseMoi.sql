@@ -1,4 +1,6 @@
-﻿USE [master]
+﻿-- Fresh database only: complete current schema, including discounts, reviews, order notes, and BIGINT quantities.
+-- Fresh database only: complete schema, demo catalog, discounts, reviews, order notes, and BIGINT quantities.
+USE [master]
 GO
 /****** Object:  Database [BSDB2]    Script Date: 11/1/2016 11:25:55 PM ******/
 CREATE DATABASE [BSDB2]
@@ -100,7 +102,7 @@ GO
 CREATE TABLE [dbo].[ChiTietDDH](
 	[MaSach] [int] NOT NULL,
 	[MaDDH] [int] NOT NULL,
-	[SoLuong] [int] NULL,
+	[SoLuong] [bigint] NULL,
 	[DonGia] [money] NULL,
 PRIMARY KEY CLUSTERED 
 (
@@ -121,6 +123,9 @@ CREATE TABLE [dbo].[DonDatHang](
 	[NgayGiao] [smalldatetime] NULL,
 	[TinhTrang] [bit] NULL,
 	[MaKH] [int] NOT NULL,
+	[ThanhToan] [int] NULL,
+	[Tracking] [int] NULL,
+	[GhiChu] [nvarchar](500) NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[MaDDH] ASC
@@ -219,7 +224,7 @@ CREATE TABLE [dbo].[Sach](
 	[NguoiDich] [nvarchar](50) NULL,
 	[AnhBia] [varchar](50) NULL,
 	[NgayCapNhat] [smalldatetime] NULL DEFAULT (getdate()),
-	[SoLuongTon] [int] NULL,
+	[SoLuongTon] [bigint] NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[MaSach] ASC

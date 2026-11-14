@@ -5,12 +5,12 @@ const api = {
     // Books & Categories
     getBooks: async function(params = {}) {
         const query = new URLSearchParams(params).toString();
-        const res = await fetch(`${API_BASE}/Books?${query}`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Books?${query}&_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
         return await res.json();
     },
 
     getBookDetails: async function(id) {
-        const res = await fetch(`${API_BASE}/BookDetails?id=${id}`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/BookDetails?id=${id}&_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
         return await res.json();
     },
 
@@ -30,7 +30,7 @@ const api = {
     },
 
     getCategories: async function() {
-        const res = await fetch(`${API_BASE}/Categories`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Categories?_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
         return await res.json();
     },
 
@@ -159,7 +159,7 @@ const api = {
     },
 
     getMyOrders: async function() {
-        const res = await fetch(`${API_BASE}/MyOrders`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/MyOrders?_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
         return await res.json();
     },
 
@@ -193,7 +193,7 @@ const api = {
     },
 
     getAdminOrders: async function() {
-        const res = await fetch(`${API_BASE}/AdminOrders`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/AdminOrders?_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
         return await res.json();
     },
 

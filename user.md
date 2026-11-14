@@ -22,18 +22,22 @@
 
 ### 1.2. Tài khoản Quản trị viên (Admin Users)
 
-Truy cập tại trang quản trị: **[http://localhost:8089/admin.html](http://localhost:8089/admin.html)**
+Truy cập trang quản trị tại `http://localhost:8080/admin.html` theo VS Code `launch.json`; nếu IIS Express cấp cổng khác, thay `8080` bằng cổng đang chạy.
 
 | Tên tài khoản | Mật khẩu | Họ tên hiển thị | Quyền hạn |
 |---|---|---|---|
-| **`admin`** | `123456` | Quản Trị Viên Hệ Thống | Toàn quyền quản trị đơn hàng, cập nhật trạng thái vận chuyển |
-| **`manager`** | `123456` | Điều Phối Viên Đơn Hàng | Quản lý đóng gói và xử lý giao nhận đơn |
+| **`admin`** | `123456` | Quản Trị Viên Hệ Thống | Quản lý sách, xem đơn, cập nhật trạng thái và kiểm duyệt đánh giá |
+| **`manager`** | `123456` | Điều Phối Viên Đơn Hàng | Cùng giao diện quản trị; dùng để kiểm thử luồng đơn |
+
+Quản lý sách hỗ trợ thêm/sửa/xóa, giá gốc, giảm giá, tồn kho, ảnh bìa JPG/JFIF/PNG/GIF/BMP và nhập tác giả mới. Sách đã có trong đơn hàng không thể xóa để bảo toàn lịch sử.
+
+Trang chủ có bộ lọc giá, độ hot 30 ngày, phổ biến theo đánh giá và lượt bán. Khách đã xác minh email có thể đánh giá 1–5 sao; admin có thể lọc và xóa đánh giá.
 
 ---
 
 ## 2. Thông tin Thẻ Tín dụng Kiểm thử (Credit Card Test Credentials)
 
-Khi thực hiện thanh toán trực tuyến tại trang **[http://localhost:8089/checkout.html](http://localhost:8089/checkout.html)**, bạn có thể bấm nút **"Thử thẻ mẫu"** để điền tự động hoặc nhập các thẻ kiểm thử dưới đây:
+Khi chạy tại cổng 8080, mở **[http://localhost:8080/checkout.html](http://localhost:8080/checkout.html)**, bấm nút **"Thử thẻ mẫu"** hoặc nhập các thẻ kiểm thử dưới đây:
 
 | Loại thẻ | Số thẻ (Card Number) | Tên chủ thẻ (Cardholder) | Ngày hết hạn | Mã CVV | Kết quả mong đợi |
 |---|---|---|---|---|---|
@@ -47,11 +51,11 @@ Khi thực hiện thanh toán trực tuyến tại trang **[http://localhost:808
 
 ## 3. Cách chạy Script Khởi tạo Dữ liệu Kiểm thử (Init Test Data Script)
 
-Dự án cung cấp file SQL khởi tạo dữ liệu mẫu đầy đủ: [02_DuLieuKiemThu.sql](file:///c:/Project/WebBanSach_Final/02_DuLieuKiemThu.sql).
+Dự án cung cấp file SQL khởi tạo dữ liệu mẫu đầy đủ: [02_DuLieuKiemThu.sql](02_DuLieuKiemThu.sql).
 
 ### Cách 1: Chạy trực tiếp trong SQL Server Management Studio (SSMS)
 1. Mở SSMS và kết nối đến SQL Server cục bộ (ví dụ: `.\SQLEXPRESS` hoặc `localhost`).
-2. Mở file [02_DuLieuKiemThu.sql](file:///c:/Project/WebBanSach_Final/02_DuLieuKiemThu.sql).
+2. Mở file [02_DuLieuKiemThu.sql](02_DuLieuKiemThu.sql).
 3. Nhấn **Execute (F5)** để nạp toàn bộ tài khoản và đơn hàng kiểm thử vào CSDL `BSDB2`.
 
 ---
@@ -74,7 +78,7 @@ sqlcmd -S .\SQLEXPRESS -E -i 02_DuLieuKiemThu.sql
 
 ## 4. Các Đơn hàng Kiểm thử Mẫu có sẵn trong CSDL
 
-Tài khoản `testuser` được nạp sẵn 5 đơn hàng minh họa trọn vẹn vòng đời giao hàng để tiện kiểm thử tại **[tracking.html](http://localhost:8089/tracking.html)**:
+Tài khoản `testuser` được nạp sẵn 5 đơn hàng minh họa để kiểm thử tại **[tracking.html](http://localhost:8080/tracking.html)**:
 
 | Trạng thái | Tên trạng thái | Hình thức thanh toán | Tình trạng thanh toán | Hành động có thể test |
 |---|---|---|---|---|
@@ -89,23 +93,23 @@ Tài khoản `testuser` được nạp sẵn 5 đơn hàng minh họa trọn v�
 ## 5. Các Kịch bản Kiểm thử Nhanh (Step-by-step Test Scenarios)
 
 ### Kịch bản 1: Mua hàng thanh toán bằng Thẻ tín dụng (Credit Card Flow)
-1. Mở [http://localhost:8089/login.html](http://localhost:8089/login.html).
+1. Mở [http://localhost:8080/login.html](http://localhost:8080/login.html).
 2. Đăng nhập với tài khoản: `testuser` / `12345678`.
 3. Chọn một cuốn sách bất kỳ tại trang chủ -> Bấm **"Thêm vào giỏ"**.
-4. Vào [Giỏ hàng](http://localhost:8089/cart.html) -> Bấm **"Thanh toán"**.
-5. Tại trang [Thanh toán](http://localhost:8089/checkout.html):
+4. Vào [Giỏ hàng](http://localhost:8080/cart.html) -> Bấm **"Thanh toán"**.
+5. Tại trang [Thanh toán](http://localhost:8080/checkout.html):
    - Chọn mục **"Thẻ tín dụng / Ghi nợ quốc tế (Credit Card)"**.
    - Bấm nút **"Thử thẻ mẫu"** (Form tự động điền `4532 8888 8888 8888`, `12/28`, `888`).
    - Bấm **"Xác nhận & Đặt hàng"**.
 6. Màn hình thông báo **"Thanh toán thành công! Mã đơn #..."** hiển thị thẻ `•••• •••• •••• 8888`.
-7. Vào [Đơn hàng của tôi](http://localhost:8089/tracking.html) để kiểm tra huy hiệu `Thẻ tín dụng (Đã thanh toán)`.
+7. Vào [Đơn hàng của tôi](http://localhost:8080/tracking.html) để kiểm tra huy hiệu `Thẻ tín dụng (Đã thanh toán)`.
 
 ---
 
 ### Kịch bản 2: Kiểm thử xác minh Email với mã OTP (OTP Verification Flow)
-1. Mở [http://localhost:8089/login.html](http://localhost:8089/login.html).
+1. Mở [http://localhost:8080/login.html](http://localhost:8080/login.html).
 2. Đăng nhập bằng tài khoản chưa kích hoạt: `testotp` / `12345678`.
-3. Hệ thống tự động chuyển hướng đến trang [verify-email.html](http://localhost:8089/verify-email.html).
+3. Hệ thống tự động chuyển hướng đến trang [verify-email.html](http://localhost:8080/verify-email.html).
 4. Mã OTP 6 chữ số kiểm thử sẽ được thông báo ngay trên màn hình (hoặc lưu trong thư mục `backend/App_Data/OtpEmails`).
 5. Nhập 6 số mã OTP -> Bấm **"Xác minh ngay"**.
 6. Tài khoản được kích hoạt thành công và tự động chuyển về trang chủ để mua sắm.
@@ -113,9 +117,17 @@ Tài khoản `testuser` được nạp sẵn 5 đơn hàng minh họa trọn v�
 ---
 
 ### Kịch bản 3: Ban quản trị điều phối & đổi trạng thái đơn hàng (Admin Flow)
-1. Mở trang quản trị: [http://localhost:8089/admin.html](http://localhost:8089/admin.html).
+1. Mở trang quản trị: [http://localhost:8080/admin.html](http://localhost:8080/admin.html).
 2. Đăng nhập: `admin` / `123456`.
 3. Bảng điều khiển tải toàn bộ đơn hàng của hệ thống.
 4. Thử các bộ lọc trạng thái: **"Chờ xử lý"**, **"Đang giao"**, **"Hoàn thành"**.
 5. Tại cột **"Hành động"**, chọn dropdown để chuyển một đơn từ `0 - Chờ xử lý` sang `1 - Đã đóng gói` hoặc `2 - Đang giao hàng`.
 6. Hệ thống cập nhật trạng thái ngay lập tức trên máy chủ.
+
+### Kịch bản 4: Quản lý sách và đánh giá
+1. Đăng nhập admin tại `http://localhost:8080/admin.html` bằng `admin` / `123456`.
+2. Mở danh sách sản phẩm, tìm một cuốn sách và kiểm tra chi tiết.
+3. Chọn sửa, đổi giá/giảm giá/tồn kho rồi lưu; thử thay ảnh bìa JPG/JFIF.
+4. Thêm một sách với tác giả mới, xác nhận sách xuất hiện trong catalog.
+5. Mở mục Đánh giá, lọc theo số sao/từ khóa và xóa đánh giá test.
+6. Thử xóa sách chưa có đơn hàng; với sách đã có trong lịch sử, xác nhận server từ chối xóa.

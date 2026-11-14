@@ -99,7 +99,7 @@
                                 <img src="images/${item.image}" alt="${item.title}" class="rounded border p-1 me-3" style="width: 65px; height: 80px; object-fit: contain;" onerror="this.src='images/topSach.png'">
                                 <div>
                                     <a href="book-details.html?id=${item.id}" class="text-dark fw-bold text-decoration-none mb-1 d-block">${item.title}</a>
-                                    <small class="text-muted">Mã sách: #${item.id}</small>
+                                    <small class="text-muted">Mã sách: #${item.id} · ${item.stock > 0 ? `Còn ${item.stock} cuốn` : 'Hết hàng'}</small>
                                 </div>
                             </div>
                         </td>
@@ -111,8 +111,8 @@
                             <div class="input-group mx-auto" style="width: 125px;">
                                 <button class="btn btn-outline-secondary btn-sm" type="button" onclick="changeQty(${item.id}, -1)">-</button>
                                 <input type="number" class="form-control form-control-sm text-center fw-bold item-qty-input" 
-                                       data-id="${item.id}" value="${item.quantity}" min="1" max="999" 
-                                        oninput="handleInputQty(${item.id}, this)" onblur="handleInputQty(${item.id}, this)">
+                                       data-id="${item.id}" value="${item.quantity}" min="1" max="${Math.max(1, Math.min(999, item.stock || 0))}" ${item.stock > 0 ? '' : 'disabled'}
+                                       oninput="handleInputQty(${item.id}, this)" onblur="handleInputQty(${item.id}, this)">
                                 <button class="btn btn-outline-secondary btn-sm" type="button" onclick="changeQty(${item.id}, 1)">+</button>
                             </div>
                         </td>
@@ -178,7 +178,11 @@
             const item = cartData.items.find(x => x.id === id);
             if (!item) return;
 
-            let newQty = Math.max(1, Math.min(999, item.quantity + delta));
+            const maxQty = Math.min(999, item.stock || 0);
+            if (maxQty < 1) { showToast('Sách đã hết hàng. Vui lòng xoá khỏi giỏ.', 'error'); return; }
+            if (!Number.isSafeInteger(item.quantity + delta)) { showToast("Số lượng vượt giới hạn nhập chính xác của trình duyệt.", "error"); return; }
+            if (delta > 0 && item.quantity >= maxQty) { showToast(`Sách chỉ còn tối đa ${maxQty} cuốn cho mỗi giỏ.`, 'error'); return; }
+            let newQty = Math.max(1, Math.min(maxQty, item.quantity + delta));
             item.quantity = newQty;
 
             // Update UI immediately
@@ -194,8 +198,11 @@
 
             let val = parseInt(inputEl.value, 10);
             if (isNaN(val) || val < 1) val = 1;
-            if (val > 999) val = 999;
+            const maxQty = Math.min(999, item.stock || 0);
+            if (maxQty < 1) { showToast('Sách đã hết hàng. Vui lòng xoá khỏi giỏ.', 'error'); inputEl.value = item.quantity; return; }
+            if (val > maxQty) { showToast(`Sách chỉ còn tối đa ${maxQty} cuốn cho mỗi giỏ.`, 'error'); val = maxQty; }
             inputEl.value = val;
+            if (!Number.isSafeInteger(val)) { showToast("Số lượng vượt giới hạn nhập chính xác của trình duyệt.", "error"); inputEl.value = item.quantity; return; }
             item.quantity = val;
 
             recalculateAndSync();
@@ -232,6 +239,11 @@
                 }));
                 try {
                     const serverRes = await api.updateCart(payload);
+                    if (!serverRes.status) {
+                        showToast(serverRes.message || 'Không đủ tồn kho.', 'error');
+                        await loadCart();
+                        return;
+                    }
                     if (serverRes.status && serverRes.totalFormatted) {
                         if (totalText) totalText.textContent = serverRes.totalFormatted;
                     }

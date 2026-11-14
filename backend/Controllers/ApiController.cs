@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -25,12 +25,30 @@ namespace WebBanSach.Controllers
             Response.Headers.Remove("Access-Control-Allow-Origin");
             Response.AddHeader("Access-Control-Allow-Origin", "*");
             Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+            Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, X-Admin-Token");
 
             if (Request.HttpMethod == "OPTIONS")
             {
                 filterContext.Result = new HttpStatusCodeResult(200);
                 return;
+            }
+
+            var action = filterContext.ActionDescriptor.ActionName;
+            if (action.StartsWith("Admin", StringComparison.OrdinalIgnoreCase) && action != "AdminLogin")
+            {
+                if (Session["AdminUser"] == null)
+                {
+                    Response.StatusCode = 401;
+                    filterContext.Result = Json(new { status = false, message = "Vui lòng đăng nhập quản trị." }, JsonRequestBehavior.AllowGet);
+                    return;
+                }
+                if (Request.HttpMethod == "POST" && action != "AdminUpdateOrderStatus" &&
+                    (Session["AdminToken"] == null || Request.Headers["X-Admin-Token"] != (string)Session["AdminToken"]))
+                {
+                    Response.StatusCode = 403;
+                    filterContext.Result = Json(new { status = false, message = "Phiên không hợp lệ. Hãy tải lại trang." });
+                    return;
+                }
             }
 
             base.OnActionExecuting(filterContext);
@@ -339,8 +357,14 @@ namespace WebBanSach.Controllers
         public JsonResult Cart()
         {
             var cart = GetSessionCart();
+            foreach (var item in cart)
+            {
+                var current = db.Saches.AsNoTracking().FirstOrDefault(x => x.MaSach == item.sach.MaSach);
+                if (current != null) item.sach = current;
+                else item.sach.SoLuongTon = 0;
+            }
             decimal total = cart.Sum(x => x.Total).GetValueOrDefault(0);
-            int count = cart.Sum(x => x.Quantity);
+            long count = cart.Sum(x => x.Quantity);
 
             return Json(new
             {
@@ -356,6 +380,7 @@ namespace WebBanSach.Controllers
                     discountPercent = x.sach.GiamGia,
                     image = string.IsNullOrEmpty(x.sach.AnhBia) ? "topSach.png" : x.sach.AnhBia,
                     quantity = x.Quantity,
+                    stock = x.sach.SoLuongTon ?? 0,
                     subtotal = x.Total.GetValueOrDefault(0),
                     subtotalFormatted = string.Format("{0:N0} VND", x.Total.GetValueOrDefault(0))
                 }).ToList(),
@@ -367,9 +392,9 @@ namespace WebBanSach.Controllers
         }
 
         [HttpPost]
-        public JsonResult AddToCart(int id, int quantity = 1)
+        public JsonResult AddToCart(int id, long quantity = 1)
         {
-            if (quantity < 1 || quantity > 999) quantity = 1;
+            if (!ModelState.IsValid || quantity < 1 || quantity > 999) return Json(new { status = false, message = "Số lượng mỗi sản phẩm phải từ 1 đến 999." });
             var book = db.Saches.Find(id);
             if (book == null)
             {
@@ -378,9 +403,17 @@ namespace WebBanSach.Controllers
 
             var cart = GetSessionCart();
             var existing = cart.FirstOrDefault(x => x.sach.MaSach == id);
+            long existingQuantity = existing != null ? existing.Quantity : 0;
+            if (existingQuantity < 0 || existingQuantity > 999 || quantity > 999 - existingQuantity)
+                return Json(new { status = false, message = "Số lượng mỗi sản phẩm không được vượt quá 999." });
+            long available = book.SoLuongTon ?? 0;
+            // Check the remaining capacity before adding, so long cannot overflow.
+            if (available < existingQuantity || quantity > available - existingQuantity)
+                return Json(new { status = false, message = string.Format("Sách '{0}' chỉ còn {1} cuốn. Giỏ hàng đã có {2} cuốn.", book.TenSach, available, existingQuantity) });
+            long requested = existingQuantity + quantity;
             if (existing != null)
             {
-                existing.Quantity = Math.Min(999, existing.Quantity + quantity);
+                existing.Quantity = requested;
             }
             else
             {
@@ -400,10 +433,18 @@ namespace WebBanSach.Controllers
                 var cart = GetSessionCart();
                 if (jsonCart != null)
                 {
+                    foreach (var updated in jsonCart)
+                    {
+                        if (updated.sach == null || updated.Quantity < 1 || updated.Quantity > 999)
+                            return Json(new { status = false, message = "Số lượng mỗi sản phẩm phải từ 1 đến 999." });
+                        var current = db.Saches.AsNoTracking().FirstOrDefault(x => x.MaSach == updated.sach.MaSach);
+                        if (current == null || updated.Quantity > (current.SoLuongTon ?? 0))
+                            return Json(new { status = false, message = current == null ? "Sách không còn tồn tại." : string.Format("Sách '{0}' chỉ còn {1} cuốn.", current.TenSach, current.SoLuongTon ?? 0) });
+                    }
                     foreach (var item in cart)
                     {
                         var updated = jsonCart.FirstOrDefault(x => x.sach != null && x.sach.MaSach == item.sach.MaSach);
-                        if (updated != null && updated.Quantity >= 1 && updated.Quantity <= 999)
+                        if (updated != null && updated.Quantity >= 1)
                         {
                             item.Quantity = updated.Quantity;
                         }
@@ -840,8 +881,20 @@ namespace WebBanSach.Controllers
                     maskedCardNumber = "•••• •••• •••• " + cleanNumber.Substring(cleanNumber.Length - 4);
                 }
 
+                if (cart.Any(x => x.Quantity < 1 || x.Quantity > 999))
+                    return Json(new { status = false, message = "Số lượng mỗi sản phẩm phải từ 1 đến 999." });
+
                 using (var trans = db.Database.BeginTransaction())
                 {
+                    if (!string.IsNullOrWhiteSpace(receiverAddress))
+                    {
+                        customer.DiaChi = receiverAddress.Trim();
+                    }
+                    if (!string.IsNullOrWhiteSpace(receiverPhone))
+                    {
+                        customer.DienThoai = receiverPhone.Trim();
+                    }
+
                     var order = new DonDatHang
                     {
                         MaKH = customer.MaKH,
@@ -849,7 +902,8 @@ namespace WebBanSach.Controllers
                         NgayGiao = DateTime.Now.AddDays(3),
                         TinhTrang = isCreditCard, // true nếu đã thanh toán bằng thẻ
                         ThanhToan = isCreditCard ? 1 : 0, // 1: Thẻ tín dụng (Đã thanh toán), 0: COD
-                        Tracking = 0  // 0: Chờ xử lý
+                        Tracking = 0, // 0: Chờ xử lý
+                        GhiChu = string.IsNullOrWhiteSpace(note) ? null : note.Trim()
                     };
 
                     db.DonDatHangs.Add(order);
@@ -857,17 +911,21 @@ namespace WebBanSach.Controllers
 
                     foreach (var item in cart)
                     {
-                        var book = db.Saches.Find(item.sach.MaSach);
+                        var book = db.Saches.AsNoTracking().FirstOrDefault(x => x.MaSach == item.sach.MaSach);
                         if (book == null)
                         {
                             trans.Rollback();
                             return Json(new { status = false, message = string.Format("Sách '{0}' không tồn tại.", item.sach.TenSach) });
                         }
 
-                        // Cập nhật số lượng tồn kho (nếu có)
-                        if (book.SoLuongTon.HasValue)
+                        // Atomic conditional update also protects concurrent checkouts.
+                        int reserved = db.Database.ExecuteSqlCommand(
+                            "UPDATE dbo.Sach SET SoLuongTon = SoLuongTon - @p0 WHERE MaSach = @p1 AND SoLuongTon >= @p0",
+                            item.Quantity, book.MaSach);
+                        if (reserved != 1)
                         {
-                            book.SoLuongTon = Math.Max(0, (book.SoLuongTon ?? 0) - item.Quantity);
+                            trans.Rollback();
+                            return Json(new { status = false, message = string.Format("Sách '{0}' không đủ tồn kho. Vui lòng cập nhật giỏ hàng.", book.TenSach) });
                         }
 
                         var detail = new ChiTietDDH
@@ -935,6 +993,9 @@ namespace WebBanSach.Controllers
                     return new
                     {
                         id = o.MaDDH,
+                        customerName = customer.TenKH,
+                        customerPhone = customer.DienThoai,
+                        customerAddress = customer.DiaChi,
                         orderDate = o.NgayDat.ToString("dd/MM/yyyy HH:mm"),
                         deliveryDate = o.NgayGiao.ToString("dd/MM/yyyy"),
                         status = o.Tracking ?? 0,
@@ -943,6 +1004,7 @@ namespace WebBanSach.Controllers
                         paymentMethod = isPaid ? "credit_card" : "cod",
                         paymentMethodText = isPaid ? "Thẻ tín dụng (Đã thanh toán)" : "COD (Thu tiền khi nhận)",
                         isPaid = isPaid,
+                        note = o.GhiChu ?? "",
                         total = total,
                         totalFormatted = string.Format("{0:N0} VND", total),
                         itemCount = details.Sum(d => d.SoLuong),
@@ -953,7 +1015,9 @@ namespace WebBanSach.Controllers
                             image = d.Sach != null ? d.Sach.AnhBia : "topSach.png",
                             quantity = d.SoLuong,
                             price = d.DonGia,
-                            priceFormatted = string.Format("{0:N0} VND", d.DonGia)
+                            priceFormatted = string.Format("{0:N0} VND", d.DonGia),
+                            subtotal = d.DonGia * d.SoLuong,
+                            subtotalFormatted = string.Format("{0:N0} VND", d.DonGia * d.SoLuong)
                         }).ToList()
                     };
                 }).ToList();
@@ -1044,14 +1108,6 @@ namespace WebBanSach.Controllers
             }
         }
 
-        [HttpPost]
-        public JsonResult AdminLogout()
-        {
-            Session.Remove("AdminUser");
-            Session.Remove("AdminName");
-            return Json(new { status = true });
-        }
-
         [HttpGet]
         public JsonResult AdminCatalog()
         {
@@ -1067,6 +1123,88 @@ namespace WebBanSach.Controllers
                 categories = db.TheLoais.AsNoTracking().OrderBy(x => x.TenLoai).Select(x => new { id = x.MaLoai, name = x.TenLoai }).ToList(),
                 authors = db.TacGias.AsNoTracking().OrderBy(x => x.TenTG).Select(x => new { id = x.MaTG, name = x.TenTG }).ToList(),
                 publishers = db.NhaXuatBans.AsNoTracking().OrderBy(x => x.TenNXB).Select(x => new { id = x.MaNXB, name = x.TenNXB }).ToList()
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult AdminBooks(string search = null, int page = 1)
+        {
+            try
+            {
+                var query = db.Saches.AsNoTracking()
+                    .Include(s => s.TheLoai)
+                    .Include(s => s.TacGia)
+                    .Include(s => s.NhaXuatBan)
+                    .AsQueryable();
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var keyword = search.Trim().ToLowerInvariant();
+                    query = query.Where(s => s.TenSach.ToLower().Contains(keyword) ||
+                                             (s.TacGia != null && s.TacGia.TenTG.ToLower().Contains(keyword)));
+                }
+
+                var totalItems = query.Count();
+                const int pageSize = 8;
+                var totalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)pageSize));
+                var currentPage = Math.Max(1, Math.Min(page, totalPages));
+                var books = query.OrderByDescending(s => s.MaSach)
+                    .Skip((currentPage - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList()
+                    .Select(s => new
+                    {
+                        id = s.MaSach,
+                        title = s.TenSach,
+                        author = s.TacGia != null ? s.TacGia.TenTG : "Đang cập nhật",
+                        category = s.TheLoai != null ? s.TheLoai.TenLoai : "",
+                        price = s.GiaSauGiam,
+                        priceFormatted = string.Format("{0:N0} VND", s.GiaSauGiam),
+                        stock = s.SoLuongTon ?? 0,
+                        discountPercent = s.GiamGia
+                    }).ToList();
+
+                return Json(new { status = true, data = books, page = currentPage, totalPages = totalPages, totalItems = totalItems }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public JsonResult AdminBookDetails(int id)
+        {
+            var book = db.Saches.AsNoTracking()
+                .Include(s => s.TheLoai)
+                .Include(s => s.TacGia)
+                .Include(s => s.NhaXuatBan)
+                .FirstOrDefault(s => s.MaSach == id);
+            if (book == null)
+            {
+                return Json(new { status = false, message = "Không tìm thấy sản phẩm." }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(new
+            {
+                status = true,
+                data = new
+                {
+                    id = book.MaSach,
+                    title = book.TenSach,
+                    author = book.TacGia != null ? book.TacGia.TenTG : "Đang cập nhật",
+                    category = book.TheLoai != null ? book.TheLoai.TenLoai : "",
+                    categoryId = book.MaLoai,
+                    publisher = book.NhaXuatBan != null ? book.NhaXuatBan.TenNXB : "",
+                    publisherId = book.MaNXB,
+                    priceFormatted = string.Format("{0:N0} VND", book.GiaSauGiam),
+                    originalPrice = book.GiaBan ?? 0,
+                    originalPriceFormatted = string.Format("{0:N0} VND", book.GiaBan ?? 0),
+                    discountPercent = book.GiamGia,
+                    stock = book.SoLuongTon ?? 0,
+                    translator = book.NguoiDich ?? "",
+                    image = string.IsNullOrEmpty(book.AnhBia) ? "topSach.png" : book.AnhBia,
+                    description = book.Mota ?? ""
+                }
             }, JsonRequestBehavior.AllowGet);
         }
 
@@ -1182,6 +1320,206 @@ namespace WebBanSach.Controllers
             }
         }
 
+        [HttpPost]
+        public JsonResult AdminUpdateBook(int? bookId, string title, decimal? price, int? discountPercent, int? categoryId, string authorName, int? publisherId, int? stock, string translator, string description, HttpPostedFileBase cover)
+        {
+            title = (title ?? "").Trim();
+            authorName = (authorName ?? "").Trim();
+            translator = (translator ?? "").Trim();
+            description = (description ?? "").Trim();
+
+            if (!bookId.HasValue || title.Length == 0 || title.Length > 250 || authorName.Length == 0 || authorName.Length > 50 ||
+                translator.Length > 50 || description.Length > 500 || !price.HasValue || price.Value < 0 ||
+                !discountPercent.HasValue || discountPercent.Value < 0 || discountPercent.Value > 100 || !stock.HasValue || stock.Value < 0 ||
+                !categoryId.HasValue || !publisherId.HasValue ||
+                !db.TheLoais.Any(x => x.MaLoai == categoryId.Value) || !db.NhaXuatBans.Any(x => x.MaNXB == publisherId.Value))
+            {
+                return Json(new { status = false, message = "Vui lòng kiểm tra các thông tin sản phẩm." });
+            }
+
+            var book = db.Saches.Find(bookId.Value);
+            if (book == null) return Json(new { status = false, message = "Không tìm thấy sản phẩm." });
+
+            string newFileName = null;
+            string newCoverPath = null;
+            var oldFileName = book.AnhBia;
+            try
+            {
+                if (cover != null && cover.ContentLength > 0)
+                {
+                    if (cover.ContentLength > 4 * 1024 * 1024)
+                        return Json(new { status = false, message = "Ảnh bìa tối đa 4 MB." });
+
+                    var extension = Path.GetExtension(cover.FileName).ToLowerInvariant();
+                    if (extension != ".jpg" && extension != ".jpeg" && extension != ".jfif" && extension != ".png" && extension != ".gif" && extension != ".bmp")
+                        return Json(new { status = false, message = "Ảnh bìa chỉ hỗ trợ JPG, JFIF, PNG, GIF hoặc BMP." });
+
+                    Guid imageFormat;
+                    using (var image = System.Drawing.Image.FromStream(cover.InputStream))
+                    {
+                        imageFormat = image.RawFormat.Guid;
+                        if (image.Width > 8000 || image.Height > 8000 || (long)image.Width * image.Height > 40000000)
+                            return Json(new { status = false, message = "Kích thước ảnh bìa quá lớn." });
+                    }
+
+                    var expectedFormat = extension == ".jpg" || extension == ".jpeg" || extension == ".jfif"
+                        ? System.Drawing.Imaging.ImageFormat.Jpeg.Guid
+                        : extension == ".png"
+                            ? System.Drawing.Imaging.ImageFormat.Png.Guid
+                            : extension == ".gif"
+                                ? System.Drawing.Imaging.ImageFormat.Gif.Guid
+                                : System.Drawing.Imaging.ImageFormat.Bmp.Guid;
+                    if (imageFormat != expectedFormat)
+                        return Json(new { status = false, message = "Tệp tải lên không phải ảnh hợp lệ." });
+
+                    cover.InputStream.Position = 0;
+                    newFileName = Guid.NewGuid().ToString("N") + extension;
+                    newCoverPath = Server.MapPath("~/images/" + newFileName);
+                    cover.SaveAs(newCoverPath);
+                }
+
+                using (var transaction = db.Database.BeginTransaction())
+                {
+                    var author = db.TacGias.FirstOrDefault(x => x.TenTG.Trim() == authorName);
+                    if (author == null)
+                    {
+                        author = new TacGia { TenTG = authorName };
+                        db.TacGias.Add(author);
+                        db.SaveChanges();
+                    }
+
+                    book.TenSach = title;
+                    book.GiaBan = price.Value;
+                    book.GiamGia = discountPercent.Value;
+                    book.MaLoai = categoryId.Value;
+                    book.MaTG = author.MaTG;
+                    book.MaNXB = publisherId.Value;
+                    book.SoLuongTon = stock.Value;
+                    book.NguoiDich = translator.Length == 0 ? null : translator;
+                    book.Mota = description.Length == 0 ? null : description;
+                    book.NgayCapNhat = DateTime.Now;
+                    if (newFileName != null) book.AnhBia = newFileName;
+
+                    db.SaveChanges();
+                    transaction.Commit();
+                }
+
+                if (newFileName != null && !string.IsNullOrEmpty(oldFileName) &&
+                    !db.Saches.Any(x => x.AnhBia == oldFileName))
+                {
+                    var oldCoverPath = Server.MapPath("~/images/" + Path.GetFileName(oldFileName));
+                    if (System.IO.File.Exists(oldCoverPath)) System.IO.File.Delete(oldCoverPath);
+                }
+
+                return Json(new { status = true, message = "Cập nhật sản phẩm thành công." });
+            }
+            catch (Exception)
+            {
+                if (!string.IsNullOrEmpty(newCoverPath) && System.IO.File.Exists(newCoverPath))
+                    System.IO.File.Delete(newCoverPath);
+                return Json(new { status = false, message = "Không thể cập nhật sản phẩm. Vui lòng thử lại." });
+            }
+        }
+
+        [HttpPost]
+        public JsonResult AdminDeleteBook(int id)
+        {
+            var book = db.Saches.Find(id);
+            if (book == null) return Json(new { status = false, message = "Không tìm thấy sản phẩm." });
+            if (db.ChiTietDDHs.Any(x => x.MaSach == id))
+                return Json(new { status = false, message = "Sách đã có trong lịch sử đơn hàng nên không thể xóa. Hãy đưa tồn kho về 0." });
+
+            try
+            {
+                var imageName = book.AnhBia;
+                db.DanhGiaSaches.RemoveRange(db.DanhGiaSaches.Where(x => x.MaSach == id));
+                db.Saches.Remove(book);
+                db.SaveChanges();
+                if (!string.IsNullOrEmpty(imageName) && !db.Saches.Any(x => x.AnhBia == imageName))
+                {
+                    var imagePath = Server.MapPath("~/images/" + Path.GetFileName(imageName));
+                    if (System.IO.File.Exists(imagePath)) System.IO.File.Delete(imagePath);
+                }
+                return Json(new { status = true, message = "Đã xóa sản phẩm." });
+            }
+            catch (Exception)
+            {
+                return Json(new { status = false, message = "Không thể xóa sản phẩm." });
+            }
+        }
+
+        [HttpGet]
+        public JsonResult AdminReviews(string search = null, int? rating = null, int page = 1)
+        {
+            try
+            {
+                var query = from review in db.DanhGiaSaches.AsNoTracking()
+                            join book in db.Saches.AsNoTracking() on review.MaSach equals book.MaSach
+                            join customer in db.KhachHangs.AsNoTracking() on review.MaKH equals customer.MaKH
+                            select new { Review = review, BookTitle = book.TenSach, CustomerName = customer.TenKH, CustomerEmail = customer.Email };
+
+                if (rating.HasValue && rating.Value >= 1 && rating.Value <= 5)
+                    query = query.Where(x => x.Review.SoSao == rating.Value);
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var keyword = search.Trim().ToLower();
+                    query = query.Where(x => x.BookTitle.ToLower().Contains(keyword) || x.CustomerName.ToLower().Contains(keyword) ||
+                                             (x.CustomerEmail != null && x.CustomerEmail.ToLower().Contains(keyword)) ||
+                                             (x.Review.NoiDung != null && x.Review.NoiDung.ToLower().Contains(keyword)));
+                }
+
+                var totalItems = query.Count();
+                const int pageSize = 10;
+                var totalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)pageSize));
+                var currentPage = Math.Max(1, Math.Min(page, totalPages));
+                var data = query.OrderByDescending(x => x.Review.NgayDanhGia)
+                    .Skip((currentPage - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList()
+                    .Select(x => new
+                    {
+                        id = x.Review.MaDanhGia,
+                        bookId = x.Review.MaSach,
+                        bookTitle = x.BookTitle,
+                        customerName = x.CustomerName,
+                        customerEmail = x.CustomerEmail,
+                        rating = x.Review.SoSao,
+                        comment = x.Review.NoiDung,
+                        date = x.Review.NgayDanhGia.ToString("dd/MM/yyyy HH:mm")
+                    }).ToList();
+
+                return Json(new { status = true, data = data, page = currentPage, totalPages = totalPages, totalItems = totalItems }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public JsonResult AdminDeleteReview(int id)
+        {
+            var review = db.DanhGiaSaches.Find(id);
+            if (review == null) return Json(new { status = false, message = "Không tìm thấy đánh giá." });
+            db.DanhGiaSaches.Remove(review);
+            db.SaveChanges();
+            return Json(new { status = true, message = "Đã xóa đánh giá." });
+        }
+
+        [HttpGet]
+        public JsonResult AdminSession()
+        {
+            if (Session["AdminToken"] == null) Session["AdminToken"] = Guid.NewGuid().ToString("N");
+            return Json(new { status = true, name = Session["AdminName"] ?? Session["AdminUser"], token = Session["AdminToken"] }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult AdminLogout()
+        {
+            Session.Remove("AdminUser"); Session.Remove("AdminName"); Session.Remove("AdminToken");
+            return Json(new { status = true });
+        }
+
         [HttpGet]
         public JsonResult AdminOrders()
         {
@@ -1203,13 +1541,17 @@ namespace WebBanSach.Controllers
                         id = o.MaDDH,
                         customerName = o.KhachHang != null ? o.KhachHang.TenKH : "Khách",
                         customerPhone = o.KhachHang != null ? o.KhachHang.DienThoai : "",
+                        customerAddress = o.KhachHang != null ? o.KhachHang.DiaChi : "",
+                        customerEmail = o.KhachHang != null ? o.KhachHang.Email : "",
                         orderDate = o.NgayDat.ToString("dd/MM/yyyy HH:mm"),
+                        deliveryDate = o.NgayGiao.ToString("dd/MM/yyyy"),
                         status = o.Tracking ?? 0,
                         statusText = GetTrackingStatusText(o.Tracking ?? 0),
                         paymentStatus = o.ThanhToan ?? 0,
                         paymentMethod = isPaid ? "credit_card" : "cod",
                         paymentMethodText = isPaid ? "Thẻ tín dụng (Đã TT)" : "COD (Chưa TT)",
                         isPaid = isPaid,
+                        note = o.GhiChu ?? "",
                         total = total,
                         totalFormatted = string.Format("{0:N0} VND", total),
                         itemCount = details.Sum(d => d.SoLuong),
@@ -1217,8 +1559,12 @@ namespace WebBanSach.Controllers
                         {
                             bookId = d.MaSach,
                             title = d.Sach != null ? d.Sach.TenSach : "",
+                            image = d.Sach != null ? d.Sach.AnhBia : "topSach.png",
                             quantity = d.SoLuong,
-                            price = d.DonGia
+                            price = d.DonGia,
+                            priceFormatted = string.Format("{0:N0} VND", d.DonGia),
+                            subtotal = d.DonGia * d.SoLuong,
+                            subtotalFormatted = string.Format("{0:N0} VND", d.DonGia * d.SoLuong)
                         }).ToList()
                     };
                 }).ToList();
@@ -1242,6 +1588,8 @@ namespace WebBanSach.Controllers
 
             try
             {
+                if (status < 0 || status > 4)
+                    return Json(new { status = false, message = "Trạng thái đơn hàng không hợp lệ." });
                 var order = db.DonDatHangs.Find(id);
                 if (order == null)
                 {

@@ -1,6 +1,6 @@
 # WebBanSach — xác minh bằng mã EMAIL, đặt hàng và theo dõi đơn
 
-Bản này thay hoàn toàn OTP điện thoại bằng mã gửi qua email. Không cần Twilio hay đăng ký dịch vụ SMS. Các tính năng giỏ hàng, COD, theo dõi/hủy đơn và quản trị đơn được giữ lại.
+Bản này dùng mã xác minh email thay OTP điện thoại. Không cần Twilio hay SMS. Hệ thống gồm giỏ hàng, COD/thẻ, theo dõi đơn, admin quản lý sách/đơn/đánh giá, giảm giá và lọc catalog.
 
 ## 1. Cài bản cập nhật
 
@@ -40,11 +40,11 @@ Nếu không muốn lưu secret trong file, tạo biến môi trường Windows 
 
 Trong Web.config đổi EmailOtpMode từ Smtp sang LocalPickup. Chế độ này CHỈ hoạt động khi truy cập localhost:
 
-- Bấm Gửi mã sẽ lưu thư .eml trong Project8/App_Data/OtpEmails.
-- Không có email gửi vào hộp thư thật, website hiển thị rõ đang ở chế độ thử.
-- Mở file .eml mới nhất bằng Outlook/ứng dụng đọc email. Nếu xem bằng Notepad mà nội dung bị mã hóa Base64, dùng ứng dụng đọc .eml; không nhập chuỗi Base64 làm mã.
+- Bấm Gửi mã ở LocalPickup sẽ ghi thư/mã test trong `backend/App_Data/OtpEmails`; trang xác minh có thể tự điền mã test.
+- Không có email gửi vào hộp thư thật; chỉ dùng LocalPickup trên localhost, không bật chế độ này trên máy chủ công khai.
+- Có thể mở file `.eml` bằng ứng dụng đọc email để xem nội dung thư.
 - Khi muốn gửi thật, đổi lại Smtp và cấu hình Gmail như phần 2.
-- Không có mã cố định hay hiển thị OTP thật trên giao diện; mã được tạo ngẫu nhiên và phía server chỉ giữ bản băm trong phiên.
+- Mã được tạo ngẫu nhiên, hết hạn sau 5 phút; không commit file OTP trong `App_Data/OtpEmails`.
 
 ## 4. Quy tắc xác minh và tài khoản cũ
 
@@ -69,19 +69,30 @@ Trong Web.config đổi EmailOtpMode từ Smtp sang LocalPickup. Chế độ nà
 ## 6. Đặt và theo dõi đơn
 
 - Khách được xem sách/giỏ hàng trước, nhưng phải đăng ký, đăng nhập và xác minh email trước khi đặt.
-- COD là phương thức đang hoạt động. Chưa tích hợp thanh toán online, MoMo thật, phí vận chuyển, mã giảm giá, hoàn tiền.
+- COD và kiểm tra thẻ mẫu phía ứng dụng đang hoạt động; chưa kết nối cổng thanh toán ngân hàng/MoMo thật, phí vận chuyển hoặc hoàn tiền.
 - Checkout lấy giá và tồn kho từ database, không tin giá hoặc mã khách hàng từ trình duyệt. Tạo đơn, chi tiết và trừ tồn trong cùng giao dịch. Nếu thất bại, giữ giỏ để thử lại.
 - Đơn hàng của tôi chỉ hiển thị đơn của chính tài khoản; chi tiết đơn và API danh sách cũng kiểm tra chủ sở hữu.
 - Khách hủy được đơn Chờ xử lý. Tồn kho hoàn lại đúng một lần.
-- Quản trị: /Admin/Login → /Admin/Home/Order. Tài khoản admin mẫu của SQL là admin / admin; cần thay khi sử dụng dữ liệu thật.
+- Quản trị: mở `/admin.html`, đăng nhập `admin` / `123456` hoặc `manager` / `123456`. Đổi mật khẩu demo trước khi triển khai thật.
 - Admin chuyển Chờ xử lý → Đã đóng gói → Đang giao → Đã giao; có thể hủy khi Chờ xử lý hoặc Đã đóng gói. Xác nhận Đã giao / đã thu COD đánh dấu đã thanh toán. Chưa kết nối hãng vận chuyển.
 - Trạng thái đơn cũ không được suy đoán tự động; admin kiểm tra thực tế trước khi cập nhật.
 
-## 7. Phạm vi kiểm tra
+## 7. Catalog, đánh giá và quản trị
 
-Đã kiểm tra cú pháp toàn bộ 35 file C#, XML và manifest project, loại bỏ tham chiếu xác minh điện thoại khỏi luồng đang dùng, kiểm tra mã nguồn về ràng buộc OTP/tài khoản và đóng gói ZIP.
+- Admin đăng nhập tại `/admin.html`; dữ liệu demo dùng `admin` / `123456` hoặc `manager` / `123456`.
+- Mở mục sản phẩm để tìm, xem, thêm, sửa hoặc xóa sách. Sách đã có trong chi tiết đơn không thể xóa để giữ lịch sử; hãy đặt tồn kho về 0.
+- Form sách có giá gốc, giảm giá 0–100%, tồn kho, tác giả nhập tự do và ảnh bìa JPG/JFIF/PNG/GIF/BMP tối đa 4 MB.
+- Khách đã đăng nhập và xác minh email có thể chấm 1–5 sao và cập nhật đánh giá của mình. Admin tìm/lọc theo sao và xóa đánh giá không phù hợp.
+- Trang chủ sắp xếp theo giá sau giảm, doanh số 30 ngày (độ hot), điểm/lượt đánh giá (phổ biến) hoặc tổng lượt bán. Đơn đã hủy không tính vào doanh số.
+- Mỗi sản phẩm giới hạn 1–999 cuốn mỗi giỏ, không vượt tồn kho; server kiểm tra lại khi thêm giỏ và đặt hàng.
 
-Chưa Build bằng MSBuild/Razor trên Windows, chưa chạy script với SQL Server tại môi trường sửa này; chưa gửi thử email thật vì chưa có Gmail/mật khẩu ứng dụng của bạn. Vì vậy cần kiểm tra trên máy bạn trước khi dùng:
+## 8. Cập nhật schema SQL
+
+`01_NangCapDatabase.sql` là migration chuẩn cho database hiện có: thêm ghi chú đơn, giảm giá, bảng đánh giá và nâng số lượng tồn/đơn hàng lên BIGINT. `03_KhoiPhucGhiChuDonHang.sql` và `04_SoLuongBigInt.sql` chỉ dùng sửa riêng khi cần; không cần chạy lại nếu đã chạy `01` thành công.
+
+## 9. Kiểm tra trước khi triển khai
+
+Trên máy phát triển, chạy build trong Visual Studio/MSBuild, áp dụng `01_NangCapDatabase.sql`, rồi kiểm thử các luồng sau. Email SMTP thật cần Gmail App Password riêng; không commit thông tin bí mật.
 
 1. Tạo tài khoản → gửi mã → email nhận đúng mã; không thấy mã hiển thị trên trang.
 2. Sai mã, quá 5 lần, hết 5 phút phải bị từ chối; mã cũ không dùng được sau khi gửi lại.
@@ -91,4 +102,4 @@ Chưa Build bằng MSBuild/Razor trên Windows, chưa chạy script với SQL Se
 6. Đặt quá tồn kho hoặc gửi số lượng âm không tạo đơn nửa chừng; giỏ còn khi đặt thất bại.
 7. Hủy/cập nhật trạng thái hợp lệ, tồn kho hoàn đúng một lần và khách thấy cập nhật khi tải lại.
 
-Giới hạn: throttle hiện lưu trong bộ nhớ một tiến trình, chưa phải mô hình nhiều máy chủ; các chức năng quản trị cũ ngoài phạm vi sửa chưa được rà soát toàn bộ. Khi triển khai thật cần HTTPS và cookie requireSSL=true. Không chạy script tạo mới lên database đã tồn tại.
+Giới hạn: throttle OTP lưu trong bộ nhớ một tiến trình; cần thay bằng store dùng chung khi chạy nhiều instance. Khi triển khai thật cần HTTPS, cookie `requireSSL=true`, thay tài khoản demo và không chạy script tạo database mới lên database đang tồn tại.

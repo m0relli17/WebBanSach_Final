@@ -1,3 +1,5 @@
+-- Idempotent demo data seed: test accounts, extra categories/publishers, stock defaults, and sample orders.
+-- Idempotent demo seed: customer/admin accounts, extra categories/publishers, stock, and sample orders.
 USE [BSDB2];
 GO
 SET XACT_ABORT ON;

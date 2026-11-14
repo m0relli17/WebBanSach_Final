@@ -54,7 +54,7 @@ namespace WebBanSach.Controllers
             Session[CartSession] = sessionCart;
 
             decimal total = sessionCart.Sum(x => x.Total).GetValueOrDefault(0);
-            int count = sessionCart.Sum(x => x.Quantity);
+            long count = sessionCart.Sum(x => x.Quantity);
 
             return Json(new
             {
@@ -85,7 +85,7 @@ namespace WebBanSach.Controllers
             //ép kiểu từ session
             var sessionCart = (List<CartModel>)Session[CartSession];
 
-            if(sessionCart==null || jsonCart==null || jsonCart.Any(x=>x.Quantity<1 || x.Quantity>999)) return Json(new {status=false});
+            if(sessionCart==null || jsonCart==null || jsonCart.Any(x=>x.Quantity<1)) return Json(new {status=false});
             foreach (var item in sessionCart)
             {
                 var jsonItem = jsonCart.FirstOrDefault(x => x.sach!=null && x.sach.MaSach == item.sach.MaSach);
@@ -98,7 +98,7 @@ namespace WebBanSach.Controllers
             Session[CartSession] = sessionCart;
 
             decimal total = sessionCart.Sum(x => x.Total).GetValueOrDefault(0);
-            int count = sessionCart.Sum(x => x.Quantity);
+            long count = sessionCart.Sum(x => x.Quantity);
 
             return Json(new
             {
@@ -110,12 +110,17 @@ namespace WebBanSach.Controllers
         }
 
         //GET : /Cart/AddItem/?id=?&quantity=1 : thêm sản phẩm vào giỏ hàng
-        public ActionResult AddItem(int id, int quantity)
+        public ActionResult AddItem(int id, long quantity)
         {
-            if(quantity<1 || quantity>999) return new HttpStatusCodeResult(400);
+            if(!ModelState.IsValid || quantity<1) return new HttpStatusCodeResult(400);
             //lấy mã sách và gán đối tượng
             var sach = new AdminProcess().GetIdBook(id);
             if(sach==null) return HttpNotFound();
+            var currentCart = Session[CartSession] as List<CartModel>;
+            long existingQuantity = currentCart == null ? 0 : currentCart.Where(x => x.sach.MaSach == id).Sum(x => x.Quantity);
+            long available = sach.SoLuongTon ?? 0;
+            if (available < existingQuantity || quantity > available - existingQuantity) return new HttpStatusCodeResult(400, "Insufficient stock");
+
 
             //lấy giỏ hàng từ session
             var cart = Session[CartSession];
@@ -131,7 +136,7 @@ namespace WebBanSach.Controllers
                     {
                         if (item.sach.MaSach == id)
                         {
-                            item.Quantity = Math.Min(999,item.Quantity + quantity);
+                            item.Quantity = checked(item.Quantity + quantity);
                         }
                     }
                 }
@@ -196,10 +201,11 @@ namespace WebBanSach.Controllers
                     db.DonDatHangs.Add(order); db.SaveChanges();
                     foreach(var line in cart.GroupBy(x=>x.sach.MaSach)) {
                         var book=db.Saches.Find(line.Key);
-                        long qty=line.Sum(x=>(long)x.Quantity);
+                        long qty=line.Sum(x=>x.Quantity);
                         if(line.Any(x=>x.Quantity<1) || qty>999 || book==null || !book.GiaBan.HasValue || book.GiaBan<0)
                             throw new InvalidOperationException("Thông tin sách hoặc số lượng không hợp lệ. Vui lòng cập nhật giỏ hàng.");
-                        book.SoLuongTon=Math.Max(0, book.SoLuongTon.GetValueOrDefault()-(int)qty);
+                        if (qty > book.SoLuongTon.GetValueOrDefault()) throw new InvalidOperationException("Không đủ số lượng tồn kho.");
+                        book.SoLuongTon=book.SoLuongTon.GetValueOrDefault()-qty;
                         db.ChiTietDDHs.Add(new ChiTietDDH {MaDDH=order.MaDDH,MaSach=book.MaSach,SoLuong=(int)qty,DonGia=book.GiaSauGiam});
                     }
                     db.SaveChanges(); tx.Commit(); Session[CartSession]=null;

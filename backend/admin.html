@@ -69,6 +69,8 @@
 
         <!-- Admin Dashboard Screen -->
         <div id="adminDashboardScreen" style="display: none;">
+            <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailTitle" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 id="orderDetailTitle">Chi tiết đơn hàng</h5><button class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div><div id="orderDetailBody" class="modal-body"></div></div></div></div>
+
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
                 <div>
                     <h4 class="fw-bold text-dark mb-1">
@@ -88,11 +90,12 @@
 
             <section id="adminAddBookPanel" class="card border-0 shadow-sm mb-4" style="display: none;">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="fa fa-book text-danger me-2"></i>Thông tin sản phẩm mới</h5>
+                    <h5 id="bookFormHeading" class="mb-0 fw-bold"><i class="fa fa-book text-danger me-2"></i>Thêm sản phẩm</h5>
                 </div>
                 <div class="card-body">
                     <div id="adminBookAlert" class="alert alert-danger py-2 small" style="display: none;"></div>
                     <form id="adminBookForm">
+                        <input id="bookId" name="bookId" type="hidden">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label" for="bookTitle">Tên sách</label>
@@ -149,6 +152,56 @@
                 </div>
             </section>
 
+<details class="card p-3 mb-4 shadow-sm" id="catalogPanel">
+                <summary class="fw-bold">Sản phẩm <span class="text-muted fw-normal small">Tìm, sửa hoặc xóa sách</span></summary>
+                <form id="catalogForm" class="d-flex gap-2 my-3">
+                    <input type="search" id="catalogSearch" class="form-control" aria-label="Tên sách hoặc tác giả" placeholder="Tên sách hoặc tác giả">
+                    <button class="btn btn-dark" aria-label="Tìm sách"><i class="fa fa-search" aria-hidden="true"></i></button>
+                </form>
+                <div id="catalogRows" class="list-group mb-2" aria-live="polite"></div>
+                <div class="d-flex align-items-center justify-content-center gap-3">
+                    <button type="button" id="catalogPrev" class="btn btn-outline-secondary btn-sm" disabled>Trang trước</button>
+                    <span id="catalogPage" class="small text-muted"></span>
+                    <button type="button" id="catalogNext" class="btn btn-outline-secondary btn-sm" disabled>Trang sau</button>
+                </div>
+            </details>
+            <dialog id="bookDialog" aria-labelledby="bookHeading" style="width:min(94vw,640px);max-height:85vh;border:0;border-radius:12px;padding:24px">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <h2 id="bookHeading" class="h4">Chi tiết sản phẩm</h2>
+                    <form method="dialog"><button class="btn btn-outline-secondary btn-sm">Đóng</button></form>
+                </div>
+                <p id="bookNotice" role="status"></p>
+                <div id="bookBody" hidden>
+                    <img id="bookDetailCover" width="110" height="150" style="object-fit:contain" alt="Ảnh bìa sách">
+                    <dl id="bookFields" class="mt-3"></dl>
+                </div>
+                <div id="bookDialogActions" class="d-flex justify-content-end gap-2 mt-3" hidden>
+                    <button id="bookDeleteButton" type="button" class="btn btn-outline-danger btn-sm"><i class="fa fa-trash me-1" aria-hidden="true"></i>Xóa sách</button>
+                    <button id="bookEditButton" type="button" class="btn btn-danger btn-sm"><i class="fa fa-pencil me-1" aria-hidden="true"></i>Sửa sách</button>
+                </div>
+            </dialog>
+            <details class="card p-3 mb-4 shadow-sm" id="reviewPanel">
+                <summary class="fw-bold">Đánh giá <span id="reviewCountBadge" class="badge bg-light text-muted border ms-1">0</span></summary>
+                <form id="reviewFilterForm" class="row g-2 my-3">
+                    <div class="col-md-7">
+                        <input type="search" id="reviewSearch" class="form-control" placeholder="Tìm theo sách, khách hoặc nhận xét" aria-label="Tìm đánh giá">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="reviewRatingFilter" class="form-select" aria-label="Lọc theo số sao">
+                            <option value="">Tất cả số sao</option>
+                            <option value="5">5 sao</option><option value="4">4 sao</option>
+                            <option value="3">3 sao</option><option value="2">2 sao</option><option value="1">1 sao</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-grid"><button class="btn btn-dark" type="submit"><i class="fa fa-search me-1" aria-hidden="true"></i>Lọc</button></div>
+                </form>
+                <div id="adminReviewRows" class="list-group mb-2" aria-live="polite"></div>
+                <div class="d-flex justify-content-center align-items-center gap-3">
+                    <button type="button" id="reviewPrev" class="btn btn-outline-secondary btn-sm" disabled>Trang trước</button>
+                    <span id="reviewPage" class="small text-muted"></span>
+                    <button type="button" id="reviewNext" class="btn btn-outline-secondary btn-sm" disabled>Trang sau</button>
+                </div>
+            </details>
             <!-- Filter Tabs -->
             <div class="card border-0 shadow-sm rounded-3 mb-4">
                 <div class="card-body p-3">
@@ -181,6 +234,7 @@
                                 <th>Số điện thoại</th>
                                 <th>Ngày đặt</th>
                                 <th>Sản phẩm</th>
+                                <th style="min-width: 200px;">Ghi chú đơn hàng</th>
                                 <th>Tổng tiền</th>
                                 <th style="width: 170px;">Trạng thái</th>
                                 <th style="width: 180px;">Hành động</th>
@@ -188,7 +242,7 @@
                         </thead>
                         <tbody id="adminOrdersTableBody">
                             <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">
+                                <td colspan="9" class="text-center py-4 text-muted">
                                     <div class="spinner-border spinner-border-sm text-primary me-2"></div> Đang tải danh sách đơn hàng...
                                 </td>
                             </tr>
@@ -207,13 +261,11 @@
         let allOrders = [];
         let currentFilter = 'all';
 
-        function checkAdminSession() {
-            const admin = sessionStorage.getItem('adminUser');
-            if (admin) {
-                showDashboard(admin);
-            } else {
-                showLogin();
-            }
+        async function checkAdminSession() {
+            try {
+                const session = await adminRequest('AdminSession');
+                adminToken = session.token; showDashboard(session.name);
+            } catch(error) { showLogin(); }
         }
 
         function showLogin() {
@@ -236,8 +288,17 @@
         function toggleAddBookForm(forceOpen) {
             const panel = document.getElementById('adminAddBookPanel');
             const open = typeof forceOpen === 'boolean' ? forceOpen : panel.style.display === 'none';
+            if (open) prepareNewBookForm();
             panel.style.display = open ? 'block' : 'none';
             if (open) loadAdminCatalog();
+        }
+
+        function prepareNewBookForm() {
+            document.getElementById('adminBookForm').reset();
+            document.getElementById('bookId').value = '';
+            document.getElementById('bookCover').required = true;
+            document.getElementById('bookFormHeading').innerHTML = '<i class="fa fa-book text-danger me-2"></i>Thêm sản phẩm';
+            document.getElementById('btnSaveBook').innerHTML = '<i class="fa fa-save me-1"></i>Lưu sản phẩm';
         }
 
         function populateAdminSelect(id, items, placeholder) {
@@ -288,15 +349,19 @@
             const form = document.getElementById('adminBookForm');
             const alertBox = document.getElementById('adminBookAlert');
             const submitButton = document.getElementById('btnSaveBook');
+            const isEditing = Boolean(document.getElementById('bookId').value);
             alertBox.style.display = 'none';
             submitButton.disabled = true;
 
             try {
-                const res = await api.addAdminBook(new FormData(form));
+                const action = isEditing ? 'AdminUpdateBook' : 'AdminCreateBook';
+                const res = await adminRequest(action, new FormData(form));
                 if (!res.status) throw new Error(res.message || 'Không thể thêm sản phẩm.');
                 showToast(res.message || 'Thêm sản phẩm thành công.');
                 form.reset();
+                document.getElementById('bookId').value = '';
                 toggleAddBookForm(false);
+                loadAdminBooks(catalogPage);
             } catch (err) {
                 alertBox.textContent = err.message;
                 alertBox.style.display = 'block';
@@ -321,7 +386,7 @@
                 const res = await api.adminLogin(u, p);
                 if (res.status) {
                     sessionStorage.setItem('adminUser', res.admin ? res.admin.name || res.admin.username : u);
-                    showDashboard(sessionStorage.getItem('adminUser'));
+                    await checkAdminSession();
                 } else {
                     alertBox.textContent = res.message || 'Đăng nhập quản trị thất bại!';
                     alertBox.style.display = 'block';
@@ -338,17 +403,19 @@
 
         async function handleAdminLogout() {
             try {
-                await api.adminLogout();
-            } catch (err) {
-                console.error('Admin logout error:', err);
+                await adminRequest('AdminLogout', new URLSearchParams());
+            } catch (error) {
+                console.error('Admin logout error:', error);
+            } finally {
+                sessionStorage.removeItem('adminUser');
+                adminToken = '';
+                showLogin();
             }
-            sessionStorage.removeItem('adminUser');
-            showLogin();
         }
 
         async function loadAdminOrders() {
             const tbody = document.getElementById('adminOrdersTableBody');
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Đang tải...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Đang tải...</td></tr>`;
 
             try {
                 const res = await api.getAdminOrders();
@@ -357,10 +424,10 @@
                     updateCounts();
                     renderOrders();
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Không thể tải danh sách đơn: ${res.message || 'Lỗi'}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger">Không thể tải danh sách đơn: ${res.message || 'Lỗi'}</td></tr>`;
                 }
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
             }
         }
 
@@ -401,19 +468,20 @@
             }
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không tìm thấy đơn hàng nào phù hợp.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">Không tìm thấy đơn hàng nào phù hợp.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = filtered.map(o => `
                 <tr>
-                    <td class="fw-bold">#${o.id}</td>
+                    <td><button class="btn btn-link p-0 fw-bold" onclick="showOrderDetail(${o.id})">#${o.id}</button></td>
                     <td>
                         <div class="fw-semibold text-dark">${o.customerName}</div>
                     </td>
                     <td><span class="text-muted small">${o.customerPhone || 'N/A'}</span></td>
                     <td><span class="text-muted small">${o.orderDate}</span></td>
                     <td><span class="badge bg-light text-dark border">${o.itemCount} sản phẩm</span></td>
+                    <td class="small" style="white-space: pre-wrap; overflow-wrap: anywhere; max-width: 300px;">${escapeAdmin(String(o.note || "").trim() || "Không có ghi chú")}</td>
                     <td class="fw-bold text-danger">
                         ${o.totalFormatted}
                         <div class="small fw-normal mt-1">
@@ -424,6 +492,7 @@
                         ${getStatusBadge(o.status)}
                     </td>
                     <td>
+                        <button class="btn btn-outline-secondary btn-sm mb-2 w-100" onclick="showOrderDetail(${o.id})"><i class="fa fa-eye me-1" aria-hidden="true"></i>Xem chi tiết</button>
                         <select class="form-select form-select-sm" onchange="changeStatus(${o.id}, this.value)" ${o.status === 3 || o.status === 4 ? 'disabled' : ''}>
                             <option value="0" ${o.status === 0 ? 'selected' : ''}>0 - Chờ xử lý</option>
                             <option value="1" ${o.status === 1 ? 'selected' : ''}>1 - Đã đóng gói</option>
@@ -467,6 +536,201 @@
         }
 
         document.getElementById('adminBookForm').addEventListener('submit', handleAddBook);
+
+        let adminToken = '';
+        let catalogPage = 1;
+        let reviewPage = 1;
+        const escapeAdmin = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        async function adminRequest(action, data) {
+            const options = { credentials: 'include', cache: 'no-store' };
+            if (data) {
+                options.method = 'POST'; options.body = data;
+                options.headers = { 'X-Admin-Token': adminToken };
+            }
+            const response = await fetch(API_BASE + '/' + action, options);
+            const result = await response.json();
+            if (response.status === 401 || response.status === 403) { showLogin(); throw new Error('Phiên quản trị đã hết hạn. Vui lòng đăng nhập lại.'); }
+            if (!result.status) throw new Error(result.message || 'Không thể thực hiện thao tác.');
+            return result;
+        }
+
+        function showOrderDetail(id) {
+            const order = allOrders.find(o => o.id === id); if (!order) return;
+            document.getElementById('orderDetailTitle').textContent = 'Đơn hàng #' + id;
+            document.getElementById('orderDetailBody').innerHTML = `
+                <dl class="row small mb-3">
+                    <dt class="col-sm-3">Khách hàng</dt><dd class="col-sm-9">${escapeAdmin(order.customerName)}</dd>
+                    <dt class="col-sm-3">Liên hệ</dt><dd class="col-sm-9">${escapeAdmin(order.customerPhone)} · ${escapeAdmin(order.customerEmail || 'Không có email')}</dd>
+                    <dt class="col-sm-3">Địa chỉ</dt><dd class="col-sm-9">${escapeAdmin(order.customerAddress || 'Chưa có địa chỉ')}</dd>
+                    <dt class="col-sm-3">Ngày đặt / giao</dt><dd class="col-sm-9">${escapeAdmin(order.orderDate)} / ${escapeAdmin(order.deliveryDate)}</dd>
+                    <dt class="col-sm-3">Thanh toán</dt><dd class="col-sm-9">${escapeAdmin(order.paymentMethodText)}</dd>
+                </dl>
+                <div class="bg-light rounded p-3 mb-3"><strong>Ghi chú</strong><div style="white-space:pre-wrap;overflow-wrap:anywhere">${escapeAdmin(order.note || 'Không có ghi chú')}</div></div>
+                ${order.items.map(i => `<div class="d-flex justify-content-between border-bottom py-2 gap-3"><span>${escapeAdmin(i.title)} × ${i.quantity}</span><span class="text-nowrap">${escapeAdmin(i.subtotalFormatted)}</span></div>`).join('')}
+                <p class="text-end fw-bold text-danger mt-3">${escapeAdmin(order.totalFormatted)}</p>`;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('orderDetailModal')).show();
+        }
+
+        async function loadAdminBooks(page) {
+            catalogPage = page || 1;
+            const rows = document.getElementById('catalogRows');
+            rows.innerHTML = '<div class="list-group-item text-muted">Đang tải sản phẩm...</div>';
+            try {
+                const search = document.getElementById('catalogSearch').value.trim();
+                const result = await adminRequest(`AdminBooks?page=${catalogPage}&search=${encodeURIComponent(search)}`);
+                rows.innerHTML = result.data.length ? result.data.map(book => `
+                    <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-3">
+                        <button type="button" class="btn btn-link text-start text-decoration-none p-0 flex-grow-1" onclick="showBookDetails(${book.id})">
+                            <strong class="d-block text-dark">${escapeAdmin(book.title)}</strong>
+                            <small class="text-muted">${escapeAdmin(book.author)} · ${escapeAdmin(book.category)}</small>
+                        </button>
+                        <span class="text-end text-nowrap">${escapeAdmin(book.priceFormatted)}<small class="d-block text-muted">Tồn: ${book.stock} · Giảm ${book.discountPercent}%</small></span>
+                        <span class="d-flex gap-1">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="editBook(${book.id})" aria-label="Sửa ${escapeAdmin(book.title)}" title="Sửa sách"><i class="fa fa-pencil" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteBook(${book.id})" aria-label="Xóa ${escapeAdmin(book.title)}" title="Xóa sách"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                        </span>
+                    </div>
+                `).join('') : '<div class="list-group-item text-muted">Không tìm thấy sản phẩm.</div>';
+                document.getElementById('catalogPage').textContent = `Trang ${result.page} / ${result.totalPages}`;
+                document.getElementById('catalogPrev').disabled = result.page <= 1;
+                document.getElementById('catalogNext').disabled = result.page >= result.totalPages;
+                catalogPage = result.page;
+            } catch (error) {
+                rows.innerHTML = `<div class="list-group-item text-danger">${escapeAdmin(error.message)}</div>`;
+            }
+        }
+
+        async function showBookDetails(id) {
+            try {
+                const result = await adminRequest(`AdminBookDetails?id=${id}`);
+                const book = result.data;
+                document.getElementById('bookHeading').textContent = book.title;
+                document.getElementById('bookDetailCover').src = `images/${encodeURIComponent(book.image || 'topSach.png')}`;
+                document.getElementById('bookFields').innerHTML = [
+                    ['Mã sách', book.id], ['Tác giả', book.author], ['Thể loại', book.category],
+                    ['Nhà xuất bản', book.publisher], ['Giá', book.priceFormatted], ['Tồn kho', book.stock]
+                ].map(field => `<dt>${escapeAdmin(field[0])}</dt><dd>${escapeAdmin(field[1])}</dd>`).join('');
+                document.getElementById('bookNotice').textContent = '';
+                document.getElementById('bookBody').hidden = false;
+                document.getElementById('bookDialogActions').hidden = false;
+                document.getElementById('bookEditButton').onclick = () => {
+                    document.getElementById('bookDialog').close();
+                    editBook(book.id);
+                };
+                document.getElementById('bookDeleteButton').onclick = () => deleteBook(book.id);
+                document.getElementById('bookDialog').showModal();
+            } catch (error) {
+                document.getElementById('bookNotice').textContent = error.message;
+                document.getElementById('bookBody').hidden = true;
+                document.getElementById('bookDialogActions').hidden = true;
+                document.getElementById('bookDialog').showModal();
+            }
+        }
+
+        async function editBook(id) {
+            try {
+                const result = await adminRequest(`AdminBookDetails?id=${id}`);
+                const book = result.data;
+                await loadAdminCatalog();
+                document.getElementById('bookId').value = book.id;
+                document.getElementById('bookTitle').value = book.title;
+                document.getElementById('bookPrice').value = book.originalPrice;
+                document.getElementById('bookDiscount').value = book.discountPercent;
+                document.getElementById('bookStock').value = book.stock;
+                document.getElementById('bookCategory').value = book.categoryId;
+                document.getElementById('bookAuthor').value = book.author;
+                document.getElementById('bookPublisher').value = book.publisherId;
+                document.getElementById('bookTranslator').value = book.translator || '';
+                document.getElementById('bookDescription').value = book.description || '';
+                document.getElementById('bookCover').value = '';
+                document.getElementById('bookCover').required = false;
+                document.getElementById('bookFormHeading').innerHTML = `<i class="fa fa-pencil text-danger me-2"></i>Sửa sản phẩm #${book.id}`;
+                document.getElementById('btnSaveBook').innerHTML = '<i class="fa fa-save me-1"></i>Cập nhật sản phẩm';
+                document.getElementById('adminBookAlert').style.display = 'none';
+                document.getElementById('adminAddBookPanel').style.display = 'block';
+                document.getElementById('adminBookForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function deleteBook(id) {
+            try {
+                const details = await adminRequest(`AdminBookDetails?id=${id}`);
+                if (!confirm(`Xóa sách "${details.data.title}"?`)) return;
+                const result = await adminRequest('AdminDeleteBook', new URLSearchParams({ id }));
+                const dialog = document.getElementById('bookDialog');
+                if (dialog.open) dialog.close();
+                showToast(result.message || 'Đã xóa sản phẩm.');
+                loadAdminBooks(catalogPage);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function loadAdminReviews(page) {
+            reviewPage = page || 1;
+            const rows = document.getElementById('adminReviewRows');
+            rows.innerHTML = '<div class="list-group-item text-muted">Đang tải đánh giá...</div>';
+            try {
+                const query = new URLSearchParams({
+                    page: reviewPage,
+                    search: document.getElementById('reviewSearch').value.trim(),
+                    rating: document.getElementById('reviewRatingFilter').value
+                });
+                const result = await adminRequest(`AdminReviews?${query.toString()}`);
+                document.getElementById('reviewCountBadge').textContent = result.totalItems;
+                rows.innerHTML = result.data.length ? result.data.map(review => `
+                    <article class="list-group-item">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                            <div>
+                                <strong>${escapeAdmin(review.bookTitle)}</strong>
+                                <div class="small text-muted">${escapeAdmin(review.customerName)} · ${escapeAdmin(review.customerEmail)} · ${escapeAdmin(review.date)}</div>
+                                <div class="text-warning small">${'<i class="fa fa-star"></i>'.repeat(review.rating)}${'<i class="fa fa-star-o"></i>'.repeat(5 - review.rating)}</div>
+                                ${review.comment ? `<p class="mb-0 mt-1 text-secondary">${escapeAdmin(review.comment)}</p>` : ''}
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteReview(${review.id})" aria-label="Xóa đánh giá" title="Xóa đánh giá"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                    </article>
+                `).join('') : '<div class="list-group-item text-muted">Chưa có đánh giá phù hợp.</div>';
+                document.getElementById('reviewPage').textContent = `Trang ${result.page} / ${result.totalPages}`;
+                document.getElementById('reviewPrev').disabled = result.page <= 1;
+                document.getElementById('reviewNext').disabled = result.page >= result.totalPages;
+                reviewPage = result.page;
+            } catch (error) {
+                rows.innerHTML = `<div class="list-group-item text-danger">${escapeAdmin(error.message)}</div>`;
+            }
+        }
+
+        async function deleteReview(id) {
+            if (!confirm('Xóa đánh giá này?')) return;
+            try {
+                const result = await adminRequest('AdminDeleteReview', new URLSearchParams({ id }));
+                showToast(result.message || 'Đã xóa đánh giá.');
+                loadAdminReviews(reviewPage);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        document.getElementById('catalogForm').addEventListener('submit', event => {
+            event.preventDefault();
+            loadAdminBooks(1);
+        });
+        document.getElementById('catalogPrev').addEventListener('click', () => loadAdminBooks(catalogPage - 1));
+        document.getElementById('catalogNext').addEventListener('click', () => loadAdminBooks(catalogPage + 1));
+        document.getElementById('catalogPanel').addEventListener('toggle', event => {
+            if (event.target.open) loadAdminBooks(1);
+        });
+        document.getElementById('reviewFilterForm').addEventListener('submit', event => {
+            event.preventDefault();
+            loadAdminReviews(1);
+        });
+        document.getElementById('reviewPrev').addEventListener('click', () => loadAdminReviews(reviewPage - 1));
+        document.getElementById('reviewNext').addEventListener('click', () => loadAdminReviews(reviewPage + 1));
+        document.getElementById('reviewPanel').addEventListener('toggle', event => {
+            if (event.target.open) loadAdminReviews(1);
+        });
         document.addEventListener("DOMContentLoaded", checkAdminSession);
     </script>
 </body>

@@ -303,3 +303,140 @@ footer {
     letter-spacing: 1px;
 }
 
+
+/* The category sidebar expands left of the centered product area. */
+.catalog-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0fr) minmax(0, 1fr);
+    gap: 0;
+    align-items: stretch;
+    transition: grid-template-columns .3s ease, gap .3s ease;
+}
+#bookCatalog.categories-open .catalog-layout {
+    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+    gap: 24px;
+}
+.catalog-sidebar {
+    min-width: 0;
+    width: 100%;
+    visibility: hidden;
+    max-height: 0;
+    pointer-events: none;
+    overflow: hidden;
+    align-self: stretch;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 22px rgba(30, 41, 59, .06);
+}
+#bookCatalog.categories-open .catalog-sidebar {
+    visibility: visible;
+    max-height: none;
+    pointer-events: auto;
+}
+.catalog-sidebar-inner {
+    min-width: 220px;
+    height: 100%;
+    padding: 18px 14px 12px;
+}
+.catalog-sidebar-heading {
+    padding: 0 4px 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px !important;
+}
+.catalog-sidebar-heading h5 { font-size: 15px; }
+.catalog-sidebar-close { border: 0; color: var(--muted); }
+.catalog-sidebar-close:hover { color: var(--primary); background: var(--primary-light); }
+.catalog-products {
+    min-width: 0;
+    width: 100%;
+    max-width: 960px;
+    justify-self: center;
+}
+.catalog-chevron { transition: transform .3s ease; }
+.catalog-menu .catalog-toggle[aria-expanded="true"] .catalog-chevron { transform: rotate(180deg); }
+@media (max-width: 767.98px) {
+    .catalog-layout,
+    #bookCatalog.categories-open .catalog-layout { grid-template-columns: minmax(0, 1fr); }
+    #bookCatalog.categories-open .catalog-layout { gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .catalog-layout, .catalog-chevron { transition: none; }
+}
+
+.catalog-toggle { flex-shrink: 0; }
+@media (max-width: 575.98px) {
+    .navbar-custom .navbar-brand { font-size: 17px; margin-right: 8px; }
+    .catalog-toggle { font-size: 12px; padding: 6px 8px; }
+    .catalog-toggle .catalog-chevron { margin-left: 4px !important; }
+}
+
+/* Compact storefront navigation and left category rail. */
+.catalog-toggle {
+    padding: 8px 0;
+    border: 0;
+    border-radius: 0;
+    color: var(--dark);
+    background: transparent;
+    box-shadow: none;
+}
+.catalog-toggle:hover, .catalog-toggle[aria-expanded="true"] { color: var(--primary); }
+.catalog-toggle:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+.catalog-products { max-width: 1200px; }
+.category-pill {
+    min-height: 42px;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    margin-bottom: 3px;
+    font-size: 13px;
+}
+.catalog-sidebar .category-pill:hover { background: #f8fafc; border-color: var(--border); }
+.catalog-sidebar .category-pill.active {
+    background: var(--primary-light);
+    border-color: #f3c5ca;
+    border-left: 3px solid var(--primary);
+    padding-left: 8px;
+    color: var(--primary);
+}
+.catalog-sidebar .category-pill .badge { font-size: 11px; font-weight: 600; }
+@media (max-width: 767.98px) {
+    #bookCatalog.categories-open .catalog-layout { grid-template-columns: minmax(0, 1fr); }
+    .navbar-custom .container-fluid { gap: 8px !important; }
+    .catalog-toggle { font-size: 12px; padding: 6px 0; }
+}
+
+/* Preserve the banner artwork proportions on wide and small screens. */
+.storefront-slideshow {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 18px rgba(30, 41, 59, .08);
+}
+.storefront-slideshow .carousel-item img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 85 / 48;
+    object-fit: contain;
+}
+.storefront-slideshow .carousel-control-prev,
+.storefront-slideshow .carousel-control-next { width: 10%; }
+.storefront-slideshow .carousel-control-prev-icon,
+.storefront-slideshow .carousel-control-next-icon {
+    width: 36px;
+    height: 36px;
+    background-size: 55%;
+    background-color: rgba(15, 23, 42, .45);
+    border-radius: 50%;
+}
+.storefront-slideshow .carousel-indicators { margin-bottom: 12px; }
+@media (prefers-reduced-motion: reduce) {
+    .storefront-slideshow .carousel-item { transition: none; }
+}
+
+.catalog-menu { position: relative; flex-shrink: 0; }
+#bookCatalog .catalog-products { margin-inline: auto; }
