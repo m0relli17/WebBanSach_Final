@@ -49,34 +49,19 @@ Khi thực hiện thanh toán trực tuyến tại trang **[http://localhost:808
 
 Dự án cung cấp file SQL khởi tạo dữ liệu mẫu đầy đủ: `02_DuLieuKiemThu.sql`.
 
-### Cách 1: Tự động chạy khi khởi động Docker (Khuyên dùng)
-Hệ thống đã tích hợp sẵn script vào dịch vụ khởi tạo database `db-init`:
-```bash
-docker compose up -d
-```
-Khi database khởi động, `init-db.sh` sẽ tự động thực thi `02_DuLieuKiemThu.sql` để bảo đảm các tài khoản và đơn hàng mẫu luôn sẵn sàng.
+### Cách 1: Chạy trực tiếp bằng SSMS (Khuyên dùng)
+1. Mở SQL Server Management Studio (SSMS), kết nối vào SQL Server (`.\SQLEXPRESS`).
+2. Mở file `02_DuLieuKiemThu.sql` (`Ctrl + O`).
+3. Nhấn phím **`F5`** (Execute). Hệ thống sẽ nạp lại tồn kho 100 cuốn/đầu sách, tạo sẵn tài khoản `testuser`, `admin`, `manager` và 5 đơn hàng mẫu bao quát toàn bộ trạng thái.
 
 ---
 
-### Cách 2: Chạy trực tiếp qua PowerShell (Windows)
+### Cách 2: Chạy trực tiếp qua PowerShell
 Chạy script PowerShell có sẵn trong thư mục gốc:
 ```powershell
 .\seed-test-data.ps1
 ```
-
----
-
-### Cách 3: Chạy trực tiếp qua Shell Script (Linux / macOS / WSL)
-```bash
-bash seed-test-data.sh
-```
-
----
-
-### Cách 4: Chạy bằng lệnh Docker CLI đơn lẻ
-```bash
-Get-Content 02_DuLieuKiemThu.sql | docker exec -i webbansach-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "BookStore@123456" -C
-```
+*(Mặc định script kết nối vào `.\SQLEXPRESS`. Nếu bạn dùng instance khác, có thể truyền tham số: `.\seed-test-data.ps1 -ServerInstance "localhost"`).*
 
 ---
 

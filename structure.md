@@ -88,16 +88,13 @@ WebBanSach_Final/
 │   └── admin.html                       # Trang quản trị: Đăng nhập admin & Quản lý cập nhật trạng thái đơn
 │
 ├── 00_TaoDatabaseMoi.sql                # Script tạo cấu trúc CSDL và nạp dữ liệu mẫu
-├── 01_NangCapDatabase.sql               # Script nâng cấp bảng KhachHang (EmailVerified, TrangThai)
+├── 01_NangCapDatabase.sql               # Script nâng cấp bảng KhachHang & DonDatHang
 ├── 02_DuLieuKiemThu.sql                 # Script nạp dữ liệu kiểm thử (Users, Orders, Books)
-├── configure-web-config.py              # Script tự động cấu hình Web.config khi build Docker
-├── docker-compose.yml                   # Cấu hình điều phối container (db, db-init, web)
-├── Dockerfile                           # Dockerfile đóng gói Backend & Frontend chạy với Mono XSP4
-├── init-db.sh                           # Shell script tự động khởi tạo SQL Server trong container
-├── seed-test-data.ps1                   # Script PowerShell nạp nhanh dữ liệu test
-├── seed-test-data.sh                    # Script Shell/Bash nạp nhanh dữ liệu test
+├── seed-test-data.ps1                   # Script PowerShell nạp nhanh dữ liệu test vào SQL Server
 ├── structure.md                         # Tài liệu cấu trúc dự án (file này)
 ├── user.md                              # Danh mục tài khoản kiểm thử & kịch bản test
+├── HUONG_DAN_MVS.md                     # Hướng dẫn chi tiết chạy dự án trên Visual Studio
+├── README.md                            # Giới thiệu tổng quan dự án
 └── WebBanSach.sln                       # Solution Visual Studio
 ```
 
@@ -171,20 +168,20 @@ Tất cả các endpoint trả về dữ liệu chuẩn JSON, hỗ trợ CORS v�
 
 ---
 
-## 5. Hướng dẫn Chạy Hệ thống với Docker
+## 5. Hướng dẫn Khởi chạy Dự án trên Visual Studio (IIS Express)
 
-### Khởi động toàn bộ hệ thống
-```bash
-docker compose up -d --build
-```
+### Các bước thực hiện:
+1. **Khởi tạo CSDL**: Mở SSMS, chạy lần lượt `00_TaoDatabaseMoi.sql` $\rightarrow$ `01_NangCapDatabase.sql` $\rightarrow$ `02_DuLieuKiemThu.sql`.
+2. **Mở Solution**: Nhấp đúp mở `WebBanSach.sln` bằng Visual Studio.
+3. **Cấu hình kết nối**: Kiểm tra chuỗi kết nối trong `backend/Web.config` (mặc định: `Data Source=.\SQLEXPRESS;Initial Catalog=BSDB2;Integrated Security=True;`).
+4. **Build & Run**: Rebuild Solution (`Ctrl + Shift + B`), nhấn `Ctrl + F5` để chạy trên IIS Express.
 
-### Các dịch vụ và cổng truy cập:
-- **Trang chủ Web Khách hàng (Frontend)**: [http://localhost:8089](http://localhost:8089)
-- **Trang Quản trị Đơn hàng (Admin)**: [http://localhost:8089/admin.html](http://localhost:8089/admin.html)
-- **API Trực tiếp (Backend)**: [http://localhost:8084/api/Books](http://localhost:8084/api/Books)
-- **Cơ sở dữ liệu SQL Server**: Cổng `14333` (User: `sa`, Password: `BookStore@123456`)
+### Các trang chính:
+- **Trang chủ Khách hàng**: `http://localhost:<PORT>/index.html`
+- **Trang Quản trị Đơn hàng**: `http://localhost:<PORT>/admin.html`
+- **Tài khoản kiểm thử có sẵn**:
+  - Khách hàng đã xác minh: `testuser` / `12345678`
+  - Khách hàng chưa xác minh (thử nghiệm OTP): `testotp` / `12345678`
+  - Quản trị viên: `admin` / `123456`
 
-### Tài khoản kiểm thử có sẵn:
-- **Khách hàng đã xác minh**: `testuser` / `12345678`
-- **Khách hàng chưa xác minh (thử nghiệm OTP)**: `testotp` / `12345678`
-- **Tài khoản Quản trị viên**: `admin` / `123456`
+> Hướng dẫn từng bước chi tiết xem tại **[HUONG_DAN_MVS.md](HUONG_DAN_MVS.md)**.

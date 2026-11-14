@@ -254,5 +254,3 @@ Khi chạy trên IIS Express, toàn bộ các chức năng đã sẵn sàng đ�
 
 ---
 
-> [!NOTE]
-> Dự án cũng hỗ trợ chạy độc lập qua Docker (`docker compose up -d`). Nếu bạn muốn chạy bằng Docker thay vì Visual Studio, xem thêm tài liệu tại [README_DOCKER.md](file:///c:/Project/WebBanSach_Final/README_DOCKER.md) hoặc [structure.md](file:///c:/Project/WebBanSach_Final/structure.md).
