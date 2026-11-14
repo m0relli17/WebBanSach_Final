@@ -9,8 +9,6 @@ IF COL_LENGTH('dbo.DonDatHang','ThanhToan') IS NULL
     ALTER TABLE dbo.DonDatHang ADD ThanhToan INT NULL;
 IF COL_LENGTH('dbo.DonDatHang','Tracking') IS NULL
     ALTER TABLE dbo.DonDatHang ADD Tracking INT NULL;
-IF COL_LENGTH('dbo.DonDatHang','GhiChu') IS NULL
-    ALTER TABLE dbo.DonDatHang ADD GhiChu NVARCHAR(500) NULL;
 IF EXISTS(SELECT TaiKhoan FROM dbo.KhachHang GROUP BY TaiKhoan HAVING COUNT(*)>1)
     THROW 50001, 'Duplicate usernames: review before upgrading.', 1;
 IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE name='UX_KhachHang_TaiKhoan' AND object_id=OBJECT_ID('dbo.KhachHang'))

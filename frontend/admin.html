@@ -110,14 +110,14 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light small text-secondary">
                             <tr>
-                                <th style="width: 75px;">Mã ĐH</th>
-                                <th>Khách hàng & Địa chỉ</th>
-                                <th style="min-width: 180px;">Ghi chú của khách</th>
+                                <th style="width: 80px;">Mã ĐH</th>
+                                <th>Khách hàng</th>
+                                <th>Số điện thoại</th>
                                 <th>Ngày đặt</th>
                                 <th>Sản phẩm</th>
                                 <th>Tổng tiền</th>
-                                <th style="width: 150px;">Trạng thái</th>
-                                <th style="width: 170px;">Hành động</th>
+                                <th style="width: 170px;">Trạng thái</th>
+                                <th style="width: 180px;">Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="adminOrdersTableBody">
@@ -133,109 +133,6 @@
         </div>
 
     </main>
-
-    <!-- Order Detail Modal -->
-    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-light">
-                    <h5 class="modal-title fw-bold text-dark" id="orderDetailModalLabel">
-                        <i class="fa fa-file-text-o text-primary me-2"></i> Chi tiết đơn hàng <span id="modalOrderId" class="text-danger">#</span>
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <!-- Customer & Delivery Info -->
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3 h-100">
-                                <h6 class="fw-bold small text-secondary text-uppercase mb-2"><i class="fa fa-user me-1"></i> Thông tin khách hàng</h6>
-                                <div class="fw-bold text-dark fs-6" id="modalCustomerName">-</div>
-                                <div class="small text-muted mt-1"><i class="fa fa-phone me-1"></i> SĐT: <span id="modalCustomerPhone" class="fw-semibold text-dark">-</span></div>
-                                <div class="small text-muted mt-1" id="modalCustomerEmailRow"><i class="fa fa-envelope-o me-1"></i> Email: <span id="modalCustomerEmail" class="text-dark">-</span></div>
-                                <div class="small text-muted mt-1"><i class="fa fa-map-marker text-danger me-1"></i> Địa chỉ: <span id="modalCustomerAddress" class="fw-semibold text-dark">-</span></div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3 h-100">
-                                <h6 class="fw-bold small text-secondary text-uppercase mb-2"><i class="fa fa-info-circle me-1"></i> Thông tin giao hàng & thanh toán</h6>
-                                <div class="small text-muted">Ngày đặt: <strong class="text-dark" id="modalOrderDate">-</strong></div>
-                                <div class="small text-muted mt-1">Dự kiến giao: <strong class="text-dark" id="modalDeliveryDate">-</strong></div>
-                                <div class="small text-muted mt-1">
-                                    Thanh toán: <span id="modalPaymentBadge">-</span>
-                                </div>
-                                <div class="small text-muted mt-1">
-                                    Trạng thái xử lý: <span id="modalStatusBadge">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Customer Order Note (Prominent Alert) -->
-                    <div id="modalOrderNoteAlert" class="alert alert-warning py-3 px-3 mb-3 rounded-3 border-0 bg-warning bg-opacity-25 text-dark" style="display: none;">
-                        <div class="d-flex align-items-start">
-                            <i class="fa fa-sticky-note text-warning me-2 fs-5 mt-1"></i>
-                            <div>
-                                <strong class="text-dark">Ghi chú đơn hàng từ khách hàng:</strong>
-                                <div class="mt-1 fs-6 fw-semibold text-dark" id="modalOrderNoteText"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Order Items Table -->
-                    <div class="border rounded-3 overflow-hidden mb-3">
-                        <div class="bg-light px-3 py-2 border-bottom">
-                            <strong class="small text-secondary text-uppercase"><i class="fa fa-book me-1"></i> Danh sách sách trong đơn</strong>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-sm align-middle mb-0">
-                                <thead class="table-light small">
-                                    <tr>
-                                        <th style="width: 50px;">Ảnh</th>
-                                        <th>Tên sách</th>
-                                        <th class="text-center" style="width: 90px;">Đơn giá</th>
-                                        <th class="text-center" style="width: 70px;">SL</th>
-                                        <th class="text-end" style="width: 120px;">Thành tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="modalOrderItemsBody">
-                                    <!-- Rendered dynamically -->
-                                </tbody>
-                                <tfoot class="table-light">
-                                    <tr>
-                                        <td colspan="4" class="text-end fw-bold">Tổng thanh toán:</td>
-                                        <td class="text-end fw-bold text-danger fs-6" id="modalOrderTotal">-</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Status Change from Modal -->
-                    <div class="p-3 bg-light rounded-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                        <div class="small text-secondary">
-                            <i class="fa fa-sliders me-1"></i> Cập nhật trạng thái xử lý:
-                        </div>
-                        <div class="d-flex gap-2 align-items-center">
-                            <select id="modalStatusSelect" class="form-select form-select-sm" style="width: 200px;">
-                                <option value="0">0 - Chờ xử lý</option>
-                                <option value="1">1 - Đã đóng gói</option>
-                                <option value="2">2 - Đang giao hàng</option>
-                                <option value="3">3 - Đã giao (Hoàn tất)</option>
-                                <option value="4">4 - Đã hủy</option>
-                            </select>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="saveModalStatus()">
-                                <i class="fa fa-check me-1"></i> Lưu thay đổi
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -368,23 +265,11 @@
                 <tr>
                     <td class="fw-bold">#${o.id}</td>
                     <td>
-                        <div class="fw-semibold text-dark">${escapeHtml(o.customerName)}</div>
-                        <div class="small text-muted"><i class="fa fa-phone me-1"></i>${escapeHtml(o.customerPhone || 'N/A')}</div>
-                        ${o.customerAddress ? `<div class="small text-muted text-truncate" style="max-width: 220px;" title="${escapeHtml(o.customerAddress)}"><i class="fa fa-map-marker me-1 text-danger"></i>${escapeHtml(o.customerAddress)}</div>` : ''}
+                        <div class="fw-semibold text-dark">${o.customerName}</div>
                     </td>
-                    <td>
-                        ${o.note && o.note.trim() ? `
-                            <div class="p-2 rounded bg-warning bg-opacity-25 border border-warning-subtle small text-dark" style="max-width: 240px; word-break: break-word;">
-                                <i class="fa fa-sticky-note text-warning me-1"></i><strong>${escapeHtml(o.note)}</strong>
-                            </div>
-                        ` : '<span class="text-muted small fst-italic">Không có ghi chú</span>'}
-                    </td>
+                    <td><span class="text-muted small">${o.customerPhone || 'N/A'}</span></td>
                     <td><span class="text-muted small">${o.orderDate}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-secondary py-1 px-2" onclick="showOrderDetailModal(${o.id})" title="Xem chi tiết sách trong đơn">
-                            <i class="fa fa-list me-1"></i>${o.itemCount} sản phẩm
-                        </button>
-                    </td>
+                    <td><span class="badge bg-light text-dark border">${o.itemCount} sản phẩm</span></td>
                     <td class="fw-bold text-danger">
                         ${o.totalFormatted}
                         <div class="small fw-normal mt-1">
@@ -395,92 +280,16 @@
                         ${getStatusBadge(o.status)}
                     </td>
                     <td>
-                        <div class="d-flex flex-column gap-1">
-                            <select class="form-select form-select-sm" onchange="changeStatus(${o.id}, this.value)" ${o.status === 3 || o.status === 4 ? 'disabled' : ''}>
-                                <option value="0" ${o.status === 0 ? 'selected' : ''}>0 - Chờ xử lý</option>
-                                <option value="1" ${o.status === 1 ? 'selected' : ''}>1 - Đã đóng gói</option>
-                                <option value="2" ${o.status === 2 ? 'selected' : ''}>2 - Đang giao hàng</option>
-                                <option value="3" ${o.status === 3 ? 'selected' : ''}>3 - Đã giao (Hoàn tất)</option>
-                                <option value="4" ${o.status === 4 ? 'selected' : ''}>4 - Đã hủy</option>
-                            </select>
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2 small" onclick="showOrderDetailModal(${o.id})">
-                                <i class="fa fa-eye me-1"></i> Chi tiết
-                            </button>
-                        </div>
+                        <select class="form-select form-select-sm" onchange="changeStatus(${o.id}, this.value)" ${o.status === 3 || o.status === 4 ? 'disabled' : ''}>
+                            <option value="0" ${o.status === 0 ? 'selected' : ''}>0 - Chờ xử lý</option>
+                            <option value="1" ${o.status === 1 ? 'selected' : ''}>1 - Đã đóng gói</option>
+                            <option value="2" ${o.status === 2 ? 'selected' : ''}>2 - Đang giao hàng</option>
+                            <option value="3" ${o.status === 3 ? 'selected' : ''}>3 - Đã giao (Hoàn tất)</option>
+                            <option value="4" ${o.status === 4 ? 'selected' : ''}>4 - Đã hủy</option>
+                        </select>
                     </td>
                 </tr>
             `).join('');
-        }
-
-        let activeModalOrderId = null;
-
-        function showOrderDetailModal(id) {
-            const order = allOrders.find(o => o.id === id);
-            if (!order) return;
-            activeModalOrderId = id;
-
-            document.getElementById('modalOrderId').textContent = '#' + order.id;
-            document.getElementById('modalCustomerName').textContent = order.customerName || 'Khách vãng lai';
-            document.getElementById('modalCustomerPhone').textContent = order.customerPhone || 'Không có';
-            document.getElementById('modalCustomerAddress').textContent = order.customerAddress || 'Chưa cập nhật địa chỉ';
-            
-            if (order.customerEmail) {
-                document.getElementById('modalCustomerEmail').textContent = order.customerEmail;
-                document.getElementById('modalCustomerEmailRow').style.display = 'block';
-            } else {
-                document.getElementById('modalCustomerEmailRow').style.display = 'none';
-            }
-
-            document.getElementById('modalOrderDate').textContent = order.orderDate || '-';
-            document.getElementById('modalDeliveryDate').textContent = order.deliveryDate || '-';
-
-            document.getElementById('modalPaymentBadge').innerHTML = order.isPaid
-                ? '<span class="badge bg-success text-white"><i class="fa fa-credit-card me-1"></i> Thẻ tín dụng (Đã thanh toán)</span>'
-                : '<span class="badge bg-warning text-dark"><i class="fa fa-money me-1"></i> COD (Thu tiền khi nhận)</span>';
-
-            document.getElementById('modalStatusBadge').innerHTML = getStatusBadge(order.status);
-            document.getElementById('modalStatusSelect').value = order.status;
-            document.getElementById('modalOrderTotal').textContent = order.totalFormatted || '0 VND';
-
-            // Order note (prominent display)
-            const noteAlert = document.getElementById('modalOrderNoteAlert');
-            const noteText = document.getElementById('modalOrderNoteText');
-            if (order.note && order.note.trim()) {
-                noteText.textContent = order.note;
-                noteAlert.style.display = 'block';
-            } else {
-                noteAlert.style.display = 'none';
-            }
-
-            // Order items
-            const itemsBody = document.getElementById('modalOrderItemsBody');
-            if (order.items && order.items.length > 0) {
-                itemsBody.innerHTML = order.items.map(item => `
-                    <tr>
-                        <td>
-                            <img src="images/${item.image || 'topSach.png'}" alt="${escapeHtml(item.title)}" class="rounded border" style="width: 36px; height: 48px; object-fit: cover;">
-                        </td>
-                        <td>
-                            <div class="fw-semibold small text-dark">${escapeHtml(item.title)}</div>
-                        </td>
-                        <td class="text-center small">${item.priceFormatted || formatVND(item.price)}</td>
-                        <td class="text-center"><span class="badge bg-light text-dark border">${item.quantity}</span></td>
-                        <td class="text-end fw-bold text-danger small">${item.subtotalFormatted || formatVND(item.price * item.quantity)}</td>
-                    </tr>
-                `).join('');
-            } else {
-                itemsBody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted small">Không có sản phẩm nào.</td></tr>`;
-            }
-
-            const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
-            modal.show();
-        }
-
-        async function saveModalStatus() {
-            if (!activeModalOrderId) return;
-            const newStatus = document.getElementById('modalStatusSelect').value;
-            await changeStatus(activeModalOrderId, newStatus);
-            document.getElementById('modalStatusBadge').innerHTML = getStatusBadge(Number(newStatus));
         }
 
         function getStatusBadge(status) {

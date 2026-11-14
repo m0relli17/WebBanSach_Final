@@ -5,17 +5,17 @@ const api = {
     // Books & Categories
     getBooks: async function(params = {}) {
         const query = new URLSearchParams(params).toString();
-        const res = await fetch(`${API_BASE}/Books?${query}`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Books?${query}&_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
         return await res.json();
     },
 
     getBookDetails: async function(id) {
-        const res = await fetch(`${API_BASE}/BookDetails?id=${id}`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/BookDetails?id=${id}&_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
         return await res.json();
     },
 
     getCategories: async function() {
-        const res = await fetch(`${API_BASE}/Categories`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Categories?_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
         return await res.json();
     },
 
@@ -188,16 +188,6 @@ const api = {
 // Formatting utilities
 function formatVND(amount) {
     return Number(amount || 0).toLocaleString('vi-VN') + ' VND';
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
 }
 
 function showToast(msg, type = 'success') {

@@ -1,18 +1,14 @@
-﻿param(
-    [string]$ServerInstance = ".\SQLEXPRESS"
+﻿# PowerShell script to seed test data into local SQL Server (BSDB2)
+param (
+    [string]$Server = ".\SQLEXPRESS"
 )
 
-Write-Host "=== Nạp dữ liệu kiểm thử vào SQL Server cục bộ (BSDB2) ===" -ForegroundColor Cyan
-Write-Host "Server: $ServerInstance | Database: BSDB2" -ForegroundColor Gray
+Write-Host "=== Đang nạp dữ liệu kiểm thử vào SQL Server ($Server - BSDB2) ===" -ForegroundColor Cyan
 
-if (Get-Command sqlcmd -ErrorAction SilentlyContinue) {
-    sqlcmd -S $ServerInstance -d BSDB2 -E -i "02_DuLieuKiemThu.sql"
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "=== Nạp dữ liệu kiểm thử thành công! ===" -ForegroundColor Green
-    } else {
-        Write-Host "=== Lỗi khi chạy script qua sqlcmd! Bạn có thể mở SSMS và chạy trực tiếp file 02_DuLieuKiemThu.sql ===" -ForegroundColor Red
-    }
+sqlcmd -S $Server -E -i 02_DuLieuKiemThu.sql
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "=== Nạp dữ liệu kiểm thử thành công! ===" -ForegroundColor Green
 } else {
-    Write-Host "[Gợi ý] Không tìm thấy lệnh sqlcmd trên PATH hệ thống." -ForegroundColor Yellow
-    Write-Host "Bạn hãy mở SQL Server Management Studio (SSMS), mở file '02_DuLieuKiemThu.sql' và nhấn phím F5 (Execute) để nạp dữ liệu kiểm thử." -ForegroundColor Yellow
+    Write-Host "=== Lỗi khi nạp dữ liệu kiểm thử! Vui lòng kiểm tra lại kết nối SQL Server. ===" -ForegroundColor Red
 }

@@ -121,9 +121,6 @@ CREATE TABLE [dbo].[DonDatHang](
 	[NgayGiao] [smalldatetime] NULL,
 	[TinhTrang] [bit] NULL,
 	[MaKH] [int] NOT NULL,
-	[ThanhToan] [int] NULL,
-	[Tracking] [int] NULL,
-	[GhiChu] [nvarchar](500) NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[MaDDH] ASC

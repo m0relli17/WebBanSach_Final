@@ -96,7 +96,7 @@
                 <div class="card shadow-sm border-0 rounded-3 p-3">
                     <h5 class="fw-bold mb-3 pb-2 border-bottom"><i class="fa fa-th-large text-danger me-2"></i> Danh mục sách</h5>
                     <div id="categoriesList" class="d-flex flex-column">
-                        <a href="#" class="category-pill active" onclick="filterCategory(null, this)">
+                        <a href="javascript:void(0)" class="category-pill active" onclick="filterCategory(event, null, this, 'Tất cả thể loại')">
                             <span>Tất cả thể loại</span>
                         </a>
                         <div class="text-center py-3 text-muted"><i class="fa fa-spinner fa-spin"></i> Đang tải danh mục...</div>
@@ -168,12 +168,13 @@
                 const res = await api.getCategories();
                 if (res.status && res.data) {
                     const container = document.getElementById('categoriesList');
-                    let html = `<a href="#" class="category-pill ${!currentCategory ? 'active' : ''}" onclick="filterCategory(null, this)">
+                    let html = `<a href="javascript:void(0)" class="category-pill ${!currentCategory ? 'active' : ''}" onclick="filterCategory(event, null, this, 'Tất cả thể loại')">
                             <span>Tất cả thể loại</span>
                         </a>`;
                     res.data.forEach(c => {
+                        const safeName = (c.name || '').replace(/'/g, "\\'");
                         html += `
-                                <a href="#" class="category-pill ${currentCategory === c.id ? 'active' : ''}" onclick="filterCategory(${c.id}, this, '${c.name}')">
+                                <a href="javascript:void(0)" class="category-pill ${currentCategory === c.id ? 'active' : ''}" onclick="filterCategory(event, ${c.id}, this, '${safeName}')">
                                     <span>${c.name}</span>
                                     <span class="badge bg-light text-muted border">${c.count}</span>
                                 </a>
@@ -205,6 +206,9 @@
                                     <i class="fa fa-search fa-3x text-muted mb-3"></i>
                                     <h5>Không tìm thấy cuốn sách nào</h5>
                                     <p class="text-muted small">Hãy thử tìm với từ khóa khác hoặc chuyển danh mục.</p>
+                                    <button class="btn btn-outline-danger btn-sm mt-2" onclick="resetSearchAndFilters()">
+                                        <i class="fa fa-refresh me-1"></i> Xem tất cả sách
+                                    </button>
                                 </div>
                             `;
                         document.getElementById('paginationContainer').innerHTML = '';
@@ -264,18 +268,55 @@
             window.scrollTo({ top: 350, behavior: 'smooth' });
         }
 
-        function filterCategory(catId, el, catName = 'Tất cả sách') {
+        function filterCategory(event, catId, el, catName = 'Tất cả sách') {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             currentCategory = catId;
             currentPage = 1;
+            // Xóa ngay lập tức từ khóa tìm kiếm cũ
+            currentSearch = '';
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
+
             document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
             if (el) el.classList.add('active');
             document.getElementById('catalogTitle').textContent = catName;
+
+            // Tải lại danh sách sách của category đó ngay lập tức
             loadBooks();
+
+            // Cuộn mượt tới vị trí danh mục sách để người dùng nhìn thấy ngay
+            const catalogElem = document.getElementById('bookCatalog');
+            if (catalogElem) {
+                catalogElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         function handleSearch() {
             currentSearch = document.getElementById('searchInput').value.trim();
             currentPage = 1;
+            // Khi tìm kiếm từ khóa, reset danh mục về tất cả để tìm trên toàn bộ sách
+            currentCategory = null;
+            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+            const allPill = document.querySelector('.category-pill');
+            if (allPill) allPill.classList.add('active');
+
+            document.getElementById('catalogTitle').textContent = currentSearch ? `Kết quả tìm kiếm: "${currentSearch}"` : 'Tất cả sách';
+            loadBooks();
+        }
+
+        function resetSearchAndFilters() {
+            currentSearch = '';
+            currentCategory = null;
+            currentPage = 1;
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
+            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+            const allPill = document.querySelector('.category-pill');
+            if (allPill) allPill.classList.add('active');
+            document.getElementById('catalogTitle').textContent = 'Tất cả sách';
             loadBooks();
         }
 

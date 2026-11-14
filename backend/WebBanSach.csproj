@@ -207,6 +207,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="admin.html" />
     <Content Include="Content\Admin\bower_components\bootstrap-social\bootstrap-social.css" />
     <Content Include="Content\Admin\bower_components\bootstrap\dist\css\bootstrap-theme.css" />
     <Content Include="Content\Admin\bower_components\bootstrap\dist\css\bootstrap-theme.min.css" />
@@ -672,6 +673,9 @@
     <Content Include="Content\PagedList.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
+    <Content Include="images\banner 1.png" />
+    <Content Include="images\banner2.png" />
+    <Content Include="images\banner3.png" />
     <Content Include="images\bloc-sieu-dai.jpg" />
     <Content Include="images\co-gai-dan-mach.jpg" />
     <Content Include="images\combo-chao-con.jpg" />
@@ -696,6 +700,7 @@
     <Content Include="images\tam-tang-phap.jpg" />
     <Content Include="images\topSach.png" />
     <Content Include="images\viet-nam.jpg" />
+    <Content Include="index.html" />
     <Content Include="Scripts\ai.0.22.9-build00167.js" />
     <Content Include="Scripts\ai.0.22.9-build00167.min.js" />
     <Content Include="Scripts\bootstrap.js" />
@@ -1072,16 +1077,6 @@
     <Content Include="Content\Client\fonts\fontawesome-webfont.woff2" />
     <Content Include="Content\Client\fonts\FontAwesome.otf" />
     <Content Include="EmailTemplate\Text.cshtml" />
-    <Content Include="index.html" />
-    <Content Include="cart.html" />
-    <Content Include="checkout.html" />
-    <Content Include="tracking.html" />
-    <Content Include="login.html" />
-    <Content Include="register.html" />
-    <Content Include="admin.html" />
-    <Content Include="verify-email.html" />
-    <Content Include="book-details.html" />
-    <Content Include="js\api.js" />
     <None Include="Properties\PublishProfiles\123.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
