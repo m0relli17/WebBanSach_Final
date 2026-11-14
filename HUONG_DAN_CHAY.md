@@ -1,6 +1,11 @@
-# WebBanSach — xác minh bằng mã EMAIL, đặt hàng và theo dõi đơn
+# WebBanSach — Hướng dẫn Vận hành & Cài đặt
 
-Bản này thay hoàn toàn OTP điện thoại bằng mã gửi qua email. Không cần Twilio hay đăng ký dịch vụ SMS. Các tính năng giỏ hàng, COD, theo dõi/hủy đơn và quản trị đơn được giữ lại.
+> [!TIP]
+> **Tài liệu hướng dẫn khởi tạo dự án trên Microsoft Visual Studio (MVS) và chạy script CSDL chi tiết nhất:** Vui lòng xem tại file **[HUONG_DAN_MVS.md](file:///c:/Project/WebBanSach_Final/HUONG_DAN_MVS.md)**.  
+> **Tài liệu tài khoản kiểm thử và thông tin thẻ tín dụng:** Vui lòng xem tại file **[user.md](file:///c:/Project/WebBanSach_Final/user.md)**.  
+> **Kiến trúc mã nguồn và API endpoints:** Vui lòng xem tại file **[structure.md](file:///c:/Project/WebBanSach_Final/structure.md)**.
+
+Bản này thay hoàn toàn OTP điện thoại bằng mã gửi qua email. Không cần Twilio hay đăng ký dịch vụ SMS. Đã tách biệt kiến trúc REST Backend và Frontend HTML5/Bootstrap 5, hỗ trợ thanh toán Thẻ tín dụng và COD, quản lý ghi chú đơn hàng và theo dõi vận chuyển.
 
 ## 1. Cài bản cập nhật
 
