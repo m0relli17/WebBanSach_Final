@@ -914,6 +914,7 @@ namespace WebBanSach.Controllers
 
                     db.DonDatHangs.Add(order);
                     db.SaveChanges();
+                    LogOrderHistory(order.MaDDH, null, 0, "Khách: " + username, "Đặt hàng");
 
                     foreach (var item in cart)
                     {
@@ -926,8 +927,11 @@ namespace WebBanSach.Controllers
 
                         // Atomic conditional update also protects concurrent checkouts.
                         int reserved = db.Database.ExecuteSqlCommand(
-                            "UPDATE dbo.Sach SET SoLuongTon = SoLuongTon - @p0 WHERE MaSach = @p1 AND SoLuongTon >= @p0",
-                            item.Quantity, book.MaSach);
+                            "UPDATE dbo.Sach SET SoLuongTon = SoLuongTon - @p0 " +
+                            "OUTPUT INSERTED.MaSach, @p2, COALESCE(DELETED.SoLuongTon,0), INSERTED.SoLuongTon, @p3, N'Đặt hàng' " +
+                            "INTO dbo.StockHistory(BookId,OrderId,BeforeQuantity,AfterQuantity,Actor,Reason) " +
+                            "WHERE MaSach = @p1 AND SoLuongTon >= @p0",
+                            item.Quantity, book.MaSach, order.MaDDH, "Khách: " + username);
                         if (reserved != 1)
                         {
                             trans.Rollback();
@@ -1038,7 +1042,7 @@ namespace WebBanSach.Controllers
         }
 
         [HttpPost]
-        public JsonResult CancelOrder(int id)
+        public JsonResult CancelOrder(int id, string reason = null)
         {
             try
             {
@@ -1051,7 +1055,7 @@ namespace WebBanSach.Controllers
                 var customer = db.KhachHangs.FirstOrDefault(x => x.TaiKhoan == username);
                 if (customer == null)
                     return Json(new { status = false, message = "Không tìm thấy khách hàng." });
-                return ChangeOrderStatus(id, 4, customer.MaKH);
+                return ChangeOrderStatus(id, 4, customer.MaKH, string.IsNullOrWhiteSpace(reason) ? "Khách yêu cầu hủy đơn" : reason);
             }
             catch (Exception ex)
             {
@@ -1290,6 +1294,7 @@ namespace WebBanSach.Controllers
 
                     db.Saches.Add(book);
                     db.SaveChanges();
+                    LogStockHistory(book.MaSach, 0, stock.Value, "Tạo sách / nhập kho ban đầu");
                     transaction.Commit();
                     return Json(new { status = true, message = "Thêm sản phẩm thành công.", id = book.MaSach });
                 }
@@ -1305,12 +1310,15 @@ namespace WebBanSach.Controllers
         }
 
         [HttpPost]
-        public JsonResult AdminUpdateBook(int? bookId, string title, decimal? price, int? discountPercent, int? categoryId, string authorName, int? publisherId, int? stock, string translator, string description, HttpPostedFileBase cover)
+        public JsonResult AdminUpdateBook(int? bookId, string title, decimal? price, int? discountPercent, int? categoryId, string authorName, int? publisherId, int? stock, string translator, string description, HttpPostedFileBase cover, string stockReason = null)
         {
             title = (title ?? "").Trim();
             authorName = (authorName ?? "").Trim();
             translator = (translator ?? "").Trim();
             description = (description ?? "").Trim();
+            stockReason = (stockReason ?? "").Trim();
+            if (stockReason.Length > 500)
+                return Json(new { status = false, message = "Lý do điều chỉnh kho tối đa 500 ký tự." });
 
             if (!bookId.HasValue || title.Length == 0 || title.Length > 250 || authorName.Length == 0 || authorName.Length > 50 ||
                 translator.Length > 50 || description.Length > 500 || !price.HasValue || price.Value < 0 ||
@@ -1372,6 +1380,12 @@ namespace WebBanSach.Controllers
                         db.SaveChanges();
                     }
 
+                    // Refresh under an update lock so the audit captures the actual previous stock.
+                    db.Database.SqlQuery<int>("SELECT MaSach FROM dbo.Sach WITH (UPDLOCK,HOLDLOCK) WHERE MaSach=@p0", bookId.Value).ToList();
+                    db.Entry(book).Reload();
+                    var previousStock = book.SoLuongTon ?? 0;
+                    if (previousStock != stock.Value && stockReason.Length == 0)
+                        return Json(new { status = false, message = "Vui lòng nhập lý do điều chỉnh tồn kho." });
                     book.TenSach = title;
                     book.GiaBan = price.Value;
                     book.GiamGia = discountPercent.Value;
@@ -1385,6 +1399,8 @@ namespace WebBanSach.Controllers
                     if (newFileName != null) book.AnhBia = newFileName;
 
                     db.SaveChanges();
+                    if (previousStock != stock.Value)
+                        LogStockHistory(book.MaSach, previousStock, stock.Value, stockReason);
                     transaction.Commit();
                 }
 
@@ -1563,7 +1579,7 @@ namespace WebBanSach.Controllers
         }
 
         [HttpPost]
-        public JsonResult AdminUpdateOrderStatus(int id, int status)
+        public JsonResult AdminUpdateOrderStatus(int id, int status, string reason = null)
         {
             if (!IsAdminAuthenticated())
             {
@@ -1575,7 +1591,7 @@ namespace WebBanSach.Controllers
             {
                 if (status < 0 || status > 4)
                     return Json(new { status = false, message = "Trạng thái đơn hàng không hợp lệ." });
-                return ChangeOrderStatus(id, status);
+                return ChangeOrderStatus(id, status, null, reason);
             }
             catch (Exception ex)
             {
@@ -1583,8 +1599,14 @@ namespace WebBanSach.Controllers
             }
         }
 
-        private JsonResult ChangeOrderStatus(int id, int status, int? customerId = null)
+        private JsonResult ChangeOrderStatus(int id, int status, int? customerId = null, string reason = null)
         {
+            reason = (reason ?? "").Trim();
+            if (reason.Length > 500)
+                return Json(new { status = false, message = "Lý do tối đa 500 ký tự." });
+            if (status == 4 && reason.Length == 0)
+                return Json(new { status = false, message = "Vui lòng nhập lý do hủy đơn." });
+            var actor = customerId.HasValue ? "Khách: " + Session["User"] : "Admin: " + Session["AdminUser"];
             using (var transaction = db.Database.BeginTransaction())
             {
                 // Serialize status changes for this order, including requests from different sessions.
@@ -1614,8 +1636,10 @@ namespace WebBanSach.Controllers
                         if (quantity <= 0)
                             throw new InvalidOperationException("Số lượng trong đơn hàng không hợp lệ.");
                         var updated = db.Database.ExecuteSqlCommand(
-                            "UPDATE dbo.Sach SET SoLuongTon = COALESCE(SoLuongTon, 0) + @p0 WHERE MaSach = @p1",
-                            quantity, detail.MaSach);
+                            "UPDATE dbo.Sach SET SoLuongTon = COALESCE(SoLuongTon, 0) + @p0 " +
+                            "OUTPUT INSERTED.MaSach,@p2,COALESCE(DELETED.SoLuongTon,0),INSERTED.SoLuongTon,@p3,@p4 " +
+                            "INTO dbo.StockHistory(BookId,OrderId,BeforeQuantity,AfterQuantity,Actor,Reason) WHERE MaSach = @p1",
+                            quantity, detail.MaSach, id, actor, reason);
                         if (updated != 1)
                             throw new InvalidOperationException("Không tìm thấy sách để hoàn kho.");
                     }
@@ -1628,10 +1652,78 @@ namespace WebBanSach.Controllers
                     order.ThanhToan = 1;
                 }
                 db.SaveChanges();
+                LogOrderHistory(id, previousStatus, status, actor, reason.Length == 0 ? "Cập nhật trạng thái" : reason);
                 transaction.Commit();
 
                 return Json(new { status = true, message = "Cập nhật trạng thái đơn hàng thành công." });
             }
+        }
+
+        private void LogStockHistory(int bookId, long before, long after, string reason)
+        {
+            db.Database.ExecuteSqlCommand(
+                "INSERT dbo.StockHistory(BookId,BeforeQuantity,AfterQuantity,Actor,Reason) VALUES(@p0,@p1,@p2,@p3,@p4)",
+                bookId, before, after, "Admin: " + Session["AdminUser"], reason);
+        }
+
+        private void LogOrderHistory(int orderId, int? before, int after, string actor, string reason)
+        {
+            db.Database.ExecuteSqlCommand(
+                "INSERT dbo.OrderHistory(OrderId,PreviousStatus,NewStatus,Actor,Reason) VALUES(@p0,@p1,@p2,@p3,@p4)",
+                orderId, (object)before ?? DBNull.Value, after, actor, reason);
+        }
+
+        public class StockHistoryRow
+        {
+            public long Id { get; set; }
+            public int? OrderId { get; set; }
+            public long BeforeQuantity { get; set; }
+            public long AfterQuantity { get; set; }
+            public string Actor { get; set; }
+            public string Reason { get; set; }
+            public DateTime CreatedAt { get; set; }
+        }
+
+        public class OrderHistoryRow
+        {
+            public long Id { get; set; }
+            public int? PreviousStatus { get; set; }
+            public int NewStatus { get; set; }
+            public string Actor { get; set; }
+            public string Reason { get; set; }
+            public DateTime CreatedAt { get; set; }
+        }
+
+        [HttpGet]
+        public JsonResult AdminStockHistory(int id, int page = 1)
+        {
+            var total = db.Database.SqlQuery<int>("SELECT COUNT(*) FROM dbo.StockHistory WHERE BookId=@p0", id).Single();
+            var pages = Math.Max(1, (int)Math.Ceiling(total / 20.0));
+            page = Math.Max(1, Math.Min(page, pages));
+            var rows = db.Database.SqlQuery<StockHistoryRow>(
+                "SELECT Id,OrderId,BeforeQuantity,AfterQuantity,Actor,Reason,CreatedAt FROM dbo.StockHistory WHERE BookId=@p0 ORDER BY Id DESC OFFSET @p1 ROWS FETCH NEXT 20 ROWS ONLY",
+                id, (page - 1) * 20).ToList();
+            return Json(new { status = true, page, totalPages = pages, totalItems = total, data = rows.Select(r => new {
+                id = r.Id, orderId = r.OrderId, before = r.BeforeQuantity, after = r.AfterQuantity,
+                delta = r.AfterQuantity - r.BeforeQuantity, actor = r.Actor, reason = r.Reason,
+                date = r.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
+            }) }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult AdminOrderHistory(int id, int page = 1)
+        {
+            var total = db.Database.SqlQuery<int>("SELECT COUNT(*) FROM dbo.OrderHistory WHERE OrderId=@p0", id).Single();
+            var pages = Math.Max(1, (int)Math.Ceiling(total / 20.0));
+            page = Math.Max(1, Math.Min(page, pages));
+            var rows = db.Database.SqlQuery<OrderHistoryRow>(
+                "SELECT Id,PreviousStatus,NewStatus,Actor,Reason,CreatedAt FROM dbo.OrderHistory WHERE OrderId=@p0 ORDER BY Id DESC OFFSET @p1 ROWS FETCH NEXT 20 ROWS ONLY",
+                id, (page - 1) * 20).ToList();
+            return Json(new { status = true, page, totalPages = pages, totalItems = total, data = rows.Select(r => new {
+                id = r.Id, before = r.PreviousStatus.HasValue ? GetTrackingStatusText(r.PreviousStatus.Value) : "Tạo đơn",
+                after = GetTrackingStatusText(r.NewStatus), actor = r.Actor, reason = r.Reason,
+                date = r.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
+            }) }, JsonRequestBehavior.AllowGet);
         }
 
         private static string GetTrackingStatusText(int tracking)

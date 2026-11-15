@@ -72,6 +72,7 @@ Hệ thống CSS tùy chỉnh theo chuẩn Bootstrap 5 mở rộng, tối ưu hi
    - Mở và thực thi lần lượt các script theo thứ tự:
      - `00_TaoDatabaseMoi.sql` (Khởi tạo CSDL `BSDB2` và các bảng cơ sở).
      - `01_NangCapDatabase.sql` (Cập nhật các cột nâng cấp, chỉ mục và ràng buộc).
+     - `05_LichSuKhoVaDonHang.sql` (Tạo bảng lịch sử tồn kho và trạng thái đơn; chạy được nhiều lần).
      - `02_DuLieuKiemThu.sql` (Nạp dữ liệu danh mục sách, tài khoản mẫu và đánh giá có dấu tiếng Việt).
 2. **Mở dự án trong Visual Studio:**
    - Khởi động **Microsoft Visual Studio 2019/2022** và mở file giải pháp `WebBanSach.sln`.
@@ -84,6 +85,15 @@ Hệ thống CSS tùy chỉnh theo chuẩn Bootstrap 5 mở rộng, tối ưu hi
 ---
 
 ## 🔑 Tài khoản Kiểm thử & Dữ liệu Thuyết trình Demo
+
+### Lịch sử tồn kho và đơn hàng
+
+- Với database đã có, chạy `05_LichSuKhoVaDonHang.sql` trước khi chạy bản backend mới.
+- Trong `admin.html`, bấm tên sách để xem lịch sử tồn kho; bấm mã đơn hoặc **Xem chi tiết** để xem lịch sử trạng thái. Mỗi trang hiển thị 20 bản ghi mới nhất.
+- API tự ghi người thao tác, thời gian, số lượng/trạng thái trước và sau, lý do và mã đơn liên quan khi đặt hàng, hủy đơn, tạo sách hoặc điều chỉnh kho. Lịch sử được lưu cùng giao dịch với thay đổi thực tế; gửi lại cùng trạng thái không tạo log trùng.
+- Khi sửa số lượng tồn phải nhập lý do; khi admin hủy đơn phải nhập lý do hủy. Không có thao tác sửa/xóa lịch sử trên giao diện hoặc API.
+- Lịch sử bắt đầu từ khi triển khai, không tái tạo các thao tác cũ. Phạm vi ghi nhận là luồng HTML/API hiện tại (`index.html`, `admin.html`, `tracking.html`); các trang MVC cũ và chỉnh SQL trực tiếp chưa ghi lịch sử này.
+- Kiểm thử tích hợp: chạy `./test-order-cancellation.ps1` khi IIS Express đang chạy; script dùng sách/đơn thử riêng và tự dọn dữ liệu thử.
 
 ### 1. Khách hàng (Customer)
 | Tài khoản | Mật khẩu | Trạng thái | Vai trò kiểm thử |

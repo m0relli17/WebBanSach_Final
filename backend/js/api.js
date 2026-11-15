@@ -229,11 +229,11 @@ const api = {
         return await res.json();
     },
 
-    updateOrderStatus: async function(id, status) {
+    updateOrderStatus: async function(id, status, reason = '') {
         const res = await fetch(`${API_BASE}/AdminUpdateOrderStatus`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `id=${id}&status=${status}`,
+            body: new URLSearchParams({ id, status, reason }).toString(),
             credentials: 'include'
         });
         return await res.json();

@@ -127,6 +127,8 @@
                             <div class="col-md-2">
                                 <label class="form-label" for="bookStock">Số lượng tồn</label>
                                 <input id="bookStock" name="stock" type="number" class="form-control" min="0" step="1" placeholder="0" onfocus="this.select()" oninput="normalizeNumberInput(this)" required>
+                                <label class="form-label mt-2" for="stockReason">Lý do điều chỉnh kho</label>
+                                <input id="stockReason" name="stockReason" class="form-control" maxlength="500" placeholder="Bắt buộc khi thay đổi tồn kho, ví dụ: nhập thêm sách">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label" for="bookCategory">Thể loại</label>
@@ -544,8 +546,15 @@
         }
 
         async function changeStatus(id, newStatus) {
+            let reason = '';
+            if (Number(newStatus) === 4) {
+                reason = prompt('Nhập lý do hủy đơn (tối đa 500 ký tự):');
+                if (reason === null || !reason.trim()) { renderOrders(); return; }
+                reason = reason.trim();
+                if (reason.length > 500) { alert('Lý do tối đa 500 ký tự.'); renderOrders(); return; }
+            }
             try {
-                const res = await api.updateOrderStatus(id, newStatus);
+                const res = await api.updateOrderStatus(id, newStatus, reason);
                 if (res.status) {
                     showToast(res.message || "Cập nhật trạng thái thành công!");
                     const order = allOrders.find(o => o.id === id);
@@ -597,6 +606,40 @@
                 ${order.items.map(i => `<div class="d-flex justify-content-between border-bottom py-2 gap-3"><span>${escapeAdmin(i.title)} × ${i.quantity}</span><span class="text-nowrap">${escapeAdmin(i.subtotalFormatted)}</span></div>`).join('')}
                 <p class="text-end fw-bold text-danger mt-3">${escapeAdmin(order.totalFormatted)}</p>`;
             bootstrap.Modal.getOrCreateInstance(document.getElementById('orderDetailModal')).show();
+            document.getElementById('orderDetailBody').insertAdjacentHTML('beforeend', '<h6 class="mt-4">Lịch sử đơn hàng</h6><div id="orderHistory"></div>');
+            loadHistory('order', id, 1);
+        }
+
+        async function loadHistory(kind, id, page) {
+            const target = document.getElementById(kind === 'stock' ? 'stockHistory' : 'orderHistory');
+            if (!target) return;
+            target.dataset.recordId = String(id);
+            target.textContent = 'Đang tải lịch sử...';
+            try {
+                const result = await adminRequest((kind === 'stock' ? 'AdminStockHistory' : 'AdminOrderHistory') + '?id=' + id + '&page=' + page);
+                if (!target.isConnected || target.dataset.recordId !== String(id)) return;
+                target.innerHTML = result.data.length ? '<div class="table-responsive"><table class="table table-sm small"><thead><tr><th>Thời gian</th><th>Thay đổi</th><th>Người thao tác</th><th>Lý do</th></tr></thead><tbody>' + result.data.map(row => {
+                    const change = kind === 'stock'
+                        ? escapeAdmin(row.before) + ' → ' + escapeAdmin(row.after) + ' (' + (row.delta > 0 ? '+' : '') + escapeAdmin(row.delta) + ')' + (row.orderId ? '<br>Đơn #' + escapeAdmin(row.orderId) : '')
+                        : escapeAdmin(row.before) + ' → ' + escapeAdmin(row.after);
+                    return '<tr><td class="text-nowrap">' + escapeAdmin(row.date) + '</td><td>' + change + '</td><td>' + escapeAdmin(row.actor) + '</td><td style="white-space:pre-wrap;overflow-wrap:anywhere;min-width:140px">' + escapeAdmin(row.reason) + '</td></tr>';
+                }).join('') + '</tbody></table></div>' : '<p class="text-muted small">Chưa có lịch sử. Chỉ ghi nhận các thao tác từ khi bật tính năng.</p>';
+                const navigation = document.createElement('div');
+                navigation.className = 'd-flex align-items-center gap-2 small';
+                for (const direction of [-1, 1]) {
+                    const button = document.createElement('button');
+                    button.type = 'button'; button.className = 'btn btn-sm btn-outline-secondary';
+                    button.textContent = direction < 0 ? 'Trang trước' : 'Trang sau';
+                    button.disabled = direction < 0 ? result.page <= 1 : result.page >= result.totalPages;
+                    button.onclick = () => loadHistory(kind, id, result.page + direction);
+                    navigation.appendChild(button);
+                }
+                const label = document.createElement('span');
+                label.textContent = 'Trang ' + result.page + '/' + result.totalPages + ' · ' + result.totalItems + ' bản ghi';
+                navigation.appendChild(label); target.appendChild(navigation);
+            } catch (error) {
+                if (target.isConnected && target.dataset.recordId === String(id)) target.textContent = 'Không thể tải lịch sử: ' + error.message;
+            }
         }
 
         async function loadAdminBooks(page) {
@@ -639,6 +682,11 @@
                     ['Nhà xuất bản', book.publisher], ['Giá', book.priceFormatted], ['Tồn kho', book.stock]
                 ].map(field => `<dt>${escapeAdmin(field[0])}</dt><dd>${escapeAdmin(field[1])}</dd>`).join('');
                 document.getElementById('bookNotice').textContent = '';
+                let history = document.getElementById('stockHistory');
+                if (!history) {
+                    document.getElementById('bookFields').insertAdjacentHTML('afterend', '<h6 class="mt-4">Lịch sử tồn kho</h6><div id="stockHistory"></div>');
+                }
+                loadHistory('stock', id, 1);
                 document.getElementById('bookBody').hidden = false;
                 document.getElementById('bookDialogActions').hidden = false;
                 document.getElementById('bookEditButton').onclick = () => {
@@ -665,6 +713,7 @@
                 document.getElementById('bookPrice').value = book.originalPrice;
                 document.getElementById('bookDiscount').value = book.discountPercent;
                 document.getElementById('bookStock').value = book.stock;
+                document.getElementById('stockReason').value = '';
                 document.getElementById('bookCategory').value = book.categoryId;
                 document.getElementById('bookAuthor').value = book.author;
                 document.getElementById('bookPublisher').value = book.publisherId;
