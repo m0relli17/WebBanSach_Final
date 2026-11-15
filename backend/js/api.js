@@ -29,9 +29,27 @@ const api = {
         return await res.json();
     },
 
-    getCategories: async function() {
+    getCategories: async function(forceRefresh = false) {
+        if (!forceRefresh) {
+            try {
+                const cached = sessionStorage.getItem('webbansach_categories_cache');
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    // 5-minute cache TTL for lightning-fast loads
+                    if (Date.now() - parsed.timestamp < 5 * 60 * 1000 && parsed.data) {
+                        return parsed.data;
+                    }
+                }
+            } catch (e) {}
+        }
         const res = await fetch(`${API_BASE}/Categories?_t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
-        return await res.json();
+        const data = await res.json();
+        if (data && data.status) {
+            try {
+                sessionStorage.setItem('webbansach_categories_cache', JSON.stringify({ data: data, timestamp: Date.now() }));
+            } catch (e) {}
+        }
+        return data;
     },
 
     // Cart
@@ -227,15 +245,47 @@ function formatVND(amount) {
     return Number(amount || 0).toLocaleString('vi-VN') + ' VND';
 }
 
-function showToast(msg, type = 'success') {
+function showToast(msg, type = 'success', duration = 3200) {
+    let container = document.getElementById('wbsToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'wbsToastContainer';
+        container.className = 'wbs-toast-container';
+        document.body.appendChild(container);
+    }
+
     const toast = document.createElement('div');
-    toast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed`;
-    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px;';
-    toast.innerHTML = `<i class="fa fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i> ${msg}`;
-    document.body.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.3s';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    const toastType = type === 'error' ? 'danger' : type;
+    toast.className = `wbs-toast wbs-toast-${toastType}`;
+    
+    let iconClass = 'fa-check-circle';
+    if (type === 'error') iconClass = 'fa-exclamation-circle';
+    else if (type === 'warning') iconClass = 'fa-exclamation-triangle';
+    else if (type === 'info') iconClass = 'fa-info-circle';
+
+    toast.innerHTML = `
+        <div class="wbs-toast-icon"><i class="fa ${iconClass}"></i></div>
+        <div class="wbs-toast-msg">${msg}</div>
+        <button type="button" class="wbs-toast-close" title="Đóng">&times;</button>
+    `;
+
+    container.appendChild(toast);
+
+    // Trigger smooth slide-in
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    const closeBtn = toast.querySelector('.wbs-toast-close');
+    let timer = null;
+
+    const dismiss = () => {
+        if (timer) clearTimeout(timer);
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 260);
+    };
+
+    closeBtn.addEventListener('click', dismiss);
+    timer = setTimeout(dismiss, duration);
 }

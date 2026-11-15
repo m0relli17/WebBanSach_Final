@@ -365,6 +365,8 @@ namespace WebBanSach.Controllers
             }
             decimal total = cart.Sum(x => x.Total).GetValueOrDefault(0);
             long count = cart.Sum(x => x.Quantity);
+            decimal originalTotal = cart.Sum(x => ((x.sach.GiaBan ?? x.sach.GiaSauGiam) * x.Quantity)).GetValueOrDefault(0);
+            decimal discount = Math.Max(0, originalTotal - total);
 
             return Json(new
             {
@@ -386,6 +388,10 @@ namespace WebBanSach.Controllers
                 }).ToList(),
                 total = total,
                 totalFormatted = string.Format("{0:N0} VND", total),
+                originalTotal = originalTotal,
+                originalTotalFormatted = string.Format("{0:N0} VND", originalTotal),
+                discount = discount,
+                discountFormatted = string.Format("{0:N0} VND", discount),
                 totalQuantity = count,
                 itemCount = cart.Count
             }, JsonRequestBehavior.AllowGet);
@@ -588,8 +594,8 @@ namespace WebBanSach.Controllers
                 if (!Regex.IsMatch(model.TaiKhoan, @"^[A-Za-z0-9_.-]{3,50}$"))
                     return Json(new { status = false, message = "Tên đăng nhập phải từ 3–50 ký tự, không dấu và không chứa khoảng trắng." });
 
-                if (string.IsNullOrEmpty(model.MatKhau) || model.MatKhau.Length < 8 || model.MatKhau.Length > 128)
-                    return Json(new { status = false, message = "Mật khẩu phải từ 8–128 ký tự." });
+                if (string.IsNullOrEmpty(model.MatKhau) || model.MatKhau.Length < 8 || model.MatKhau.Length > 128 || model.MatKhau.Any(char.IsWhiteSpace))
+                    return Json(new { status = false, message = "Mật khẩu phải từ 8–128 ký tự và không được chứa khoảng trắng." });
 
                 if (model.MatKhau != confirmPassword)
                     return Json(new { status = false, message = "Mật khẩu xác nhận không khớp." });
@@ -972,13 +978,13 @@ namespace WebBanSach.Controllers
                 var username = Session["User"] as string;
                 if (string.IsNullOrEmpty(username))
                 {
-                    return Json(new { status = false, message = "Chưa đăng nhập." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { status = false, isLoggedIn = false, message = "Chưa đăng nhập." }, JsonRequestBehavior.AllowGet);
                 }
 
                 var customer = db.KhachHangs.FirstOrDefault(x => x.TaiKhoan == username);
                 if (customer == null)
                 {
-                    return Json(new { status = false, message = "Người dùng không tồn tại." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { status = false, isLoggedIn = false, message = "Người dùng không tồn tại." }, JsonRequestBehavior.AllowGet);
                 }
 
                 var orders = db.DonDatHangs.AsNoTracking()
@@ -1000,6 +1006,7 @@ namespace WebBanSach.Controllers
                         deliveryDate = o.NgayGiao.ToString("dd/MM/yyyy"),
                         status = o.Tracking ?? 0,
                         statusText = GetTrackingStatusText(o.Tracking ?? 0),
+                        canCancel = (o.Tracking == null || o.Tracking == 0),
                         paymentStatus = o.ThanhToan ?? 0,
                         paymentMethod = isPaid ? "credit_card" : "cod",
                         paymentMethodText = isPaid ? "Thẻ tín dụng (Đã thanh toán)" : "COD (Thu tiền khi nhận)",
@@ -1022,11 +1029,11 @@ namespace WebBanSach.Controllers
                     };
                 }).ToList();
 
-                return Json(new { status = true, data = list }, JsonRequestBehavior.AllowGet);
+                return Json(new { status = true, isLoggedIn = true, data = list }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                return Json(new { status = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { status = false, isLoggedIn = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -1547,6 +1554,7 @@ namespace WebBanSach.Controllers
                         deliveryDate = o.NgayGiao.ToString("dd/MM/yyyy"),
                         status = o.Tracking ?? 0,
                         statusText = GetTrackingStatusText(o.Tracking ?? 0),
+                        canCancel = (o.Tracking == null || o.Tracking == 0),
                         paymentStatus = o.ThanhToan ?? 0,
                         paymentMethod = isPaid ? "credit_card" : "cod",
                         paymentMethodText = isPaid ? "Thẻ tín dụng (Đã TT)" : "COD (Chưa TT)",
