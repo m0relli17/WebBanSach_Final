@@ -1,0 +1,11 @@
+﻿@model WebBanSach.Models.ProfileEditModel
+@{ Layout = "~/Views/Shared/_MasterLayout.cshtml"; ViewBag.Title = "Hồ sơ khách hàng"; }
+<main class="container py-4" style="max-width:720px"><h1 class="h3">Hồ sơ khách hàng</h1><p>Tài khoản: <strong>@ViewBag.Username</strong> · Email: @ViewBag.Email</p>
+@using (Html.BeginForm("Profile", "Portal", FormMethod.Post)) {
+    @Html.AntiForgeryToken() @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+    <label class="form-label" for="Name">Họ tên</label>@Html.TextBoxFor(m => m.Name, new { @class = "form-control mb-3", maxlength = 50, required = "required" })
+    <label class="form-label" for="Phone">Điện thoại</label>@Html.TextBoxFor(m => m.Phone, new { @class = "form-control mb-3", maxlength = 50, required = "required" })
+    <label class="form-label" for="Address">Địa chỉ</label>@Html.TextBoxFor(m => m.Address, new { @class = "form-control mb-3", maxlength = 250, required = "required" })
+    <label class="form-label" for="BirthDate">Ngày sinh</label>@Html.TextBoxFor(m => m.BirthDate, "{0:yyyy-MM-dd}", new { type = "date", @class = "form-control mb-3" })
+    <button class="btn btn-primary">Lưu hồ sơ</button> <a class="btn btn-outline-primary" href="tracking.html">Lịch sử giao dịch</a>
+}</main>

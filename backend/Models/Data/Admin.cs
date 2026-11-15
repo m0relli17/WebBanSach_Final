@@ -18,13 +18,13 @@
         [Required(ErrorMessage ="Nhập tài khoản")]
         public string TaiKhoan { get; set; }
 
-        [StringLength(50)]
+        [StringLength(256)]
         [Required(ErrorMessage = "Nhập mật khẩu")]
         [Display(Name = "Mật khẩu")]
         public string MatKhau { get; set; }
 
         [StringLength(50)]
-        [Display(Name = "")]
+        [Display(Name = "Họ tên")]
         public string HoTen { get; set; }
 
         [Display(Name = "Trạng thái")]

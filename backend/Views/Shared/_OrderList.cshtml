@@ -1,0 +1,5 @@
+﻿@model System.Collections.Generic.List<WebBanSach.Models.Data.DonDatHang>
+<div class="table-responsive"><table class="table bg-white"><thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Trạng thái</th><th>Hóa đơn</th></tr></thead><tbody>
+@foreach (var o in Model) { <tr><td>#@o.MaDDH</td><td>@o.NgayDat.ToString("dd/MM/yyyy HH:mm")</td><td>@(new[] { "Chờ xử lý", "Đã đóng gói", "Đang giao", "Đã giao", "Đã hủy" }[Math.Max(0, Math.Min(4, o.Tracking ?? 0))])</td><td><a href="@Url.Action("Receipt", "Portal", new { id = o.MaDDH })" target="_blank" rel="noopener">Xem hóa đơn</a></td></tr> }
+</tbody></table></div>
+@if (Model.Count == 0) { <p>Khách hàng chưa có đơn.</p> }

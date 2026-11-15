@@ -32,7 +32,7 @@ const api = {
     getCategories: async function(forceRefresh = false) {
         if (!forceRefresh) {
             try {
-                const cached = sessionStorage.getItem('webbansach_categories_cache');
+                const cached = sessionStorage.getItem('webbansach_categories_cache_v2');
                 if (cached) {
                     const parsed = JSON.parse(cached);
                     // 5-minute cache TTL for lightning-fast loads
@@ -46,7 +46,7 @@ const api = {
         const data = await res.json();
         if (data && data.status) {
             try {
-                sessionStorage.setItem('webbansach_categories_cache', JSON.stringify({ data: data, timestamp: Date.now() }));
+                sessionStorage.setItem('webbansach_categories_cache_v2', JSON.stringify({ data: data, timestamp: Date.now() }));
             } catch (e) {}
         }
         return data;

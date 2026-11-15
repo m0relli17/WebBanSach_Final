@@ -78,6 +78,8 @@ SELECT CAST(SCOPE_IDENTITY() AS int);
     $result = Invoke-RestMethod "$BaseUrl/api/Checkout" -Method Post -WebSession $customerSession -Body @{receiverName='Audit test';receiverPhone='0900000000';receiverAddress='Test address';paymentMethod='cod';note='Audit integration test'}
     if (!$result.status) { throw "Checkout failed: $($result.message)" }
     $checkoutId = [int]$result.orderId
+    if ($result.subtotal -ne 200 -or $result.shippingFee -ne 25000 -or $result.total -ne 25200) { throw 'Checkout shipping fee mismatch' }
+    if ((QueryScalar "SELECT ShippingFee FROM dbo.DonDatHang WHERE MaDDH=$checkoutId") -ne 25000) { throw 'Shipping fee was not saved' }
     $history = Invoke-RestMethod "$BaseUrl/api/AdminStockHistory?id=$bookId" -WebSession $testSession
     if ($history.data[0].before -ne 15 -or $history.data[0].after -ne 13 -or $history.data[0].orderId -ne $checkoutId -or $history.data[0].actor -ne "Khách: $username") { throw 'Checkout stock history mismatch' }
     $history = Invoke-RestMethod "$BaseUrl/api/AdminOrderHistory?id=$checkoutId" -WebSession $testSession

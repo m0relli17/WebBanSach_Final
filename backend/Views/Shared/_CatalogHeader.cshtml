@@ -1,0 +1,48 @@
+﻿<header class="navbar navbar-custom sticky-top py-2">
+        <div class="container d-flex align-items-center justify-content-between flex-nowrap gap-2 gap-lg-3">
+            <!-- Brand Logo -->
+            <a class="wbs-logo-wrap flex-shrink-0" href="index.html">
+                <div class="wbs-logo-icon">
+                    <i class="fa fa-book"></i>
+                </div>
+                <div>
+                    <div class="wbs-logo-text">WEBBANSACH</div>
+                    <span class="wbs-logo-slogan d-none d-sm-block">Tốt & Nhanh • 100% Chính hãng</span>
+                </div>
+            </a>
+
+            <!-- Search Bar with Dynamic Quick Tags -->
+            <div class="wbs-header-search-wrap flex-grow-1 mx-2 mx-xl-3" style="min-width: 0; max-width: 680px;">
+                <form class="wbs-search-box" onsubmit="event.preventDefault(); handleSearch();">
+                    <div class="input-group position-relative">
+                        <span class="wbs-search-icon-inside"><i class="fa fa-search"></i></span>
+                        <input id="searchInput" class="form-control wbs-search-input" type="search" placeholder="Bạn tìm sách, tác giả, thể loại gì hôm nay?">
+                        <button type="button" id="searchClearBtn" class="wbs-search-clear" onclick="clearSearchInput()" title="Xóa tìm kiếm">
+                            <i class="fa fa-times"></i>
+                        </button>
+                        <button class="btn wbs-search-btn" type="submit">Tìm kiếm</button>
+                    </div>
+                </form>
+                <!-- Quick tags dynamically populated from system categories -->
+                <div id="quickCategories" class="wbs-quick-tags">
+                    <a href="javascript:void(0)" class="wbs-quick-tag text-muted">Đang tải danh mục...</a>
+                </div>
+            </div>
+
+            <!-- Header Action Items: Home, Account, Cart -->
+            <div class="wbs-header-actions d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
+                <a href="index.html" class="wbs-header-action d-none d-md-flex">
+                    <i class="fa fa-home"></i>
+                    <span>Trang chủ</span>
+                </a>
+                
+                <div id="navbar-auth-links" class="d-flex align-items-center flex-shrink-0"></div>
+
+                <a class="wbs-header-action position-relative flex-shrink-0" href="cart.html">
+                    <i class="fa fa-shopping-cart"></i>
+                    <span class="d-none d-sm-inline">Giỏ hàng</span>
+                    <span id="cart-badge" class="wbs-cart-badge">0</span>
+                </a>
+            </div>
+        </div>
+    </header>

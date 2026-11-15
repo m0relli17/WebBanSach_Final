@@ -1,0 +1,22 @@
+﻿<nav class="navbar navbar-dark bg-dark sticky-top shadow-sm py-2">
+        <div class="container-fluid px-4">
+            <a class="wbs-logo-wrap text-decoration-none" href="admin.html">
+                <div class="wbs-logo-icon" style="width: 36px; height: 36px; font-size: 18px;">
+                    <i class="fa fa-book"></i>
+                </div>
+                <div>
+                    <div class="text-white fw-bold" style="font-size: 16px; letter-spacing: -0.5px;">WEBBANSACH ADMIN & SELLER</div>
+                    <span class="text-white-50" style="font-size: 11px;">Hệ thống điều phối đơn hàng & Quản lý kho sách</span>
+                </div>
+            </a>
+            <div id="adminUserNav" class="d-flex align-items-center">
+                <a href="index.html" class="btn btn-outline-light btn-sm me-2" target="_blank" style="border-radius: 6px;">
+                    <i class="fa fa-external-link me-1"></i> Xem Website Khách
+                </a>
+                <span id="adminNameDisplay" class="text-light me-3 small fw-semibold" style="display: none;"></span>
+                <button id="btnAdminLogout" class="btn btn-outline-danger btn-sm" onclick="handleAdminLogout()" style="display: none; border-radius: 6px;">
+                    <i class="fa fa-sign-out me-1"></i> Đăng xuất
+                </button>
+            </div>
+        </div>
+    </nav>

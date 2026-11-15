@@ -20,11 +20,6 @@ namespace WebBanSach.Controllers
         //GET : Home/ : trang chủ 
         public ActionResult Index()
         {
-            string indexPath = Server.MapPath("~/index.html");
-            if (System.IO.File.Exists(indexPath))
-            {
-                return File(indexPath, "text/html");
-            }
             return Redirect("~/index.html");
         }
 

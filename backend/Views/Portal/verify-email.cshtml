@@ -1,0 +1,169 @@
+﻿@{ Layout = "~/Views/Shared/_MasterLayout.cshtml"; ViewBag.Title = "Xác minh Email - WebBanSach"; }
+
+
+    <!-- WebBanSach Header & Navigation -->
+    
+
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="wbs-breadcrumbs">
+            <a href="index.html" class="text-muted"><i class="fa fa-home me-1"></i>Trang chủ</a>
+            <span class="mx-2 text-muted">/</span>
+            <span class="text-dark fw-semibold">Xác minh bảo mật Email</span>
+        </nav>
+
+        <div class="auth-wrapper narrow">
+            <div class="auth-card">
+                <div class="text-center mb-4">
+                    <div class="auth-icon-circle">
+                        <i class="fa fa-envelope-open-o"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1" style="font-size: 22px;">Xác thực mã bảo mật</h3>
+                    <p class="text-muted small">Mã OTP 6 chữ số đã được gửi đến địa chỉ email của bạn</p>
+                    <div id="emailDisplay" class="fw-bold text-primary small py-1 px-2 bg-light rounded d-inline-block"></div>
+                </div>
+
+                <div id="otpAlert" class="alert alert-info py-2 small" style="display: none;"></div>
+
+                <form onsubmit="handleVerify(event)">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark text-center d-block" for="otpCode">
+                            Nhập 6 số xác thực:
+                        </label>
+                        <input type="text" id="otpCode" class="form-control form-control-lg text-center fw-bold" 
+                               maxlength="6" placeholder="------" pattern="\d{6}" required autofocus style="letter-spacing: 0.5em; font-size: 1.8rem; border-radius: 8px;">
+                    </div>
+
+                    <button type="submit" id="btnVerify" class="btn btn-primary w-100 py-2 fw-bold mt-2" style="border-radius: 8px;">
+                        <i class="fa fa-check-circle me-1"></i> Xác minh & Tiếp tục
+                    </button>
+                </form>
+
+                <div class="text-center mt-4 pt-3 border-top small">
+                    <p class="text-muted mb-2">Chưa nhận được mã OTP?</p>
+                    <button type="button" id="btnResend" class="btn btn-outline-secondary btn-sm" onclick="handleResendOtp()" style="border-radius: 6px;">
+                        <i class="fa fa-repeat me-1"></i> Gửi lại mã OTP
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    
+
+    <!-- Bootstrap 5 JS Bundle -->
+    
+    
+    
+
+@section Scripts {
+<script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailParam = urlParams.get('email');
+        if (emailParam) {
+            document.getElementById('emailDisplay').textContent = emailParam;
+        }
+
+        async function initPage() {
+            try {
+                const me = await api.getMe();
+                if (me.isLoggedIn) {
+                    let target = sessionStorage.getItem('authRedirect') || 'index.html';
+                    sessionStorage.removeItem('authRedirect');
+                    if (target.includes('login.html') || target.includes('register.html') || target.includes('verify-email.html')) {
+                        target = 'index.html';
+                    }
+                    window.location.href = target;
+                    return;
+                }
+                if (me.email && !emailParam) {
+                    document.getElementById('emailDisplay').textContent = me.email;
+                }
+            } catch (e) { }
+
+            handleResendOtp(true);
+        }
+
+        async function handleResendOtp(isAuto = false) {
+            const btn = document.getElementById('btnResend');
+            const alertBox = document.getElementById('otpAlert');
+            if (btn) btn.disabled = true;
+
+            try {
+                const res = await api.sendOtp();
+                if (res.status) {
+                    alertBox.className = 'alert alert-info py-2 small';
+                    let msg = res.message || 'Mã xác nhận đã được gửi!';
+                    if (res.testCode) {
+                        msg += ` (Mã kiểm thử: <strong>${res.testCode}</strong>)`;
+                        document.getElementById('otpCode').value = res.testCode;
+                    }
+                    alertBox.innerHTML = msg;
+                    alertBox.style.display = 'block';
+                } else if (!isAuto) {
+                    alertBox.className = 'alert alert-danger py-2 small';
+                    alertBox.textContent = res.message || 'Không thể gửi mã xác minh.';
+                    alertBox.style.display = 'block';
+                }
+            } catch (err) {
+                if (!isAuto) {
+                    alertBox.className = 'alert alert-danger py-2 small';
+                    alertBox.textContent = 'Lỗi kết nối máy chủ.';
+                    alertBox.style.display = 'block';
+                }
+            } finally {
+                setTimeout(() => { if (btn) btn.disabled = false; }, 3000);
+            }
+        }
+
+        async function handleVerify(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('otpAlert');
+            alertBox.style.display = 'none';
+
+            const code = document.getElementById('otpCode').value.trim();
+            if (code.length !== 6) {
+                alertBox.className = 'alert alert-danger py-2 small';
+                alertBox.textContent = 'Vui lòng nhập đủ 6 chữ số.';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('btnVerify');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang xác minh...';
+
+            try {
+                const res = await api.verifyOtp(code);
+                if (res.status) {
+                    alertBox.className = 'alert alert-success py-2 small';
+                    alertBox.textContent = res.message || 'Xác minh thành công! Đang chuyển hướng...';
+                    alertBox.style.display = 'block';
+                    setTimeout(() => {
+                        let target = sessionStorage.getItem('authRedirect') || 'index.html';
+                        sessionStorage.removeItem('authRedirect');
+                        if (target.includes('login.html') || target.includes('register.html') || target.includes('verify-email.html')) {
+                            target = 'index.html';
+                        }
+                        window.location.href = target;
+                    }, 800);
+                } else {
+                    alertBox.className = 'alert alert-danger py-2 small';
+                    alertBox.textContent = res.message || 'Mã xác minh không chính xác.';
+                    alertBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-check-circle me-1"></i> Xác minh & Tiếp tục';
+                }
+            } catch (err) {
+                alertBox.className = 'alert alert-danger py-2 small';
+                alertBox.textContent = 'Lỗi xác minh: ' + err.message;
+                alertBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-check-circle me-1"></i> Xác minh & Tiếp tục';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", initPage);
+    </script>
+}

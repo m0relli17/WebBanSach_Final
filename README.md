@@ -73,6 +73,7 @@ Hệ thống CSS tùy chỉnh theo chuẩn Bootstrap 5 mở rộng, tối ưu hi
      - `00_TaoDatabaseMoi.sql` (Khởi tạo CSDL `BSDB2` và các bảng cơ sở).
      - `01_NangCapDatabase.sql` (Cập nhật các cột nâng cấp, chỉ mục và ràng buộc).
      - `05_LichSuKhoVaDonHang.sql` (Tạo bảng lịch sử tồn kho và trạng thái đơn; chạy được nhiều lần).
+     - `06_BaremMvc.sql` (Lưu phí ship, thông tin người nhận và phương thức thanh toán của đơn; mở rộng cột mật khẩu admin cho PBKDF2).
      - `02_DuLieuKiemThu.sql` (Nạp dữ liệu danh mục sách, tài khoản mẫu và đánh giá có dấu tiếng Việt).
 2. **Mở dự án trong Visual Studio:**
    - Khởi động **Microsoft Visual Studio 2019/2022** và mở file giải pháp `WebBanSach.sln`.
@@ -94,6 +95,20 @@ Hệ thống CSS tùy chỉnh theo chuẩn Bootstrap 5 mở rộng, tối ưu hi
 - Khi sửa số lượng tồn phải nhập lý do; khi admin hủy đơn phải nhập lý do hủy. Không có thao tác sửa/xóa lịch sử trên giao diện hoặc API.
 - Lịch sử bắt đầu từ khi triển khai, không tái tạo các thao tác cũ. Phạm vi ghi nhận là luồng HTML/API hiện tại (`index.html`, `admin.html`, `tracking.html`); các trang MVC cũ và chỉnh SQL trực tiếp chưa ghi lịch sử này.
 - Kiểm thử tích hợp: chạy `./test-order-cancellation.ps1` khi IIS Express đang chạy; script dùng sách/đơn thử riêng và tự dọn dữ liệu thử.
+
+### Các màn hình theo barem MVC
+
+- Chạy script `05_LichSuKhoVaDonHang.sql` và `06_BaremMvc.sql` trước khi build/chạy bản mới trên database đã có. Database local của lần triển khai này đã được nâng cấp.
+- Các URL quen thuộc `index.html`, `admin.html`, `cart.html`, `checkout.html`, `tracking.html`, `book-details.html`, `login.html`, `register.html`, `verify-email.html` được route qua `PortalController.Page` để render Razor thật. Tài nguyên CSS/JS/ảnh vẫn được phục vụ như file tĩnh.
+- Layout quản trị: `Views/Shared/_Layout.cshtml`; layout khách: `Views/Shared/_MasterLayout.cshtml`. Header, footer, chi tiết sản phẩm, danh sách sản phẩm, danh sách đơn và hóa đơn là các partial dùng chung. `_ProductDetails` có cờ `IsAdmin` để ẩn phần mua hàng; `_Invoice` dùng chung cho admin và khách với kiểm tra quyền ở server.
+- Menu admin bổ sung **Quản lý danh mục** (thể loại/tác giả/NXB), **Quản lý kho**, **Quản trị viên**, **Khách hàng**. Danh mục có số lượng đầu sách và danh sách liên quan; chỉ tác giả có nút Chi tiết vì thể loại/NXB có ít hơn 5 cột dữ liệu. Danh mục đang có sách không được xóa.
+- `Manage/Inventory` có hai danh sách: tồn kho > 0 và cần nhập = 0. `Manage/Customers` chỉ tra cứu, không cung cấp thao tác thêm/sửa/xóa khách; trang chi tiết nhúng `_OrderList` và mở hóa đơn.
+- Khách mở **Hồ sơ khách hàng** trong menu tài khoản để sửa họ tên, điện thoại, địa chỉ, ngày sinh. Không cho sửa tài khoản/email qua form này. Mỗi đơn mới lưu riêng thông tin người nhận, không phụ thuộc hồ sơ sửa sau đó.
+- Mật khẩu admin mới và mật khẩu thay đổi được băm PBKDF2. Admin cũ được nâng cấp khi đăng nhập thành công. Không xóa/khóa chính tài khoản đang đăng nhập hoặc quản trị viên hoạt động cuối cùng. Các form MVC ghi dữ liệu có Data Annotation, kiểm tra server và anti-forgery token.
+- Catalogue khách chỉ lấy sách tồn > 0; index hiển thị số đã bán thật từ các đơn không bị hủy. Thêm từ chi tiết sản phẩm xong chuyển sang giỏ.
+- Phí ship do backend tính trên tiền hàng sau giảm: dưới 150.000 VND là 25.000 VND, từ 150.000 VND miễn phí; lưu cùng giao dịch tạo đơn và hiển thị trong hóa đơn/lịch sử/admin. Các đơn cũ chưa có phí ship được ghi chú rõ, không tự suy đoán phí cũ.
+- Các file HTML ở `backend/` và `frontend/` vẫn giữ làm nguồn phần thân trang. Sau khi sửa HTML, chạy `python tools/sync_razor_views.py` để đồng bộ `Views/Portal/` và các layout/header/footer được sinh. Những partial nghiệp vụ và view quản lý viết tay không bị script ghi đè. Phải chạy bằng ASP.NET/IIS Express, không dùng static Live Server để kiểm tra các chức năng MVC.
+- Kiểm thử theo barem: `./test-barem.ps1`; kiểm thử hủy/hoàn kho và phí ship dưới ngưỡng: `./test-order-cancellation.ps1`. Hai script tạo dữ liệu thử riêng, tự dọn sau khi chạy; tài khoản demo admin mặc định phải còn dùng được.
 
 ### 1. Khách hàng (Customer)
 | Tài khoản | Mật khẩu | Trạng thái | Vai trò kiểm thử |

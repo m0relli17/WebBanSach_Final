@@ -1,0 +1,7 @@
+﻿@model System.Collections.Generic.List<WebBanSach.Models.Data.KhachHang>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Khách hàng"; }
+<main class="container py-4"><h1 class="h3">Khách hàng</h1><p class="text-muted">Tra cứu thông tin và đơn hàng. Không thêm, sửa hoặc xóa khách hàng tại đây.</p>
+<form method="get" action="@Url.Action("Customers")" class="d-flex gap-2 mb-3"><label class="visually-hidden" for="customerSearch">Tên hoặc tài khoản</label><input id="customerSearch" name="search" value="@ViewBag.Search" class="form-control" placeholder="Tên hoặc tài khoản" /><button class="btn btn-primary">Tìm</button></form>
+<div class="table-responsive"><table class="table bg-white"><thead><tr><th>Tài khoản</th><th>Họ tên</th><th>Email</th><th>Điện thoại</th><th>Chi tiết</th></tr></thead><tbody>
+@foreach (var c in Model) { <tr><td>@c.TaiKhoan</td><td>@c.TenKH</td><td>@c.Email</td><td>@c.DienThoai</td><td><a href="@Url.Action("Customer", new { id = c.MaKH })">Thông tin &amp; đơn hàng</a></td></tr> }
+</tbody></table></div></main>

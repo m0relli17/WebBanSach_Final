@@ -1,0 +1,7 @@
+﻿@model System.Collections.Generic.List<WebBanSach.Models.Data.Admin>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Quản trị viên"; }
+<main class="container py-4"><div class="d-flex justify-content-between"><h1 class="h3">Quản trị viên</h1><a class="btn btn-primary" href="@Url.Action("AdminEdit")">Thêm quản trị viên</a></div><div class="table-responsive"><table class="table bg-white mt-3"><thead><tr><th>Tài khoản</th><th>Họ tên</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+@foreach (var a in Model) { <tr><td>@a.TaiKhoan</td><td>@a.HoTen</td><td>@(a.TrangThai == true ? "Hoạt động" : "Đã khóa")</td><td><div class="d-flex gap-2"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("AdminEdit", new { id = a.IDAdmin })">Sửa</a>
+@using (Html.BeginForm("AdminDelete", "Manage", FormMethod.Post, new { onsubmit = "return confirm('Xóa quản trị viên này?');" })) { @Html.AntiForgeryToken()<input name="id" type="hidden" value="@a.IDAdmin" /><button class="btn btn-sm btn-outline-danger">Xóa</button> }
+</div></td></tr> }
+</tbody></table></div></main>

@@ -1,0 +1,199 @@
+﻿@{ Layout = "~/Views/Shared/_MasterLayout.cshtml"; ViewBag.Title = "Đăng ký thành viên - WebBanSach"; }
+
+
+    <!-- WebBanSach Header & Navigation -->
+    
+
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="wbs-breadcrumbs">
+            <a href="index.html" class="text-muted"><i class="fa fa-home me-1"></i>Trang chủ</a>
+            <span class="mx-2 text-muted">/</span>
+            <span class="text-dark fw-semibold">Đăng ký thành viên mới</span>
+        </nav>
+
+        <div class="auth-wrapper" style="max-width: 650px;">
+            <div class="auth-card">
+                <div class="text-center mb-4">
+                    <div class="auth-icon-circle">
+                        <i class="fa fa-user-plus"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1" style="font-size: 22px;">Tạo tài khoản WebBanSach</h3>
+                    <p class="text-muted small">Nhận ngay ưu đãi miễn phí vận chuyển và tích lũy điểm thưởng</p>
+                </div>
+
+                <div id="registerAlert" class="alert alert-danger py-2 small" style="display: none;"></div>
+
+                <form id="registerForm" onsubmit="handleRegister(event)">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark" for="TaiKhoan">
+                                Tên tài khoản <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="TaiKhoan" name="TaiKhoan" class="form-control" placeholder="Từ 3-50 ký tự" required autocomplete="username">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark" for="TenKH">
+                                Họ và tên <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="TenKH" name="TenKH" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark" for="MatKhau">
+                                Mật khẩu <span class="text-danger">*</span>
+                            </label>
+                            <div class="password-wrapper">
+                                <input type="password" id="MatKhau" name="MatKhau" class="form-control" placeholder="Từ 8-128 ký tự (không dấu cách)" minlength="8" maxlength="128" pattern="^\S{8,128}$" title="Mật khẩu từ 8 đến 128 ký tự và không chứa khoảng trắng" required autocomplete="new-password">
+                                <button type="button" class="btn-toggle-eye" onclick="togglePass('MatKhau', this)" title="Hiện/ẩn mật khẩu">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted" style="font-size: 11px;">Từ 8–128 ký tự, không chứa khoảng trắng</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark" for="confirmPassword">
+                                Nhập lại mật khẩu <span class="text-danger">*</span>
+                            </label>
+                            <div class="password-wrapper">
+                                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="Khớp với mật khẩu trên" minlength="8" maxlength="128" pattern="^\S{8,128}$" title="Mật khẩu từ 8 đến 128 ký tự và không chứa khoảng trắng" required autocomplete="new-password">
+                                <button type="button" class="btn-toggle-eye" onclick="togglePass('confirmPassword', this)" title="Hiện/ẩn mật khẩu">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted" style="font-size: 11px;">Nhập lại chính xác mật khẩu</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark" for="Email">
+                                Địa chỉ Email <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" id="Email" name="Email" class="form-control" placeholder="name@("@")example.com" required autocomplete="email">
+                            <small class="text-muted" style="font-size: 11px;">Mã OTP xác thực sẽ gửi đến email này</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark" for="DienThoai">
+                                Số điện thoại <span class="text-danger">*</span>
+                            </label>
+                            <input type="tel" id="DienThoai" name="DienThoai" class="form-control" placeholder="09xxxxxxxx" required autocomplete="tel">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-dark" for="DiaChi">
+                                Địa chỉ giao hàng mặc định
+                            </label>
+                            <input type="text" id="DiaChi" name="DiaChi" class="form-control" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố...">
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" id="btnRegisterSubmit" class="btn btn-primary w-100 py-2 fw-bold" style="border-radius: 8px;">
+                            <i class="fa fa-user-plus me-1"></i> Hoàn tất đăng ký
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4 pt-3 border-top small text-muted">
+                    Đã có tài khoản WebBanSach? <a id="loginLinkBottom" href="login.html" class="text-primary fw-bold text-decoration-none">Đăng nhập ngay <i class="fa fa-angle-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    
+
+    <!-- Bootstrap 5 JS Bundle -->
+    
+    
+    
+
+@section Scripts {
+<script>
+        function togglePass(id, btn) {
+            const input = document.getElementById(id);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa fa-eye';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            if (redirect) {
+                sessionStorage.setItem('authRedirect', redirect);
+                const logNav = document.getElementById('loginLinkNav');
+                const logBottom = document.getElementById('loginLinkBottom');
+                if (logNav) logNav.href = `login.html?redirect=${encodeURIComponent(redirect)}`;
+                if (logBottom) logBottom.href = `login.html?redirect=${encodeURIComponent(redirect)}`;
+            }
+        });
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('registerAlert');
+            alertBox.style.display = 'none';
+
+            const p1 = document.getElementById('MatKhau').value;
+            const p2 = document.getElementById('confirmPassword').value;
+
+            if (!p1 || p1.length < 8 || p1.length > 128) {
+                alertBox.className = 'alert alert-danger py-2 small';
+                alertBox.textContent = 'Mật khẩu phải từ 8 đến 128 ký tự.';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            if (/\s/.test(p1)) {
+                alertBox.className = 'alert alert-danger py-2 small';
+                alertBox.textContent = 'Mật khẩu không được chứa khoảng trắng.';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            if (p1 !== p2) {
+                alertBox.className = 'alert alert-danger py-2 small';
+                alertBox.textContent = 'Mật khẩu xác nhận không khớp!';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('btnRegisterSubmit');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang đăng ký...';
+
+            const form = document.getElementById('registerForm');
+            const formData = new FormData(form);
+
+            try {
+                const res = await api.register(formData);
+                if (res.status) {
+                    showToast(res.message || "Đăng ký thành công!");
+                    setTimeout(() => {
+                        window.location.href = `verify-email.html?email=${encodeURIComponent(res.email || '')}`;
+                    }, 800);
+                } else {
+                    alertBox.className = 'alert alert-danger py-2 small';
+                    alertBox.textContent = res.message || 'Đăng ký không thành công!';
+                    alertBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-user-plus me-1"></i> Hoàn tất đăng ký';
+                }
+            } catch (err) {
+                alertBox.className = 'alert alert-danger py-2 small';
+                alertBox.textContent = 'Đã xảy ra lỗi kết nối: ' + err.message;
+                alertBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-user-plus me-1"></i> Hoàn tất đăng ký';
+            }
+        }
+    </script>
+}

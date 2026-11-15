@@ -58,6 +58,7 @@ const auth = {
                         </li>
                         <li><a class="dropdown-item py-2" href="tracking.html"><i class="fa fa-list-alt text-primary me-2"></i> Đơn hàng của tôi</a></li>
                         ${isAdmin ? '<li><a class="dropdown-item py-2" href="admin.html"><i class="fa fa-tachometer text-success me-2"></i> Quản trị Admin</a></li>' : ''}
+                        <li><a class="dropdown-item py-2" href="Portal/Profile"><i class="fa fa-user me-2"></i> Hồ sơ khách hàng</a></li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li><a class="dropdown-item py-2 text-danger" href="#" onclick="auth.handleLogout(event)"><i class="fa fa-sign-out text-danger me-2"></i> Đăng xuất</a></li>
                     </ul>

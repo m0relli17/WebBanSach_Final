@@ -1,0 +1,17 @@
+﻿@model WebBanSach.Models.InvoiceModel
+@{ var o = Model.Order; var statuses = new[] { "Chờ xử lý", "Đã đóng gói", "Đang giao", "Đã giao", "Đã hủy" }; var status = o.Tracking ?? 0; }
+<article class="invoice bg-white border rounded p-3 p-md-4" data-partial="invoice" data-order-id="@o.MaDDH">
+    <div class="d-flex flex-wrap justify-content-between border-bottom pb-3 mb-3"><div><h3 class="h5">HÓA ĐƠN MUA HÀNG</h3><strong>WEBBANSACH · Đơn #@o.MaDDH</strong></div><div>@o.NgayDat.ToString("dd/MM/yyyy HH:mm")<br /><span class="badge bg-secondary">@(status >= 0 && status < statuses.Length ? statuses[status] : "Chưa xác định")</span></div></div>
+    <dl class="row small">
+        <dt class="col-sm-3">Người nhận</dt><dd class="col-sm-9">@(o.ReceiverName ?? o.KhachHang.TenKH)</dd>
+        <dt class="col-sm-3">Điện thoại</dt><dd class="col-sm-9">@(o.ReceiverPhone ?? o.KhachHang.DienThoai)</dd>
+        <dt class="col-sm-3">Địa chỉ</dt><dd class="col-sm-9">@(o.ReceiverAddress ?? o.KhachHang.DiaChi)</dd>
+        <dt class="col-sm-3">Thanh toán</dt><dd class="col-sm-9">@(o.PaymentMethod == "cod" ? "COD" : o.PaymentMethod == "credit_card" ? "Thẻ (mô phỏng)" : "Đơn cũ: chưa lưu phương thức riêng") · @(o.TinhTrang ? "Đã thanh toán" : "Chưa thanh toán")</dd>
+        <dt class="col-sm-3">Ghi chú</dt><dd class="col-sm-9" style="white-space:pre-wrap;overflow-wrap:anywhere">@(o.GhiChu ?? "Không có")</dd>
+    </dl>
+    <div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>Sách</th><th class="text-end">Số lượng</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr></thead><tbody>
+        @foreach (var line in Model.Lines) { <tr><td>@(line.Sach == null ? "Sách đã ngừng kinh doanh" : line.Sach.TenSach)</td><td class="text-end">@line.SoLuong</td><td class="text-end text-nowrap">@line.DonGia.GetValueOrDefault().ToString("N0") VND</td><td class="text-end text-nowrap">@((line.DonGia.GetValueOrDefault() * line.SoLuong.GetValueOrDefault()).ToString("N0")) VND</td></tr> }
+    </tbody></table></div>
+    <div class="text-end"><p>Tiền hàng: @Model.Subtotal.ToString("N0") VND</p><p>Phí vận chuyển: @(o.ShippingFee.HasValue ? o.ShippingFee.Value.ToString("N0") + " VND" : "Chưa lưu ở đơn cũ")</p><strong class="text-danger fs-5">Tổng cộng: @Model.Total.ToString("N0") VND</strong></div>
+    @if (!o.ShippingFee.HasValue) { <p class="text-muted small mt-2 mb-0">Đơn cũ: tổng trên chỉ gồm tiền hàng, không suy đoán phí vận chuyển.</p> }
+</article>

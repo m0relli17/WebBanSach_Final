@@ -443,7 +443,7 @@
                     let html = '';
                     res.data.forEach(book => {
                         const ratingScore = (Number(book.averageRating) || 0).toFixed(1);
-                        const sold = (book.id * 19 + 27) % 350 + 15;
+                        const sold = Number(book.salesCount) || 0;
                         html += `
                             <div class="col-6 col-md-6 col-lg-4 col-xl-4 col-xxl-3 col-2k-20 col-4k-16">
                                 <div class="book-card">

@@ -1,0 +1,5 @@
+﻿@model WebBanSach.Models.Data.KhachHang
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Chi tiết khách hàng"; }
+<main class="container py-4"><h1 class="h3">@Model.TenKH</h1><dl class="row"><dt class="col-sm-3">Tài khoản</dt><dd class="col-sm-9">@Model.TaiKhoan</dd><dt class="col-sm-3">Email</dt><dd class="col-sm-9">@Model.Email</dd><dt class="col-sm-3">Điện thoại</dt><dd class="col-sm-9">@Model.DienThoai</dd><dt class="col-sm-3">Địa chỉ</dt><dd class="col-sm-9">@Model.DiaChi</dd><dt class="col-sm-3">Xác minh email</dt><dd class="col-sm-9">@(Model.EmailVerified ? "Đã xác minh" : "Chưa xác minh")</dd></dl><h2 class="h5">Đơn hàng của khách</h2>
+@Html.Partial("_OrderList", (System.Collections.Generic.List<WebBanSach.Models.Data.DonDatHang>)ViewBag.Orders)
+<a href="@Url.Action("Customers")">Quay lại danh sách khách</a></main>

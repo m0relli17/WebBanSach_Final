@@ -305,6 +305,13 @@
         }
 
         function showDashboard(name) {
+            if (!document.getElementById('managementLinks')) {
+                const links = document.createElement('nav'); links.id = 'managementLinks';
+                links.className = 'd-flex flex-wrap gap-2 mb-3';
+                links.innerHTML = '<div class="dropdown"><button class="btn btn-sm btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown">Quản lý danh mục</button><ul class="dropdown-menu"><li><a class="dropdown-item" href="Manage/Catalog?kind=category">Thể loại</a></li><li><a class="dropdown-item" href="Manage/Catalog?kind=author">Tác giả</a></li><li><a class="dropdown-item" href="Manage/Catalog?kind=publisher">Nhà xuất bản</a></li></ul></div><a class="btn btn-sm btn-outline-dark" href="Manage/Inventory">Quản lý kho</a><a class="btn btn-sm btn-outline-dark" href="Manage/Admins">Quản trị viên</a><a class="btn btn-sm btn-outline-dark" href="Manage/Customers">Khách hàng</a>';
+                document.getElementById('adminDashboardScreen').prepend(links);
+            }
+
             document.getElementById('adminLoginScreen').style.display = 'none';
             document.getElementById('adminDashboardScreen').style.display = 'block';
             document.getElementById('adminNameDisplay').textContent = 'Admin: ' + name;
@@ -591,23 +598,19 @@
             return result;
         }
 
-        function showOrderDetail(id) {
-            const order = allOrders.find(o => o.id === id); if (!order) return;
+        async function showOrderDetail(id) {
             document.getElementById('orderDetailTitle').textContent = 'Đơn hàng #' + id;
-            document.getElementById('orderDetailBody').innerHTML = `
-                <dl class="row small mb-3">
-                    <dt class="col-sm-3">Khách hàng</dt><dd class="col-sm-9">${escapeAdmin(order.customerName)}</dd>
-                    <dt class="col-sm-3">Liên hệ</dt><dd class="col-sm-9">${escapeAdmin(order.customerPhone)} · ${escapeAdmin(order.customerEmail || 'Không có email')}</dd>
-                    <dt class="col-sm-3">Địa chỉ</dt><dd class="col-sm-9">${escapeAdmin(order.customerAddress || 'Chưa có địa chỉ')}</dd>
-                    <dt class="col-sm-3">Ngày đặt / giao</dt><dd class="col-sm-9">${escapeAdmin(order.orderDate)} / ${escapeAdmin(order.deliveryDate)}</dd>
-                    <dt class="col-sm-3">Thanh toán</dt><dd class="col-sm-9">${escapeAdmin(order.paymentMethodText)}</dd>
-                </dl>
-                <div class="bg-light rounded p-3 mb-3"><strong>Ghi chú</strong><div style="white-space:pre-wrap;overflow-wrap:anywhere">${escapeAdmin(order.note || 'Không có ghi chú')}</div></div>
-                ${order.items.map(i => `<div class="d-flex justify-content-between border-bottom py-2 gap-3"><span>${escapeAdmin(i.title)} × ${i.quantity}</span><span class="text-nowrap">${escapeAdmin(i.subtotalFormatted)}</span></div>`).join('')}
-                <p class="text-end fw-bold text-danger mt-3">${escapeAdmin(order.totalFormatted)}</p>`;
+            const body = document.getElementById('orderDetailBody');
+            body.textContent = 'Đang tải hóa đơn...';
             bootstrap.Modal.getOrCreateInstance(document.getElementById('orderDetailModal')).show();
-            document.getElementById('orderDetailBody').insertAdjacentHTML('beforeend', '<h6 class="mt-4">Lịch sử đơn hàng</h6><div id="orderHistory"></div>');
-            loadHistory('order', id, 1);
+            try {
+                const response = await fetch('/Portal/Invoice?id=' + id, { credentials: 'include', cache: 'no-store' });
+                if (!response.ok) throw new Error('Không thể tải hóa đơn.');
+                if (document.getElementById('orderDetailTitle').textContent !== 'Đơn hàng #' + id) return;
+                body.innerHTML = await response.text();
+                body.insertAdjacentHTML('beforeend', '<h6 class="mt-4">Lịch sử đơn hàng</h6><div id="orderHistory"></div>');
+                loadHistory('order', id, 1);
+            } catch (error) { body.textContent = error.message; }
         }
 
         async function loadHistory(kind, id, page) {
@@ -651,6 +654,7 @@
                 const result = await adminRequest(`AdminBooks?page=${catalogPage}&search=${encodeURIComponent(search)}`);
                 rows.innerHTML = result.data.length ? result.data.map(book => `
                     <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-3">
+                        <img src="images/${encodeURIComponent(book.image)}" alt="${escapeAdmin(book.title)}" width="45" height="60" style="object-fit:contain" onerror="this.src='images/topSach.png'">
                         <button type="button" class="btn btn-link text-start text-decoration-none p-0 flex-grow-1" onclick="showBookDetails(${book.id})">
                             <strong class="d-block text-dark">${escapeAdmin(book.title)}</strong>
                             <small class="text-muted">${escapeAdmin(book.author)} · ${escapeAdmin(book.category)}</small>
@@ -676,16 +680,11 @@
                 const result = await adminRequest(`AdminBookDetails?id=${id}`);
                 const book = result.data;
                 document.getElementById('bookHeading').textContent = book.title;
-                document.getElementById('bookDetailCover').src = `images/${encodeURIComponent(book.image || 'topSach.png')}`;
-                document.getElementById('bookFields').innerHTML = [
-                    ['Mã sách', book.id], ['Tác giả', book.author], ['Thể loại', book.category],
-                    ['Nhà xuất bản', book.publisher], ['Giá', book.priceFormatted], ['Tồn kho', book.stock]
-                ].map(field => `<dt>${escapeAdmin(field[0])}</dt><dd>${escapeAdmin(field[1])}</dd>`).join('');
+                const response = await fetch('/Portal/ProductDetails?id=' + id + '&admin=true', { credentials: 'include' });
+                if (!response.ok) throw new Error('Không thể tải chi tiết sách.');
+                document.getElementById('bookBody').innerHTML = await response.text();
+                document.getElementById('bookBody').insertAdjacentHTML('beforeend', '<h6 class="mt-4">Lịch sử tồn kho</h6><div id="stockHistory"></div>');
                 document.getElementById('bookNotice').textContent = '';
-                let history = document.getElementById('stockHistory');
-                if (!history) {
-                    document.getElementById('bookFields').insertAdjacentHTML('afterend', '<h6 class="mt-4">Lịch sử tồn kho</h6><div id="stockHistory"></div>');
-                }
                 loadHistory('stock', id, 1);
                 document.getElementById('bookBody').hidden = false;
                 document.getElementById('bookDialogActions').hidden = false;

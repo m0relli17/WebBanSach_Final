@@ -36,7 +36,7 @@ namespace WebBanSach.Controllers
             var action = filterContext.ActionDescriptor.ActionName;
             if (action.StartsWith("Admin", StringComparison.OrdinalIgnoreCase) && action != "AdminLogin")
             {
-                if (Session["AdminUser"] == null)
+                if (!IsAdminAuthenticated())
                 {
                     Response.StatusCode = 401;
                     filterContext.Result = Json(new { status = false, message = "Vui lòng đăng nhập quản trị." }, JsonRequestBehavior.AllowGet);
@@ -63,7 +63,7 @@ namespace WebBanSach.Controllers
         {
             try
             {
-                var query = db.Saches.AsNoTracking().Include(s => s.TheLoai).Include(s => s.TacGia).Include(s => s.NhaXuatBan).AsQueryable();
+                var query = db.Saches.AsNoTracking().Include(s => s.TheLoai).Include(s => s.TacGia).Include(s => s.NhaXuatBan).Where(s => (s.SoLuongTon ?? 0) > 0);
 
                 if (categoryId.HasValue && categoryId.Value > 0)
                 {
@@ -176,7 +176,7 @@ namespace WebBanSach.Controllers
                 }
 
                 var relatedBooks = db.Saches.AsNoTracking()
-                    .Where(x => x.MaLoai == s.MaLoai && x.MaSach != s.MaSach)
+                    .Where(x => x.MaLoai == s.MaLoai && x.MaSach != s.MaSach && (x.SoLuongTon ?? 0) > 0)
                     .Take(4)
                     .ToList();
                 var averageRating = db.DanhGiaSaches.Where(r => r.MaSach == id).Select(r => (double?)r.SoSao).Average() ?? 0;
@@ -327,7 +327,7 @@ namespace WebBanSach.Controllers
                 {
                     id = t.MaLoai,
                     name = t.TenLoai,
-                    count = t.Saches.Count()
+                    count = t.Saches.Count(s => (s.SoLuongTon ?? 0) > 0)
                 }).ToList();
 
                 return Json(new { status = true, data = list }, JsonRequestBehavior.AllowGet);
@@ -850,12 +850,15 @@ namespace WebBanSach.Controllers
                     return Json(new { status = false, message = "Giỏ hàng của bạn đang trống." });
                 }
 
-                if (string.IsNullOrWhiteSpace(receiverName) || string.IsNullOrWhiteSpace(receiverAddress) || string.IsNullOrWhiteSpace(receiverPhone))
+                if (string.IsNullOrWhiteSpace(receiverName) || string.IsNullOrWhiteSpace(receiverAddress) || string.IsNullOrWhiteSpace(receiverPhone) ||
+                    receiverName.Trim().Length > 100 || receiverAddress.Trim().Length > 250 || receiverPhone.Trim().Length > 50 || (note ?? "").Length > 500)
                 {
                     return Json(new { status = false, message = "Vui lòng nhập đầy đủ thông tin giao hàng." });
                 }
 
                 paymentMethod = (paymentMethod ?? "cod").Trim().ToLowerInvariant();
+                if (paymentMethod != "cod" && paymentMethod != "credit_card" && paymentMethod != "card")
+                    return Json(new { status = false, message = "Phương thức thanh toán không hợp lệ." });
                 bool isCreditCard = (paymentMethod == "credit_card" || paymentMethod == "card");
                 string maskedCardNumber = "";
 
@@ -909,6 +912,10 @@ namespace WebBanSach.Controllers
                         TinhTrang = isCreditCard, // true nếu đã thanh toán bằng thẻ
                         ThanhToan = isCreditCard ? 1 : 0, // 1: Thẻ tín dụng (Đã thanh toán), 0: COD
                         Tracking = 0, // 0: Chờ xử lý
+                        ReceiverName = receiverName.Trim(),
+                        ReceiverPhone = receiverPhone.Trim(),
+                        ReceiverAddress = receiverAddress.Trim(),
+                        PaymentMethod = isCreditCard ? "credit_card" : "cod",
                         GhiChu = string.IsNullOrWhiteSpace(note) ? null : note.Trim()
                     };
 
@@ -948,6 +955,8 @@ namespace WebBanSach.Controllers
                         db.ChiTietDDHs.Add(detail);
                     }
 
+                    var subtotal = db.ChiTietDDHs.Local.Where(d => d.MaDDH == order.MaDDH).Sum(d => (d.DonGia ?? 0) * (d.SoLuong ?? 0));
+                    order.ShippingFee = subtotal > 0 && subtotal < 150000 ? 25000m : 0m;
                     db.SaveChanges();
                     trans.Commit();
 
@@ -958,6 +967,9 @@ namespace WebBanSach.Controllers
                     {
                         status = true,
                         orderId = order.MaDDH,
+                        subtotal = subtotal,
+                        shippingFee = order.ShippingFee,
+                        total = subtotal + order.ShippingFee.GetValueOrDefault(),
                         paymentMethod = isCreditCard ? "credit_card" : "cod",
                         paymentMethodText = isCreditCard ? "Thẻ tín dụng (Credit Card)" : "Thanh toán khi nhận hàng (COD)",
                         isPaid = isCreditCard,
@@ -998,25 +1010,28 @@ namespace WebBanSach.Controllers
 
                 var list = orders.Select(o => {
                     var details = db.ChiTietDDHs.AsNoTracking().Where(d => d.MaDDH == o.MaDDH).Include(d => d.Sach).ToList();
-                    decimal total = details.Sum(d => (decimal?)d.DonGia * d.SoLuong).GetValueOrDefault(0);
+                    decimal subtotal = details.Sum(d => (decimal?)d.DonGia * d.SoLuong).GetValueOrDefault(0);
+                    decimal total = subtotal + (o.ShippingFee ?? 0);
                     bool isPaid = (o.ThanhToan == 1);
                     return new
                     {
                         id = o.MaDDH,
-                        customerName = customer.TenKH,
-                        customerPhone = customer.DienThoai,
-                        customerAddress = customer.DiaChi,
+                        customerName = o.ReceiverName ?? customer.TenKH,
+                        customerPhone = o.ReceiverPhone ?? customer.DienThoai,
+                        customerAddress = o.ReceiverAddress ?? customer.DiaChi,
                         orderDate = o.NgayDat.ToString("dd/MM/yyyy HH:mm"),
                         deliveryDate = o.NgayGiao.ToString("dd/MM/yyyy"),
                         status = o.Tracking ?? 0,
                         statusText = GetTrackingStatusText(o.Tracking ?? 0),
                         canCancel = (o.Tracking == null || o.Tracking == 0),
                         paymentStatus = o.ThanhToan ?? 0,
-                        paymentMethod = isPaid ? "credit_card" : "cod",
-                        paymentMethodText = isPaid ? "Thẻ tín dụng (Đã thanh toán)" : "COD (Thu tiền khi nhận)",
+                        paymentMethod = o.PaymentMethod ?? (isPaid ? "credit_card" : "cod"),
+                        paymentMethodText = o.PaymentMethod == "cod" ? (isPaid ? "COD (Đã thu tiền)" : "COD (Thu tiền khi nhận)") : (isPaid ? "Đã thanh toán" : "Chưa thanh toán"),
                         isPaid = isPaid,
                         note = o.GhiChu ?? "",
                         total = total,
+                        subtotal = subtotal,
+                        shippingFee = o.ShippingFee,
                         totalFormatted = string.Format("{0:N0} VND", total),
                         itemCount = details.Sum(d => d.SoLuong),
                         items = details.Select(d => new
@@ -1075,12 +1090,13 @@ namespace WebBanSach.Controllers
                 username = (username ?? "").Trim();
                 password = (password ?? "").Trim();
 
-                var admin = db.Admins.FirstOrDefault(a => a.TaiKhoan == username && a.MatKhau == password && a.TrangThai == true);
-                if (admin == null)
+                var admin = db.Admins.FirstOrDefault(a => a.TaiKhoan == username && a.TrangThai == true);
+                if (admin == null || !CheckPassword(password, admin.MatKhau))
                 {
                     return Json(new { status = false, message = "Sai tài khoản hoặc mật khẩu quản trị." });
                 }
 
+                if (!admin.MatKhau.StartsWith("PBKDF2$")) { admin.MatKhau = HashPassword(password); db.SaveChanges(); }
                 Session["AdminUser"] = admin.TaiKhoan;
                 Session["AdminName"] = admin.HoTen;
 
@@ -1148,7 +1164,8 @@ namespace WebBanSach.Controllers
                         price = s.GiaSauGiam,
                         priceFormatted = string.Format("{0:N0} VND", s.GiaSauGiam),
                         stock = s.SoLuongTon ?? 0,
-                        discountPercent = s.GiamGia
+                        discountPercent = s.GiamGia,
+                        image = s.AnhBia ?? "topSach.png"
                     }).ToList();
 
                 return Json(new { status = true, data = books, page = currentPage, totalPages = totalPages, totalItems = totalItems }, JsonRequestBehavior.AllowGet);
@@ -1534,14 +1551,15 @@ namespace WebBanSach.Controllers
                 var orders = db.DonDatHangs.AsNoTracking().Include(o => o.KhachHang).OrderByDescending(o => o.NgayDat).ToList();
                 var list = orders.Select(o => {
                     var details = db.ChiTietDDHs.AsNoTracking().Where(d => d.MaDDH == o.MaDDH).Include(d => d.Sach).ToList();
-                    decimal total = details.Sum(d => (decimal?)d.DonGia * d.SoLuong).GetValueOrDefault(0);
+                    decimal subtotal = details.Sum(d => (decimal?)d.DonGia * d.SoLuong).GetValueOrDefault(0);
+                    decimal total = subtotal + (o.ShippingFee ?? 0);
                     bool isPaid = (o.ThanhToan == 1);
                     return new
                     {
                         id = o.MaDDH,
-                        customerName = o.KhachHang != null ? o.KhachHang.TenKH : "Khách",
-                        customerPhone = o.KhachHang != null ? o.KhachHang.DienThoai : "",
-                        customerAddress = o.KhachHang != null ? o.KhachHang.DiaChi : "",
+                        customerName = o.ReceiverName ?? (o.KhachHang != null ? o.KhachHang.TenKH : "Khách"),
+                        customerPhone = o.ReceiverPhone ?? (o.KhachHang != null ? o.KhachHang.DienThoai : ""),
+                        customerAddress = o.ReceiverAddress ?? (o.KhachHang != null ? o.KhachHang.DiaChi : ""),
                         customerEmail = o.KhachHang != null ? o.KhachHang.Email : "",
                         orderDate = o.NgayDat.ToString("dd/MM/yyyy HH:mm"),
                         deliveryDate = o.NgayGiao.ToString("dd/MM/yyyy"),
@@ -1549,11 +1567,13 @@ namespace WebBanSach.Controllers
                         statusText = GetTrackingStatusText(o.Tracking ?? 0),
                         canCancel = (o.Tracking == null || o.Tracking == 0),
                         paymentStatus = o.ThanhToan ?? 0,
-                        paymentMethod = isPaid ? "credit_card" : "cod",
-                        paymentMethodText = isPaid ? "Thẻ tín dụng (Đã TT)" : "COD (Chưa TT)",
+                        paymentMethod = o.PaymentMethod ?? (isPaid ? "credit_card" : "cod"),
+                        paymentMethodText = o.PaymentMethod == "cod" ? (isPaid ? "COD (Đã thu tiền)" : "COD (Chưa thu tiền)") : (isPaid ? "Đã thanh toán" : "Chưa thanh toán"),
                         isPaid = isPaid,
                         note = o.GhiChu ?? "",
                         total = total,
+                        subtotal = subtotal,
+                        shippingFee = o.ShippingFee,
                         totalFormatted = string.Format("{0:N0} VND", total),
                         itemCount = details.Sum(d => d.SoLuong),
                         items = details.Select(d => new
@@ -1741,7 +1761,8 @@ namespace WebBanSach.Controllers
 
         private bool IsAdminAuthenticated()
         {
-            return Session["AdminUser"] != null;
+            var username = Session["AdminUser"] as string;
+            return username != null && db.Admins.Any(a => a.TaiKhoan == username && a.TrangThai == true);
         }
     }
 }

@@ -200,69 +200,20 @@
 
                 list.style.display = 'flex';
                 list.innerHTML = res.data.map(order => `
-                    <div class="wbs-card p-0 overflow-hidden">
-                        <div class="p-3 bg-light border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
-                            <div>
-                                <strong class="text-primary fs-6 me-2">Đơn hàng #${order.id}</strong>
-                                <span class="text-muted small">| Ngày đặt: ${order.orderDate}</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                ${getBadge(order.status)}
-                                ${(order.canCancel !== undefined ? order.canCancel : (Number(order.status) === 0)) ? `
-                                    <button class="btn btn-outline-danger btn-sm py-1 px-2" onclick="cancelOrderPrompt(${order.id})" title="Hủy đơn hàng này" style="font-size: 12px;">
-                                        <i class="fa fa-times me-1"></i> Hủy đơn
-                                    </button>
-                                ` : ''}
-                            </div>
+                    <section class="wbs-card p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            ${getBadge(order.status)}
+                            ${order.canCancel ? `<button class="btn btn-sm btn-outline-danger" onclick="cancelOrderPrompt(${order.id})">Hủy đơn #${order.id}</button>` : ''}
                         </div>
-                        <div class="p-4">
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6 small text-secondary">
-                                    <div><i class="fa fa-calendar-check-o text-muted me-1"></i> Dự kiến giao: <strong class="text-dark">${order.deliveryDate}</strong></div>
-                                    <div class="mt-1">
-                                        <i class="fa fa-credit-card text-muted me-1"></i> Thanh toán: 
-                                        ${order.isPaid 
-                                            ? '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fa fa-check-circle me-1"></i> Thẻ tín dụng (Đã thanh toán)</span>' 
-                                            : '<span class="badge bg-warning-subtle text-warning border border-warning-subtle text-dark"><i class="fa fa-money me-1"></i> COD (Thu tiền khi nhận hàng)</span>'}
-                                    </div>
-                                </div>
-                                <div class="col-md-6 small text-secondary text-md-end">
-                                    <div>Tổng tiền: <strong class="text-danger fs-5">${order.totalFormatted}</strong> (${order.itemCount} sản phẩm)</div>
-                                </div>
-                            </div>
-
-                            <div class="border rounded-3 p-3 mb-3 small bg-light bg-opacity-25">
-                                <div class="fw-bold text-muted mb-1"><i class="fa fa-sticky-note-o me-1" aria-hidden="true"></i> Ghi chú đơn hàng:</div>
-                                <div class="order-note text-dark" style="white-space: pre-wrap; overflow-wrap: anywhere;"></div>
-                            </div>
-
-                            <div class="border rounded-3 p-3 bg-light bg-opacity-50">
-                                <h6 class="small fw-bold text-muted mb-3"><i class="fa fa-list me-1"></i> Chi tiết sản phẩm trong đơn</h6>
-                                <div class="d-flex flex-column gap-2">
-                                    ${order.items.map(item => `
-                                        <div class="d-flex align-items-center justify-content-between py-1 border-bottom border-light">
-                                            <div class="d-flex align-items-center min-w-0">
-                                                <img src="images/${item.image}" alt="${item.title}" class="rounded me-3 border p-1" style="width: 44px; height: 56px; object-fit: contain; background: #fff;" onerror="this.src='images/topSach.png'">
-                                                <div class="min-w-0">
-                                                    <div class="text-truncate fw-semibold small text-dark">${item.title}</div>
-                                                    <span class="text-muted small">Số lượng: ${item.quantity}</span>
-                                                </div>
-                                            </div>
-                                            <div class="fw-semibold small text-danger text-nowrap ms-3">
-                                                ${item.priceFormatted}
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-
-                list.querySelectorAll('.order-note').forEach((element, index) => {
-                    const note = String(res.data[index].note || '').trim();
-                    element.textContent = note || 'Không có ghi chú';
-                });
+                        <div class="invoice-target" data-order-id="${order.id}">Đang tải hóa đơn...</div>
+                    </section>`).join('');
+                await Promise.all(Array.from(list.querySelectorAll('.invoice-target')).map(async target => {
+                    try {
+                        const response = await fetch('/Portal/Invoice?id=' + target.dataset.orderId, { credentials: 'include', cache: 'no-store' });
+                        if (!response.ok) throw new Error('Không thể tải hóa đơn.');
+                        target.innerHTML = await response.text();
+                    } catch (error) { target.textContent = error.message; }
+                }));
 
             } catch (err) {
                 console.error(err);

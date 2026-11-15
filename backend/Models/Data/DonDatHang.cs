@@ -34,6 +34,15 @@
         public int MaKH { get; set; }
         public int? ThanhToan { get; set; }
         public int? Tracking { get; set; }
+        public decimal? ShippingFee { get; set; }
+        [StringLength(100)]
+        public string ReceiverName { get; set; }
+        [StringLength(50)]
+        public string ReceiverPhone { get; set; }
+        [StringLength(250)]
+        public string ReceiverAddress { get; set; }
+        [StringLength(20)]
+        public string PaymentMethod { get; set; }
 
         [StringLength(500)]
         [Display(Name = "Ghi chú")]

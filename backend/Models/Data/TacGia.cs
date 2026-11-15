@@ -28,11 +28,11 @@
         [Display(Name = "Quê quán")]
         public string QueQuan { get; set; }
 
-        [Column(TypeName = "smalldatetime")]
+        [Column(TypeName = "date")]
         [Display(Name = "Ngày sinh")]
         public DateTime? NgaySinh { get; set; }
 
-        [Column(TypeName = "smalldatetime")]
+        [Column(TypeName = "date")]
         [Display(Name = "Ngày mất")]
         public DateTime? NgayMat { get; set; }
 

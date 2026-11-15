@@ -1,0 +1,3 @@
+﻿@model WebBanSach.Models.InvoiceModel
+@{ Layout = ViewBag.IsAdmin == true ? "~/Views/Shared/_Layout.cshtml" : "~/Views/Shared/_MasterLayout.cshtml"; ViewBag.Title = "Hóa đơn #" + Model.Order.MaDDH; }
+<main class="container py-4">@Html.Partial("_Invoice", Model)</main>

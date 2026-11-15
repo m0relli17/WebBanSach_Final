@@ -12,6 +12,17 @@ namespace WebBanSach
         public static void RegisterRoutes(RouteCollection routes)
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+            routes.IgnoreRoute("{folder}/{*pathInfo}", new { folder = "css|js|images|Content|Scripts|fonts|bundles" });
+            routes.IgnoreRoute("favicon.ico");
+            routes.RouteExistingFiles = true;
+            // Keep existing .html bookmarks while serving actual Razor views and layouts.
+            routes.MapRoute(
+                name: "PortalPages",
+                url: "{page}.html",
+                defaults: new { controller = "Portal", action = "Page" },
+                constraints: new { page = "index|admin|cart|checkout|tracking|book-details|login|register|verify-email" },
+                namespaces: new[] { "WebBanSach.Controllers" }
+            ).RouteExistingFiles = true;
 
             routes.MapRoute(
                 name: "Api",

@@ -1,0 +1,11 @@
+﻿@model WebBanSach.Models.AdminEditModel
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = Model.Id == 0 ? "Thêm quản trị viên" : "Sửa quản trị viên"; }
+<main class="container py-4" style="max-width:720px"><h1 class="h3">@ViewBag.Title</h1>
+@using (Html.BeginForm("AdminEdit", "Manage", FormMethod.Post)) {
+@Html.AntiForgeryToken() @Html.HiddenFor(m => m.Id) @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+<label for="Username" class="form-label">Tài khoản</label>@Html.TextBoxFor(m => m.Username, new { @class = "form-control mb-3", required = "required", maxlength = 50 })
+<label for="FullName" class="form-label">Họ tên</label>@Html.TextBoxFor(m => m.FullName, new { @class = "form-control mb-3", required = "required", maxlength = 50 })
+<label for="Password" class="form-label">Mật khẩu @(Model.Id == 0 ? "" : "(để trống để giữ nguyên)")</label>@Html.PasswordFor(m => m.Password, new { @class = "form-control mb-3", minlength = 8, maxlength = 128, autocomplete = "new-password" })
+<div class="form-check mb-3">@Html.CheckBoxFor(m => m.Active, new { @class = "form-check-input" })<label for="Active" class="form-check-label">Hoạt động</label></div>
+<button class="btn btn-primary">Lưu</button> <a href="@Url.Action("Admins")" class="btn btn-outline-secondary">Quay lại</a>
+}</main>

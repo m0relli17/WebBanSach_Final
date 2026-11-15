@@ -1,0 +1,320 @@
+﻿@{ Layout = "~/Views/Shared/_MasterLayout.cshtml"; ViewBag.Title = "Chi tiết sách - WebBanSach"; }
+
+
+    <!-- WebBanSach Header & Navigation -->
+    
+
+    <!-- Main Content -->
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="wbs-breadcrumbs">
+            <a href="index.html" class="text-muted"><i class="fa fa-home me-1"></i>Trang chủ</a>
+            <span class="mx-2 text-muted">/</span>
+            <span class="text-muted" id="breadcrumbCategory">Sách</span>
+            <span class="mx-2 text-muted">/</span>
+            <span class="text-dark fw-semibold" id="breadcrumbBookTitle">Chi tiết sách</span>
+        </nav>
+
+        <!-- Book Detail Card Container -->
+        <div id="bookDetailContainer">
+            <div class="wbs-card p-4 skeleton-card">
+                <div class="row g-4">
+                    <div class="col-lg-5 col-md-5">
+                        <div class="skeleton skeleton-img" style="height: 350px;"></div>
+                    </div>
+                    <div class="col-lg-7 col-md-7">
+                        <div class="skeleton skeleton-line mb-3" style="width: 30%; height: 16px;"></div>
+                        <div class="skeleton skeleton-line mb-3" style="width: 75%; height: 26px;"></div>
+                        <div class="skeleton skeleton-line mb-4" style="width: 45%; height: 18px;"></div>
+                        <div class="skeleton skeleton-line mb-3" style="width: 50%; height: 48px; border-radius: 8px;"></div>
+                        <div class="skeleton skeleton-line mb-2" style="width: 100%; height: 14px;"></div>
+                        <div class="skeleton skeleton-line mb-2" style="width: 100%; height: 14px;"></div>
+                        <div class="skeleton skeleton-line mb-2" style="width: 70%; height: 14px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Reviews Section -->
+        <section id="bookReviewsSection" class="wbs-card mt-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
+                <h4 class="wbs-card-title m-0">
+                    <i class="fa fa-star text-warning me-2"></i> Khách hàng đánh giá
+                </h4>
+                <div id="bookReviewSectionSummary" class="small"></div>
+            </div>
+            
+            <div id="reviewAccessMessage" class="small text-muted mb-3"></div>
+
+            <form id="bookReviewForm" class="row g-3 mb-4 p-3 bg-light rounded-3" style="display: none;">
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold" for="reviewRating">Đánh giá của bạn</label>
+                    <select id="reviewRating" class="form-select" required>
+                        <option value="5">⭐⭐⭐⭐⭐ 5 sao - Rất hài lòng</option>
+                        <option value="4">⭐⭐⭐⭐ 4 sao - Hài lòng</option>
+                        <option value="3">⭐⭐⭐ 3 sao - Bình thường</option>
+                        <option value="2">⭐⭐ 2 sao - Không hài lòng</option>
+                        <option value="1">⭐ 1 sao - Rất tệ</option>
+                    </select>
+                </div>
+                <div class="col-md-9">
+                    <label class="form-label small fw-semibold" for="reviewComment">Nhận xét chi tiết</label>
+                    <textarea id="reviewComment" class="form-control" rows="2" maxlength="1000" placeholder="Chia sẻ cảm nhận về nội dung, chất lượng in ấn và dịch vụ giao hàng..."></textarea>
+                </div>
+                <div class="col-12 text-end">
+                    <button id="submitReviewButton" type="submit" class="btn btn-primary px-4">
+                        <i class="fa fa-paper-plane me-1"></i> Gửi nhận xét
+                    </button>
+                </div>
+            </form>
+
+            <div id="bookReviewsList"></div>
+        </section>
+
+        <!-- Related Books Section -->
+        <div id="relatedBooksSection" class="mt-4" style="display: none;">
+            <div class="wbs-card">
+                <div class="wbs-card-header">
+                    <h4 class="wbs-card-title">
+                        <i class="fa fa-bookmark text-primary me-2"></i> Sách cùng thể loại bạn có thể thích
+                    </h4>
+                </div>
+                <div id="relatedBooksGrid" class="row g-3"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    
+
+    <!-- Bootstrap 5 JS Bundle -->
+    
+    
+    
+    
+
+    <!-- Floating Back-To-Top Button -->
+    <button id="btnBackToTop" class="wbs-back-to-top" title="Lên đầu trang" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+@section Scripts {
+<script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookId = urlParams.get('id');
+
+        function renderStars(score) {
+            const s = Number(score) || 0;
+            const fullStars = Math.round(s);
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= fullStars) {
+                    stars += '<i class="fa fa-star text-warning"></i> ';
+                } else {
+                    stars += '<i class="fa fa-star-o text-muted"></i> ';
+                }
+            }
+            return stars;
+        }
+
+        function renderRatingSummary(average, count) {
+            const score = Number(average) || 0;
+            return `
+                <span class="d-inline-flex align-items-center gap-1">
+                    <span class="wbs-stars">${renderStars(score)}</span>
+                    <strong class="text-dark">${score.toFixed(1)}</strong>
+                    <span class="text-muted">(${count || 0} nhận xét)</span>
+                </span>
+            `;
+        }
+
+        function escapeReviewText(value) {
+            const element = document.createElement('span');
+            element.textContent = value || '';
+            return element.innerHTML;
+        }
+
+        async function loadBookDetail() {
+            if (!bookId) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            try {
+                const res = await api.getBookDetails(bookId);
+                if (res.status && res.data) {
+                    const b = res.data;
+                    document.title = `${b.title} - WebBanSach`;
+                    document.getElementById('breadcrumbBookTitle').textContent = b.title;
+                    if (document.getElementById('breadcrumbCategory')) {
+                        document.getElementById('breadcrumbCategory').textContent = b.categoryName || 'Sách';
+                    }
+
+                    const partial = await fetch('/Portal/ProductDetails?id=' + bookId, { credentials: 'include' });
+                    if (!partial.ok) throw new Error('Không thể tải chi tiết sách.');
+                    document.getElementById('bookDetailContainer').innerHTML = await partial.text();
+
+                    loadBookReviews(b.id);
+
+                    // Render related books
+                    if (res.related && res.related.length > 0) {
+                        document.getElementById('relatedBooksSection').style.display = 'block';
+                        let relHtml = '';
+                        res.related.forEach(r => {
+                            relHtml += `
+                                <div class="col-6 col-md-4 col-lg-3 col-xl-3 col-2k-20 col-4k-16">
+                                    <div class="book-card">
+                                        <a href="book-details.html?id=${r.id}" class="book-img-wrapper">
+                                            <span class="wbs-badge-official"><i class="fa fa-check-circle"></i> CHÍNH HÃNG</span>
+                                            ${r.discountPercent > 0 ? `<span class="wbs-discount-badge">-${r.discountPercent}%</span>` : ''}
+                                            <img src="images/${r.image}" alt="${r.title}" loading="lazy" decoding="async" onerror="this.src='images/topSach.png'">
+                                        </a>
+                                        <a href="book-details.html?id=${r.id}" class="book-title" title="${r.title}">
+                                            ${r.title}
+                                        </a>
+                                        <div class="book-author"><i class="fa fa-pencil me-1"></i> ${r.author}</div>
+                                        <div class="book-price-box">
+                                            <span class="book-current-price">${r.priceFormatted}</span>
+                                            ${r.discountPercent > 0 ? `<span class="book-original-price">${r.originalPriceFormatted}</span>` : ''}
+                                        </div>
+                                        <div class="d-flex gap-2 mt-auto">
+                                            <a href="book-details.html?id=${r.id}" class="btn btn-book-detail flex-fill">Chi tiết</a>
+                                            <button class="btn btn-book-cart" onclick="addToCartDetail(${r.id})" ${r.stock > 0 ? 'title="Thêm vào giỏ"' : 'disabled title="Hết hàng"'}>
+                                                <i class="fa fa-cart-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        document.getElementById('relatedBooksGrid').innerHTML = relHtml;
+                    }
+                } else {
+                    document.getElementById('bookDetailContainer').innerHTML = `<div class="wbs-card text-center py-5 text-muted">Không tìm thấy thông tin cuốn sách này.</div>`;
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('bookDetailContainer').innerHTML = `<div class="alert alert-danger text-center">Có lỗi khi tải dữ liệu sách.</div>`;
+            }
+        }
+
+        function adjustQty(delta) {
+            const input = document.getElementById('qtyInput');
+            if (input.disabled) return;
+            let val = parseInt(input.value, 10) || 1;
+            val = Math.max(1, Math.min(999, Number(input.max) || 1, val + delta));
+            input.value = val;
+        }
+
+        function normalizeQty(input) {
+            const val = parseInt(input.value, 10);
+            input.value = Number.isNaN(val) ? 1 : Math.max(1, Math.min(999, Number(input.max) || 1, val));
+        }
+
+        async function addToCartDetail(id) {
+            const input = document.getElementById('qtyInput');
+            if (input && input.disabled) { showToast('Sách đã hết hàng.', 'error'); return; }
+            if (input) {
+                normalizeQty(input);
+                if (!input.checkValidity()) { showToast('Số lượng vượt tồn kho hoặc không hợp lệ.', 'error'); input.reportValidity(); return; }
+            }
+            const qty = input ? (parseInt(input.value, 10) || 1) : 1;
+            try {
+                const res = await api.addToCart(id, qty);
+                if (res.status) {
+                    showToast(`Đã thêm ${qty} cuốn vào giỏ hàng!`);
+                    auth.updateCartBadge();
+                    window.location.href = 'cart.html';
+                } else {
+                    showToast(res.message || "Lỗi thêm vào giỏ", "error");
+                }
+            } catch (e) {
+                showToast("Lỗi kết nối", "error");
+            }
+        }
+
+        async function loadBookReviews(id) {
+            const list = document.getElementById('bookReviewsList');
+            const form = document.getElementById('bookReviewForm');
+            const accessMessage = document.getElementById('reviewAccessMessage');
+            try {
+                const res = await api.getBookReviews(id);
+                if (!res.status) throw new Error(res.message || 'Không thể tải đánh giá.');
+                const summary = document.getElementById('bookReviewSummary');
+                if (summary) summary.innerHTML = renderRatingSummary(res.averageRating, res.reviewCount);
+                document.getElementById('bookReviewSectionSummary').innerHTML = renderRatingSummary(res.averageRating, res.reviewCount);
+
+                form.style.display = res.canReview ? 'flex' : 'none';
+                accessMessage.innerHTML = res.canReview
+                    ? (res.myReview ? '<div class="alert alert-info py-2 small mb-0">Bạn đã đánh giá sách này; gửi lại form bên dưới để cập nhật nhận xét của bạn.</div>' : '')
+                    : '<div class="alert alert-light border py-2 small mb-0"><i class="fa fa-info-circle text-primary me-1"></i> Đăng nhập và xác minh email để gửi đánh giá sản phẩm. <a href="login.html" class="fw-semibold">Đăng nhập ngay</a></div>';
+                
+                if (res.myReview) {
+                    document.getElementById('reviewRating').value = res.myReview.rating;
+                    document.getElementById('reviewComment').value = res.myReview.comment || '';
+                }
+
+                list.innerHTML = res.data.length
+                    ? res.data.map(review => `
+                        <article class="py-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 32px; height: 32px; font-size: 13px;">
+                                        ${(review.customerName || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark small">${escapeReviewText(review.customerName)}</strong>
+                                        <span class="badge bg-success-subtle text-success small ms-1" style="font-size: 10px;"><i class="fa fa-check-circle"></i> Đã mua hàng</span>
+                                    </div>
+                                </div>
+                                <time class="small text-muted">${escapeReviewText(review.date)}</time>
+                            </div>
+                            <div class="wbs-stars small mb-1">${'<i class="fa fa-star text-warning"></i>'.repeat(review.rating)}${'<i class="fa fa-star-o text-muted"></i>'.repeat(5 - review.rating)}</div>
+                            ${review.comment ? `<p class="mb-0 text-secondary small" style="line-height: 1.6;">${escapeReviewText(review.comment)}</p>` : ''}
+                        </article>
+                    `).join('')
+                    : '<p class="py-3 text-muted mb-0 small">Chưa có đánh giá nào cho cuốn sách này. Hãy là người đầu tiên chia sẻ cảm nhận!</p>';
+            } catch (error) {
+                list.innerHTML = `<p class="py-3 text-danger mb-0 small">${escapeReviewText(error.message)}</p>`;
+            }
+        }
+
+        async function handleSubmitReview(event) {
+            event.preventDefault();
+            const button = document.getElementById('submitReviewButton');
+            button.disabled = true;
+            try {
+                const result = await api.submitBookReview(
+                    bookId,
+                    document.getElementById('reviewRating').value,
+                    document.getElementById('reviewComment').value
+                );
+                if (!result.status) throw new Error(result.message || 'Không thể gửi đánh giá.');
+                showToast(result.message || 'Đã lưu đánh giá thành công.');
+                await loadBookReviews(bookId);
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        function setupBackToTop() {
+            const btn = document.getElementById('btnBackToTop');
+            if (!btn) return;
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 280) {
+                    btn.classList.add('show');
+                } else {
+                    btn.classList.remove('show');
+                }
+            }, { passive: true });
+        }
+
+        document.getElementById('bookReviewForm').addEventListener('submit', handleSubmitReview);
+        document.addEventListener("DOMContentLoaded", () => {
+            loadBookDetail();
+            setupBackToTop();
+        });
+    </script>
+}

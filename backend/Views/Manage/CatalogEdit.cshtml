@@ -1,0 +1,17 @@
+﻿@model WebBanSach.Models.CatalogEditModel
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = Model.Id == 0 ? "Thêm danh mục" : "Sửa danh mục"; }
+<main class="container py-4" style="max-width:800px"><h1 class="h3">@ViewBag.Title</h1>
+@using (Html.BeginForm("CatalogEdit", "Manage", FormMethod.Post)) {
+@Html.AntiForgeryToken() @Html.HiddenFor(m => m.Id) @Html.HiddenFor(m => m.Kind) @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+<label for="Name" class="form-label">Tên</label>@Html.TextBoxFor(m => m.Name, new { @class = "form-control mb-3", maxlength = 50, required = "required" })
+if (Model.Kind != "category") {
+<label for="Address" class="form-label">@(Model.Kind == "author" ? "Quê quán" : "Địa chỉ")</label>@Html.TextBoxFor(m => m.Address, new { @class = "form-control mb-3", maxlength = 250 })
+}
+if (Model.Kind == "publisher") { <label for="Phone" class="form-label">Điện thoại</label>@Html.TextBoxFor(m => m.Phone, new { @class = "form-control mb-3", maxlength = 50 }) }
+if (Model.Kind == "author") {
+<label for="BirthDate" class="form-label">Ngày sinh</label>@Html.TextBoxFor(m => m.BirthDate, "{0:yyyy-MM-dd}", new { type = "date", @class = "form-control mb-3" })
+<label for="DeathDate" class="form-label">Ngày mất (nếu có)</label>@Html.TextBoxFor(m => m.DeathDate, "{0:yyyy-MM-dd}", new { type = "date", @class = "form-control mb-3" })
+<label for="Biography" class="form-label">Tiểu sử</label>@Html.TextAreaFor(m => m.Biography, new { @class = "form-control mb-3", maxlength = 500, rows = 4 })
+}
+<button class="btn btn-primary">Lưu</button> <a class="btn btn-outline-secondary" href="@Url.Action("Catalog", new { kind = Model.Kind })">Quay lại</a>
+}</main>

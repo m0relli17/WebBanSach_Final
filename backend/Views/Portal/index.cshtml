@@ -1,0 +1,557 @@
+﻿@{ Layout = "~/Views/Shared/_MasterLayout.cshtml"; ViewBag.Title = "WebBanSach - Nhà sách trực tuyến chính hãng & Giao nhanh 2h"; }
+
+    <!-- WebBanSach Header & Navigation -->
+    
+
+    <!-- Main Content -->
+    <main class="container py-3">
+        <!-- WebBanSach Benefits Bar -->
+        <div class="wbs-benefits-bar">
+            <div class="row g-3 align-items-center text-center text-md-start">
+                <div class="col-6 col-md-3">
+                    <div class="wbs-benefit-item">
+                        <div class="wbs-benefit-icon"><i class="fa fa-bolt"></i></div>
+                        <div>
+                            <div class="wbs-benefit-title">Giao nhanh 2h</div>
+                            <div class="text-muted small">Đúng hẹn hoặc hoàn tiền</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="wbs-benefit-item">
+                        <div class="wbs-benefit-icon"><i class="fa fa-shield"></i></div>
+                        <div>
+                            <div class="wbs-benefit-title">100% Chính hãng</div>
+                            <div class="text-muted small">Cam kết hoàn tiền 200%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="wbs-benefit-item">
+                        <div class="wbs-benefit-icon"><i class="fa fa-refresh"></i></div>
+                        <div>
+                            <div class="wbs-benefit-title">30 ngày đổi trả</div>
+                            <div class="text-muted small">Miễn phí hoàn đơn tận nhà</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="wbs-benefit-item">
+                        <div class="wbs-benefit-icon"><i class="fa fa-gift"></i></div>
+                        <div>
+                            <div class="wbs-benefit-title">Freeship từ 150k</div>
+                            <div class="text-muted small">Giảm tối đa 30.000đ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2-Column Catalog & Banner Layout with stretch alignment -->
+        <div class="row g-4 align-items-stretch">
+            <!-- Sidebar: Categories & Filters (stretches to align with bottom of main content) -->
+            <div class="col-lg-3 col-md-12 catalog-sidebar-col d-flex flex-column">
+                <aside id="categoriesPanel" class="catalog-sidebar flex-grow-1 d-flex flex-column">
+                    <div class="catalog-sidebar-heading d-flex align-items-center justify-content-between">
+                        <h5><i class="fa fa-th-large text-primary"></i> Khám phá danh mục</h5>
+                    </div>
+
+                    <!-- Dynamic Category List -->
+                    <div id="categoriesList" class="d-flex flex-column gap-1 mb-3">
+                        <a href="javascript:void(0)" class="category-pill active" onclick="filterCategory(event, null, this, 'Tất cả thể loại')">
+                            <span><i class="fa fa-bookmark-o me-2 text-muted"></i> Tất cả thể loại</span>
+                        </a>
+                        <div class="text-center py-3 text-muted"><i class="fa fa-spinner fa-spin"></i> Đang tải...</div>
+                    </div>
+
+                    <!-- Services & Value-Add Filters (return void() for now) -->
+                    <div class="border-top pt-3 mt-1">
+                        <h6 class="fw-bold small text-dark mb-2"><i class="fa fa-filter text-primary me-1"></i> Dịch vụ & Khuyến mãi</h6>
+                        <div class="d-flex flex-column gap-2 small">
+                            <a href="javascript:void(0)" class="text-decoration-none text-muted d-flex align-items-center justify-content-between p-1 rounded hover-bg-light" style="cursor: default;">
+                                <span><i class="fa fa-bolt text-warning me-2"></i> Giao siêu tốc 2h</span>
+                                <span class="badge bg-light text-muted border">Hot</span>
+                            </a>
+                            <a href="javascript:void(0)" class="text-decoration-none text-muted d-flex align-items-center justify-content-between p-1 rounded hover-bg-light" style="cursor: default;">
+                                <span><i class="fa fa-check-circle text-primary me-2"></i> 100% Chính hãng</span>
+                                <i class="fa fa-chevron-right text-muted" style="font-size: 10px;"></i>
+                            </a>
+                            <a href="javascript:void(0)" class="text-decoration-none text-muted d-flex align-items-center justify-content-between p-1 rounded hover-bg-light" style="cursor: default;">
+                                <span><i class="fa fa-fire text-danger me-2"></i> Bán chạy nhất</span>
+                                <span class="badge bg-danger-subtle text-danger" style="font-size: 10px;">Top</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Price Filters -->
+                    <div class="border-top pt-3 mt-3">
+                        <h6 class="fw-bold small text-dark mb-2"><i class="fa fa-tag text-primary me-1"></i> Chọn mức giá</h6>
+                        <div class="d-flex flex-column gap-1 small">
+                            <a href="javascript:void(0)" class="category-pill py-1" onclick="changeSort('price-asc')">
+                                <span>Giá thấp đến cao</span>
+                                <i class="fa fa-sort-amount-asc text-muted"></i>
+                            </a>
+                            <a href="javascript:void(0)" class="category-pill py-1" onclick="changeSort('price-desc')">
+                                <span>Giá cao đến thấp</span>
+                                <i class="fa fa-sort-amount-desc text-muted"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Bottom Anchor (Ensures bottom alignment) -->
+                    <div class="mt-auto pt-3 border-top">
+                        <div class="p-3 rounded bg-light border text-muted small">
+                            <div class="fw-bold text-dark mb-1"><i class="fa fa-shield text-success me-1"></i> Cam kết WebBanSach</div>
+                            <div style="font-size: 11.5px; line-height: 1.5;">Hoàn tiền 200% nếu sách giả. Miễn phí đổi trả 30 ngày. Đóng gói cẩn thận chống va đập.</div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+
+            <!-- Main Content Area: Slideshow & Books -->
+            <div class="col-lg-9 col-md-12 catalog-main-content d-flex flex-column">
+                <!-- Slideshow Hero with 2 Banners Per Slide (Total 6 Banners in 3 Slides) -->
+                <div id="carouselExampleIndicators" class="carousel slide storefront-slideshow mb-4" data-bs-ride="carousel" data-bs-interval="4000" data-bs-wrap="true">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    </div>
+
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <div class="row g-2 g-md-3">
+                                <div class="col-6">
+                                    <div class="banner-img-wrap">
+                                        <img class="d-block w-100" src="images/combo1.jpg" alt="Combo Sách Ưu Đãi 1" onerror="this.src='images/topSach.png'">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="banner-img-wrap">
+                                        <img class="d-block w-100" src="images/banner1.png" alt="Đại Tiệc Sách WebBanSach 1" onerror="this.src='images/combo1.jpg'">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="row g-2 g-md-3">
+                                <div class="col-6">
+                                    <div class="banner-img-wrap">
+                                        <img class="d-block w-100" src="images/combo2.jpg" alt="Combo Sách Ưu Đãi 2" onerror="this.src='images/topSach.png'">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="banner-img-wrap">
+                                        <img class="d-block w-100" src="images/banner2.png" alt="Đại Tiệc Sách WebBanSach 2" onerror="this.src='images/combo2.jpg'">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="row g-2 g-md-3">
+                                <div class="col-6">
+                                    <div class="banner-img-wrap">
+                                        <img class="d-block w-100" src="images/combo3.jpg" alt="Combo Sách Ưu Đãi 3" onerror="this.src='images/topSach.png'">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="banner-img-wrap">
+                                        <img class="d-block w-100" src="images/banner3.png" alt="Đại Tiệc Sách WebBanSach 3" onerror="this.src='images/combo3.jpg'">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Trước</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Sau</span>
+                    </button>
+                </div>
+
+                <!-- Books Grid Section (stretches to align bottoms) -->
+                <section id="bookCatalog" class="wbs-card flex-grow-1 d-flex flex-column mb-0">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 id="catalogTitle" class="fw-bold m-0 text-dark" style="font-size: 18px;">Tất cả sách</h4>
+                            <span id="bookCount" class="badge bg-light text-muted border">Đang tải...</span>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="text-muted small d-none d-sm-inline">Sắp xếp:</span>
+                            <select id="sortSelect" class="form-select form-select-sm" style="width: auto; border-radius: 6px;" aria-label="Sắp xếp sách" onchange="changeSort(this.value)">
+                                <option value="newest">Mới cập nhật</option>
+                                <option value="price-asc">Giá thấp đến cao</option>
+                                <option value="price-desc">Giá cao đến thấp</option>
+                                <option value="hot">Độ hot (30 ngày)</option>
+                                <option value="popular">Phổ biến (đánh giá)</option>
+                                <option value="sales">Lượt bán chạy</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="booksGrid" class="row g-3 align-content-start">
+                        <div class="col-12 text-center py-5 text-muted">
+                            <i class="fa fa-spinner fa-spin fa-2x mb-3 text-primary"></i>
+                            <p>Đang tải danh sách sách...</p>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-center mt-auto pt-3 border-top">
+                        <nav id="paginationContainer"></nav>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    
+
+    <!-- Bootstrap 5 JS Bundle -->
+    
+    <!-- App Scripts -->
+    
+    
+    
+
+    <!-- Floating Back-To-Top Button -->
+    <button id="btnBackToTop" class="wbs-back-to-top" title="Lên đầu trang" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+@section Scripts {
+<script>
+        let currentCategory = null;
+        let currentSearch = '';
+        let currentPage = 1;
+        let currentSort = 'newest';
+
+        function renderStars(average) {
+            const score = Number(average) || 0;
+            const fullStars = Math.round(score);
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= fullStars) {
+                    stars += '<i class="fa fa-star"></i>';
+                } else {
+                    stars += '<i class="fa fa-star-o"></i>';
+                }
+            }
+            return stars;
+        }
+
+        async function loadCategories() {
+            try {
+                const res = await api.getCategories();
+                if (res.status && res.data) {
+                    // Populate Left Category Sidebar
+                    const container = document.getElementById('categoriesList');
+                    let html = `
+                        <a href="javascript:void(0)" class="category-pill ${!currentCategory ? 'active' : ''}" onclick="filterCategory(event, null, this, 'Tất cả thể loại')">
+                            <span><i class="fa fa-bookmark-o me-2 text-muted"></i> Tất cả thể loại</span>
+                        </a>`;
+                    
+                    const icons = ['fa-book', 'fa-lightbulb-o', 'fa-heart', 'fa-graduation-cap', 'fa-child', 'fa-globe', 'fa-compass', 'fa-coffee', 'fa-briefcase', 'fa-pencil'];
+                    res.data.forEach((c, idx) => {
+                        const icon = icons[idx % icons.length];
+                        const safeName = (c.name || '').replace(/'/g, "\\'");
+                        html += `
+                            <a href="javascript:void(0)" class="category-pill ${currentCategory === c.id ? 'active' : ''}" onclick="filterCategory(event, ${c.id}, this, '${safeName}')">
+                                <span><i class="fa ${icon} me-2 text-muted"></i> ${c.name}</span>
+                                <span class="badge">${c.count}</span>
+                            </a>
+                        `;
+                    });
+                    container.innerHTML = html;
+
+                    // Populate Quick Search Tags Under Search Bar (dynamically follow system categories)
+                    const quickContainer = document.getElementById('quickCategories');
+                    if (quickContainer && res.data.length > 0) {
+                        let qHtml = '';
+                        res.data.slice(0, 5).forEach(c => {
+                            const safeName = (c.name || '').replace(/'/g, "\\'");
+                            qHtml += `<a href="javascript:void(0)" class="wbs-quick-tag" onclick="filterCategory(event, ${c.id}, null, '${safeName}')">${c.name}</a>`;
+                        });
+                        quickContainer.innerHTML = qHtml;
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderSkeletonCards(count = 12) {
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <div class="col-6 col-md-6 col-lg-4 col-xl-4 col-xxl-3 col-2k-20 col-4k-16">
+                        <div class="book-card skeleton-card">
+                            <div class="skeleton skeleton-img mb-3"></div>
+                            <div class="skeleton skeleton-line mb-2" style="width: 85%; height: 16px;"></div>
+                            <div class="skeleton skeleton-line mb-2" style="width: 55%; height: 13px;"></div>
+                            <div class="skeleton skeleton-line mb-3" style="width: 40%; height: 12px;"></div>
+                            <div class="skeleton skeleton-line mb-2" style="width: 50%; height: 20px;"></div>
+                            <div class="skeleton skeleton-line" style="width: 35%; height: 12px;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            return html;
+        }
+
+        async function loadBooks() {
+            const container = document.getElementById('booksGrid');
+            container.innerHTML = renderSkeletonCards(12);
+
+            try {
+                const params = { page: currentPage, pageSize: 12, sortBy: currentSort };
+                if (currentCategory) params.categoryId = currentCategory;
+                if (currentSearch) params.search = currentSearch;
+
+                const res = await api.getBooks(params);
+                if (!res.status || !res.data) {
+                    throw new Error(res.message || 'Không thể tải danh sách sách.');
+                }
+                if (res.status && res.data) {
+                    document.getElementById('bookCount').textContent = `${res.data.length} / ${res.totalItems} cuốn`;
+
+                    if (res.data.length === 0) {
+                        container.innerHTML = `
+                            <div class="col-12 text-center py-5">
+                                <i class="fa fa-search fa-3x text-muted mb-3"></i>
+                                <h5 class="fw-bold">Không tìm thấy cuốn sách nào</h5>
+                                <p class="text-muted small">Hãy thử tìm với từ khóa khác hoặc bấm bên dưới để xem toàn bộ sách.</p>
+                                <button class="btn btn-outline-primary btn-sm mt-2" onclick="resetSearchAndFilters()">
+                                    <i class="fa fa-refresh me-1"></i> Xem tất cả sách
+                                </button>
+                            </div>
+                        `;
+                        document.getElementById('paginationContainer').innerHTML = '';
+                        return;
+                    }
+
+                    let html = '';
+                    res.data.forEach(book => {
+                        const ratingScore = (Number(book.averageRating) || 0).toFixed(1);
+                        const sold = Number(book.salesCount) || 0;
+                        html += `
+                            <div class="col-6 col-md-6 col-lg-4 col-xl-4 col-xxl-3 col-2k-20 col-4k-16">
+                                <div class="book-card">
+                                    <a href="book-details.html?id=${book.id}" class="book-img-wrapper">
+                                        <span class="wbs-badge-official"><i class="fa fa-check-circle"></i> CHÍNH HÃNG</span>
+                                        ${book.discountPercent > 0 ? `<span class="wbs-discount-badge">-${book.discountPercent}%</span>` : ''}
+                                        <img src="images/${book.image}" alt="${book.title}" loading="lazy" decoding="async" onerror="this.src='images/topSach.png'">
+                                    </a>
+                                    <a href="book-details.html?id=${book.id}" class="book-title" title="${book.title}">
+                                        ${book.title}
+                                    </a>
+                                    <div class="book-author"><i class="fa fa-pencil me-1"></i> ${book.author}</div>
+                                    <div class="wbs-rating-wrap">
+                                        <span class="wbs-stars">${renderStars(book.averageRating)}</span>
+                                        <span class="fw-bold text-dark">${ratingScore}</span>
+                                        <span class="wbs-sold-count">Đã bán ${sold}</span>
+                                    </div>
+                                    <div class="wbs-shipping-tag">
+                                        <i class="fa fa-bolt"></i> Giao siêu tốc 2h
+                                    </div>
+                                    <div class="book-price-box">
+                                        <span class="book-current-price">${book.priceFormatted}</span>
+                                        ${book.discountPercent > 0 ? `<span class="book-original-price">${book.originalPriceFormatted}</span>` : ''}
+                                    </div>
+                                    <div class="book-stock-tag">${book.stock > 0 ? `Còn ${book.stock} cuốn` : '<span class="text-danger fw-semibold">Tạm hết hàng</span>'}</div>
+                                    <div class="book-card-actions">
+                                        <a href="book-details.html?id=${book.id}" class="btn btn-book-detail flex-fill">Chi tiết</a>
+                                        <button class="btn btn-book-cart" onclick="handleAddToCart(${book.id})" ${book.stock > 0 ? 'title="Thêm vào giỏ"' : 'disabled title="Hết hàng"'}>
+                                            <i class="fa fa-cart-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                    renderPagination(res.page, res.totalPages);
+                }
+            } catch (e) {
+                console.error('Không thể tải danh sách sách:', e);
+                document.getElementById('bookCount').textContent = 'Không thể tải sách';
+                document.getElementById('paginationContainer').innerHTML = '';
+                container.innerHTML = `<div class="col-12 text-center text-danger py-4">Có lỗi khi kết nối tới máy chủ.</div>`;
+            }
+        }
+
+        function renderPagination(cur, total) {
+            const container = document.getElementById('paginationContainer');
+            if (total <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            let html = '<ul class="pagination pagination-sm m-0">';
+            for (let i = 1; i <= total; i++) {
+                html += `<li class="page-item ${i === cur ? 'active' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="changePage(${i})">${i}</a>
+                </li>`;
+            }
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        function changePage(p) {
+            currentPage = p;
+            loadBooks();
+            const catalogElem = document.getElementById('bookCatalog');
+            if (catalogElem) catalogElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function filterCategory(event, catId, el, catName = 'Tất cả sách') {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            currentCategory = catId;
+            currentPage = 1;
+            currentSearch = '';
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
+
+            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+            if (el) {
+                el.classList.add('active');
+            } else if (catId) {
+                // Find matching pill by catId if triggered by quick tags
+                const matchingPill = Array.from(document.querySelectorAll('.category-pill')).find(p => p.getAttribute('onclick')?.includes(`, ${catId},`));
+                if (matchingPill) matchingPill.classList.add('active');
+            } else {
+                const allPill = document.querySelector('.category-pill');
+                if (allPill) allPill.classList.add('active');
+            }
+
+            document.getElementById('catalogTitle').textContent = catName;
+            loadBooks();
+            const catalogElem = document.getElementById('bookCatalog');
+            if (catalogElem) catalogElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function handleSearch() {
+            currentSearch = document.getElementById('searchInput').value.trim();
+            currentPage = 1;
+            currentCategory = null;
+            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+            const allPill = document.querySelector('.category-pill');
+            if (allPill) allPill.classList.add('active');
+
+            document.getElementById('catalogTitle').textContent = currentSearch ? `Kết quả tìm kiếm: "${currentSearch}"` : 'Tất cả sách';
+            loadBooks();
+            const catalogElem = document.getElementById('bookCatalog');
+            if (catalogElem) catalogElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function quickSearch(tag) {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = tag;
+            handleSearch();
+        }
+
+        function resetSearchAndFilters() {
+            currentSearch = '';
+            currentCategory = null;
+            currentPage = 1;
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
+            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+            const allPill = document.querySelector('.category-pill');
+            if (allPill) allPill.classList.add('active');
+            document.getElementById('catalogTitle').textContent = 'Tất cả sách';
+            loadBooks();
+        }
+
+        function changeSort(sortBy) {
+            currentSort = sortBy;
+            currentPage = 1;
+            const sortSelect = document.getElementById('sortSelect');
+            if (sortSelect) sortSelect.value = sortBy;
+            loadBooks();
+        }
+
+        async function handleAddToCart(id) {
+            try {
+                const res = await api.addToCart(id, 1);
+                if (res.status) {
+                    showToast("Đã thêm sách vào giỏ hàng!");
+                    auth.updateCartBadge();
+                } else {
+                    showToast(res.message || "Không thể thêm vào giỏ hàng", "error");
+                }
+            } catch (e) {
+                showToast("Lỗi kết nối", "error");
+            }
+        }
+
+        // Search debounce & clear button
+        let searchDebounceTimer = null;
+
+        function clearSearchInput() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('searchClearBtn');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+            }
+            if (clearBtn) clearBtn.style.display = 'none';
+            resetSearchAndFilters();
+        }
+
+        function setupSearchAutoReset() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('searchClearBtn');
+            if (!searchInput) return;
+
+            searchInput.addEventListener('input', () => {
+                const val = searchInput.value;
+                if (clearBtn) clearBtn.style.display = val ? 'flex' : 'none';
+
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(() => {
+                    const trimmed = val.trim();
+                    if (trimmed !== currentSearch) {
+                        if (trimmed === '') {
+                            resetSearchAndFilters();
+                        } else {
+                            handleSearch();
+                        }
+                    }
+                }, 350);
+            });
+
+            searchInput.addEventListener('search', () => {
+                if (!searchInput.value.trim()) {
+                    clearSearchInput();
+                }
+            });
+        }
+
+        function setupBackToTop() {
+            const btn = document.getElementById('btnBackToTop');
+            if (!btn) return;
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 280) {
+                    btn.classList.add('show');
+                } else {
+                    btn.classList.remove('show');
+                }
+            }, { passive: true });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCategories();
+            loadBooks();
+            setupSearchAutoReset();
+            setupBackToTop();
+        });
+    </script>
+}

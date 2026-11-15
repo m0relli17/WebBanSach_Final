@@ -1,0 +1,10 @@
+﻿@model System.Collections.Generic.List<WebBanSach.Models.CatalogRow>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; var kind = (string)ViewBag.Kind; var title = kind == "category" ? "Thể loại" : kind == "author" ? "Tác giả" : "Nhà xuất bản"; ViewBag.Title = title; }
+<main class="container py-4"><div class="d-flex justify-content-between mb-3"><h1 class="h3">Quản lý @title.ToLower()</h1><a class="btn btn-primary" href="@Url.Action("CatalogEdit", new { kind })">Thêm mới</a></div>
+<div class="table-responsive"><table class="table bg-white align-middle"><thead><tr><th>Tên</th><th>Tổng số sách</th><th>Thao tác</th></tr></thead><tbody>
+@foreach (var row in Model) { <tr><td>@row.Name</td><td><a href="@Url.Action("CatalogDetails", new { kind, id = row.Id })">@row.ProductCount sách</a></td><td><div class="d-flex flex-wrap gap-2">
+@if (kind == "author") { <a class="btn btn-sm btn-outline-primary" href="@Url.Action("CatalogDetails", new { kind, id = row.Id })">Chi tiết</a> }
+<a class="btn btn-sm btn-outline-secondary" href="@Url.Action("CatalogEdit", new { kind, id = row.Id })">Sửa</a>
+@using (Html.BeginForm("CatalogDelete", "Manage", FormMethod.Post, new { onsubmit = "return confirm('Xóa danh mục này?');" })) { @Html.AntiForgeryToken()<input type="hidden" name="kind" value="@kind" /><input type="hidden" name="id" value="@row.Id" /><button class="btn btn-sm btn-outline-danger">Xóa</button> }
+</div></td></tr> }
+</tbody></table></div></main>

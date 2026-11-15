@@ -181,6 +181,12 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Controllers\ApiController.cs" />
+    <Compile Include="Controllers\PortalController.cs" />
+    <Compile Include="Controllers\ManageController.cs" />
+    <Compile Include="Models\PortalModels.cs" />
+    <Content Include="Views\Portal\**\*.cshtml" />
+    <Content Include="Views\Shared\**\*.cshtml" />
+    <Content Include="Views\Manage\**\*.cshtml" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

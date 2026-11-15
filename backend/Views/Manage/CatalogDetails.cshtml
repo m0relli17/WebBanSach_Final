@@ -1,0 +1,6 @@
+﻿@model System.Collections.Generic.List<WebBanSach.Models.Data.Sach>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Sản phẩm thuộc danh mục"; var author = ViewBag.Author as WebBanSach.Models.Data.TacGia; }
+<main class="container py-4"><h1 class="h3">@ViewBag.Name</h1>
+@if (author != null) { <dl class="row"><dt class="col-sm-3">Quê quán</dt><dd class="col-sm-9">@author.QueQuan</dd><dt class="col-sm-3">Ngày sinh</dt><dd class="col-sm-9">@(author.NgaySinh.HasValue ? author.NgaySinh.Value.ToString("dd/MM/yyyy") : "Chưa cập nhật")</dd><dt class="col-sm-3">Ngày mất</dt><dd class="col-sm-9">@(author.NgayMat.HasValue ? author.NgayMat.Value.ToString("dd/MM/yyyy") : "")</dd><dt class="col-sm-3">Tiểu sử</dt><dd class="col-sm-9" style="white-space:pre-wrap">@author.TieuSu</dd></dl> }
+<h2 class="h5">Danh sách sản phẩm liên quan (@Model.Count)</h2>@Html.Partial("_Products", Model)
+<a href="@Url.Action("Catalog", new { kind = (string)ViewBag.Kind })">Quay lại danh mục</a></main>
