@@ -1,150 +1,924 @@
+/* ====================================================================
+   WEBBANSACH - WEBBANSACH DESIGN SYSTEM THEME
+   ==================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
-    --primary: #b72935;
-    --primary-hover: #99212b;
-    --primary-light: #fef2f2;
-    --dark: #1e293b;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    --bg-light: #f8fafc;
+    /* WebBanSach Primary Brand Colors */
+    --wbs-blue: #0b74e5;
+    --wbs-blue-hover: #0854a8;
+    --wbs-blue-light: #e5f3ff;
+    --wbs-blue-bg: #f0f8ff;
+    --wbs-red: #ff424e;
+    --wbs-red-hover: #e0323e;
+    --wbs-red-light: #fff0f1;
+    --wbs-yellow: #fbc02d;
+    --wbs-green: #00ab56;
+    --wbs-green-light: #eefbf4;
+    --wbs-orange: #ff9800;
+
+    /* Neutrals & Typography */
+    --wbs-dark: #27272a;
+    --wbs-gray: #38383d;
+    --wbs-muted: #808089;
+    --wbs-border: #ebebf0;
+    --wbs-border-subtle: #f2f2f2;
+    --wbs-bg: #f5f5fa;
+    --wbs-card: #ffffff;
+
+    /* Generic semantic aliases for compatibility */
+    --primary: var(--wbs-blue);
+    --primary-hover: var(--wbs-blue-hover);
+    --primary-light: var(--wbs-blue-light);
+    --dark: var(--wbs-dark);
+    --muted: var(--wbs-muted);
+    --border: var(--wbs-border);
+    --bg-light: var(--wbs-bg);
+
+    /* Elevation & Shadows */
+    --wbs-radius-sm: 6px;
+    --wbs-radius: 8px;
+    --wbs-radius-lg: 12px;
+    --wbs-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    --wbs-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.06);
+    --wbs-shadow-md: 0 4px 16px 0 rgba(0, 0, 0, 0.08);
+    --wbs-shadow-hover: 0 8px 24px 0 rgba(0, 0, 0, 0.12);
+    --wbs-transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Base Document Styles */
+html, body {
+    overflow-x: hidden;
+    max-width: 100%;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: var(--dark);
-    background-color: var(--bg-light);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--wbs-dark);
+    background-color: var(--wbs-bg);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
 }
 
 main {
     flex: 1;
 }
 
-/* Navbar */
-.navbar-custom {
-    background: #ffffff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    border-bottom: 1px solid var(--border);
-    padding: 10px 0;
+a {
+    color: var(--wbs-blue);
+    text-decoration: none;
+    transition: color 0.15s ease;
 }
 
-.navbar-brand {
-    font-weight: 700;
+a:hover {
+    color: var(--wbs-blue-hover);
+}
+
+/* ====================================================================
+   1. WEBBANSACH TOP NAVIGATION & HEADER
+   ==================================================================== */
+.navbar-custom {
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid var(--wbs-border);
+    padding: 10px 0;
+    z-index: 1030;
+}
+
+.navbar-custom .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap !important;
+}
+
+.wbs-logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none !important;
+    flex-shrink: 0 !important;
+}
+
+.wbs-logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--wbs-blue) 0%, #1e88e5 100%);
+    color: #ffffff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 2px 8px rgba(11, 116, 229, 0.3);
+}
+
+.wbs-logo-text {
+    font-weight: 800;
     font-size: 22px;
-    color: var(--primary) !important;
+    letter-spacing: -0.5px;
+    color: var(--wbs-blue);
+    line-height: 1.1;
+}
+
+.wbs-logo-slogan {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--wbs-muted);
+    display: block;
+}
+
+/* WebBanSach Search Input Box */
+.wbs-header-search-wrap {
+    flex: 1 1 auto;
+    min-width: 0 !important;
+    max-width: 680px;
+}
+
+.wbs-search-box {
+    position: relative;
+    width: 100%;
+}
+
+.wbs-search-input {
+    border-radius: var(--wbs-radius) 0 0 var(--wbs-radius);
+    border: 1px solid var(--wbs-border);
+    border-right: none;
+    padding: 10px 16px 10px 40px;
+    font-size: 14px;
+    background: #ffffff;
+    transition: var(--wbs-transition);
+}
+
+.wbs-search-input:focus {
+    border-color: var(--wbs-blue);
+    box-shadow: 0 0 0 3px rgba(11, 116, 229, 0.12);
+    outline: none;
+}
+
+.wbs-search-icon-inside {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--wbs-muted);
+    font-size: 15px;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.wbs-search-btn {
+    border-radius: 0 var(--wbs-radius) var(--wbs-radius) 0;
+    background: var(--wbs-blue);
+    border: 1px solid var(--wbs-blue);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 0 20px;
+    transition: var(--wbs-transition);
+    white-space: nowrap;
+}
+
+.wbs-search-btn:hover {
+    background: var(--wbs-blue-hover);
+    border-color: var(--wbs-blue-hover);
+    color: #ffffff;
+}
+
+.wbs-quick-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    overflow-x: hidden;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.wbs-quick-tag {
+    font-size: 12px;
+    color: var(--wbs-muted);
+    text-decoration: none;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.wbs-quick-tag:hover {
+    color: var(--wbs-blue);
+    background: var(--wbs-blue-light);
+}
+
+/* WebBanSach Header Action Buttons */
+.wbs-header-actions {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0 !important;
+    margin-left: auto;
 }
 
-.search-input {
-    border-radius: 20px 0 0 20px;
-    border: 1px solid var(--border);
-    padding-left: 16px;
+.wbs-header-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--wbs-radius);
+    color: var(--wbs-gray) !important;
+    text-decoration: none !important;
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--wbs-transition);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
-.search-input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(183, 41, 53, 0.15);
+.wbs-header-action:hover {
+    background: var(--wbs-blue-light);
+    color: var(--wbs-blue) !important;
 }
 
-.search-btn {
-    border-radius: 0 20px 20px 0;
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
+.wbs-header-action i {
+    font-size: 18px;
+    color: var(--wbs-blue);
 }
 
-.search-btn:hover {
-    background: var(--primary-hover);
-    border-color: var(--primary-hover);
-    color: white;
+.wbs-cart-badge {
+    background: var(--wbs-red);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
 }
 
-/* Book Card */
-.book-card {
+/* ====================================================================
+   2. WEBBANSACH SERVICE VALUE PROPOSITION BAR (WEBBANSACH BENEFITS)
+   ==================================================================== */
+.wbs-benefits-bar {
     background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid var(--border);
+    border-radius: var(--wbs-radius);
+    border: 1px solid var(--wbs-border);
+    padding: 12px 20px;
+    box-shadow: var(--wbs-shadow-sm);
+    margin-bottom: 20px;
+}
+
+.wbs-benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--wbs-gray);
+}
+
+.wbs-benefit-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--wbs-blue-light);
+    color: var(--wbs-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.wbs-benefit-title {
+    font-weight: 700;
+    color: var(--wbs-dark);
+    margin-bottom: 1px;
+}
+
+/* ====================================================================
+   3. WEBBANSACH CAROUSEL / SLIDESHOW (2 BANNERS PER SLIDE)
+   ==================================================================== */
+.storefront-slideshow {
+    width: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    position: relative;
+    padding-bottom: 24px;
+}
+
+.storefront-slideshow .banner-img-wrap {
+    border-radius: var(--wbs-radius);
+    overflow: hidden;
+    box-shadow: var(--wbs-shadow-sm);
+    border: 1px solid var(--wbs-border);
+    background: #ffffff;
+    aspect-ratio: 16 / 9;
+    height: 100%;
+    position: relative;
+}
+
+.storefront-slideshow .banner-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.storefront-slideshow .banner-img-wrap:hover img {
+    transform: scale(1.02);
+}
+
+.storefront-slideshow .carousel-control-prev,
+.storefront-slideshow .carousel-control-next {
+    width: 36px;
+    height: 36px;
+    top: calc(50% - 12px);
+    transform: translateY(-50%);
+    opacity: 0.9;
+    z-index: 10;
+}
+
+.storefront-slideshow .carousel-control-prev {
+    left: -12px;
+}
+
+.storefront-slideshow .carousel-control-next {
+    right: -12px;
+}
+
+.storefront-slideshow .carousel-control-prev-icon,
+.storefront-slideshow .carousel-control-next-icon {
+    width: 34px;
+    height: 34px;
+    background-color: rgba(39, 39, 42, 0.7);
+    border-radius: 50%;
+    background-size: 45%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    transition: var(--wbs-transition);
+}
+
+.storefront-slideshow .carousel-control-prev:hover .carousel-control-prev-icon,
+.storefront-slideshow .carousel-control-next:hover .carousel-control-next-icon {
+    background-color: var(--wbs-blue);
+}
+
+.storefront-slideshow .carousel-indicators {
+    bottom: 0;
+    margin-bottom: 0;
+}
+
+.storefront-slideshow .carousel-indicators button {
+    width: 20px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: rgba(11, 116, 229, 0.25);
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.storefront-slideshow .carousel-indicators button.active {
+    background-color: var(--wbs-blue);
+    width: 28px;
+}
+
+/* ====================================================================
+   4. WEBBANSACH CATEGORY SIDEBAR
+   ==================================================================== */
+.catalog-sidebar {
+    background: #ffffff;
+    border: 1px solid var(--wbs-border);
+    border-radius: var(--wbs-radius);
+    box-shadow: var(--wbs-shadow-sm);
     padding: 16px;
-    transition: transform 0.2s, box-shadow 0.2s;
     height: 100%;
     display: flex;
     flex-direction: column;
 }
 
+.catalog-sidebar-heading {
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--wbs-border);
+    margin-bottom: 12px;
+}
+
+.catalog-sidebar-heading h5 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--wbs-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.category-pill {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: var(--wbs-radius-sm);
+    color: var(--wbs-gray);
+    text-decoration: none !important;
+    font-size: 13.5px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    transition: all 0.15s ease;
+    border-left: 3px solid transparent;
+}
+
+.category-pill:hover {
+    background: var(--wbs-blue-bg);
+    color: var(--wbs-blue);
+    border-left-color: var(--wbs-blue);
+}
+
+.category-pill.active {
+    background: var(--wbs-blue-light);
+    color: var(--wbs-blue);
+    font-weight: 700;
+    border-left-color: var(--wbs-blue);
+}
+
+.category-pill .badge {
+    background: #f1f2f5;
+    color: var(--wbs-muted);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 3px 8px;
+}
+
+.category-pill.active .badge {
+    background: var(--wbs-blue);
+    color: #ffffff;
+}
+
+/* ====================================================================
+   5. WEBBANSACH PRODUCT CARD (BOOK CARD)
+   ==================================================================== */
+#booksGrid {
+    align-content: flex-start !important;
+}
+
+#booksGrid > [class*="col-"] {
+    display: flex;
+    flex-direction: column;
+}
+
+.book-card {
+    background: #ffffff;
+    border-radius: var(--wbs-radius);
+    border: 1px solid var(--wbs-border);
+    padding: 14px;
+    transition: var(--wbs-transition);
+    height: 100%;
+    min-height: 410px;
+    max-height: 450px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: var(--wbs-shadow-sm);
+}
+
 .book-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--wbs-shadow-hover);
+    border-color: #b9d7fb;
 }
 
 .book-img-wrapper {
-    height: 220px;
+    height: 190px;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
+    position: relative;
     overflow: hidden;
+    background: #fafafa;
+    border-radius: var(--wbs-radius-sm);
+    flex-shrink: 0;
 }
 
 .book-img-wrapper img {
-    max-height: 100%;
+    max-height: 175px;
     max-width: 100%;
     object-fit: contain;
-    border-radius: 6px;
+    transition: transform 0.3s ease;
+}
+
+.book-card:hover .book-img-wrapper img {
+    transform: scale(1.05);
+}
+
+/* WebBanSach Badges on Card */
+.wbs-badge-official {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--wbs-blue);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+    letter-spacing: 0.5px;
+}
+
+.wbs-discount-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--wbs-red-light);
+    color: var(--wbs-red);
+    border: 1px solid #ffd0d3;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    z-index: 2;
 }
 
 .book-title {
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 600;
-    color: var(--dark);
-    margin-bottom: 6px;
-    line-height: 1.4;
+    color: var(--wbs-dark);
+    margin-bottom: 4px;
+    line-height: 1.35;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    height: 42px;
+    height: 38px;
+    text-decoration: none !important;
+    flex-shrink: 0;
+}
+
+.book-title:hover {
+    color: var(--wbs-blue);
 }
 
 .book-author {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--wbs-muted);
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
 }
 
-.book-price {
-    font-size: 17px;
+/* WebBanSach Star Rating & Social Proof */
+.wbs-rating-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--wbs-muted);
+    margin-bottom: 6px;
+    flex-shrink: 0;
+}
+
+.wbs-stars {
+    color: var(--wbs-yellow);
+    font-size: 11px;
+}
+
+.wbs-sold-count {
+    font-size: 11px;
+    color: var(--wbs-muted);
+    border-left: 1px solid var(--wbs-border);
+    padding-left: 6px;
+}
+
+/* WebBanSach Fast Shipping Tag */
+.wbs-shipping-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--wbs-green);
+    background: var(--wbs-green-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    width: fit-content;
+    flex-shrink: 0;
+}
+
+/* WebBanSach Price Box */
+.book-price-box {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+}
+
+.book-current-price {
+    font-size: 16px;
     font-weight: 700;
-    color: var(--primary);
+    color: var(--wbs-red);
+    line-height: 1.2;
+}
+
+.book-original-price {
+    font-size: 12px;
+    color: var(--wbs-muted);
+    text-decoration: line-through;
+}
+
+.book-stock-tag {
+    font-size: 11.5px;
+    color: var(--wbs-muted);
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.book-card-actions {
+    display: flex;
+    gap: 8px;
     margin-top: auto;
-    margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
-.btn-book-action {
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 14px;
-    padding: 7px 12px;
+/* Action Buttons */
+.btn-book-detail {
+    border-radius: var(--wbs-radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 10px;
+    border: 1px solid var(--wbs-border);
+    background: #ffffff;
+    color: var(--wbs-dark);
+    transition: var(--wbs-transition);
 }
 
-/* Auth Cards */
+.btn-book-detail:hover {
+    border-color: var(--wbs-blue);
+    color: var(--wbs-blue);
+    background: var(--wbs-blue-bg);
+}
+
+.btn-book-cart {
+    border-radius: var(--wbs-radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 14px;
+    background: var(--wbs-blue);
+    border: 1px solid var(--wbs-blue);
+    color: #ffffff;
+    transition: var(--wbs-transition);
+}
+
+.btn-book-cart:hover:not(:disabled) {
+    background: var(--wbs-blue-hover);
+    border-color: var(--wbs-blue-hover);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(11, 116, 229, 0.25);
+}
+
+.btn-book-cart:disabled {
+    background: #e4e4e7;
+    border-color: #e4e4e7;
+    color: #a1a1aa;
+    cursor: not-allowed;
+}
+
+/* ====================================================================
+   6. WEBBANSACH CARD & SECTION CONTAINERS
+   ==================================================================== */
+.wbs-card {
+    background: #ffffff;
+    border-radius: var(--wbs-radius);
+    border: 1px solid var(--wbs-border);
+    box-shadow: var(--wbs-shadow-sm);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+@media (min-width: 992px) {
+    .border-end-lg {
+        border-right: 1px solid var(--wbs-border) !important;
+    }
+}
+
+.wbs-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--wbs-border);
+    margin-bottom: 16px;
+}
+
+.wbs-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--wbs-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ====================================================================
+   7. WEBBANSACH CART & CHECKOUT COMPONENTS
+   ==================================================================== */
+.wbs-cart-table {
+    width: 100%;
+}
+
+.wbs-cart-table th {
+    background: #fafafb;
+    border-bottom: 1px solid var(--wbs-border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wbs-muted);
+    padding: 12px 14px;
+}
+
+.wbs-cart-table td {
+    padding: 16px 14px;
+    border-bottom: 1px solid var(--wbs-border);
+    vertical-align: middle;
+}
+
+.wbs-free-shipping-progress {
+    background: #fff8e6;
+    border: 1px solid #ffe8b3;
+    border-radius: var(--wbs-radius);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #8a6d3b;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wbs-quantity-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--wbs-border);
+    border-radius: var(--wbs-radius-sm);
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.wbs-stepper-btn {
+    width: 30px;
+    height: 30px;
+    background: #fbfbfb;
+    border: none;
+    color: var(--wbs-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.wbs-stepper-btn:hover {
+    background: #eeeeee;
+    color: var(--wbs-blue);
+}
+
+.wbs-stepper-input {
+    width: 44px;
+    height: 30px;
+    border: none;
+    border-left: 1px solid var(--wbs-border);
+    border-right: 1px solid var(--wbs-border);
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wbs-dark);
+}
+
+.wbs-stepper-input:focus {
+    outline: none;
+}
+
+/* WebBanSach Sticky Order Summary Card */
+.wbs-summary-card {
+    background: #ffffff;
+    border-radius: var(--wbs-radius);
+    border: 1px solid var(--wbs-border);
+    box-shadow: var(--wbs-shadow);
+    padding: 20px;
+    position: sticky;
+    top: 90px;
+}
+
+.wbs-btn-checkout {
+    background: var(--wbs-red);
+    border: 1px solid var(--wbs-red);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 12px;
+    border-radius: var(--wbs-radius);
+    width: 100%;
+    transition: var(--wbs-transition);
+}
+
+.wbs-btn-checkout:hover {
+    background: var(--wbs-red-hover);
+    border-color: var(--wbs-red-hover);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(255, 66, 78, 0.35);
+}
+
+/* ====================================================================
+   8. WEBBANSACH PRODUCT DETAILS PAGE
+   ==================================================================== */
+.wbs-breadcrumbs {
+    font-size: 13px;
+    color: var(--wbs-muted);
+    margin-bottom: 14px;
+}
+
+.wbs-detail-img-box {
+    background: #ffffff;
+    border-radius: var(--wbs-radius);
+    border: 1px solid var(--wbs-border);
+    padding: 24px;
+    text-align: center;
+    position: relative;
+}
+
+.wbs-detail-img-box img {
+    max-height: 420px;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: var(--wbs-radius-sm);
+}
+
+.wbs-detail-price-box {
+    background: #fafafb;
+    border-radius: var(--wbs-radius);
+    padding: 16px 20px;
+    margin: 16px 0;
+    border: 1px solid var(--wbs-border);
+}
+
+.wbs-detail-big-price {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--wbs-red);
+}
+
+.wbs-policy-card {
+    border: 1px solid var(--wbs-border);
+    border-radius: var(--wbs-radius);
+    padding: 14px;
+    background: #ffffff;
+    margin-top: 14px;
+}
+
+.wbs-policy-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f2f2f2;
+}
+
+.wbs-policy-item:last-child {
+    border-bottom: none;
+}
+
+.wbs-policy-item i {
+    color: var(--wbs-blue);
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+/* ====================================================================
+   9. WEBBANSACH AUTH CARDS (LOGIN / REGISTER / VERIFY)
+   ==================================================================== */
 .auth-wrapper {
-    max-width: 600px;
+    max-width: 500px;
     margin: 40px auto 60px auto;
-}
-
-.auth-wrapper.narrow {
-    max-width: 440px;
 }
 
 .auth-card {
     background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-    padding: 36px 40px;
+    border-radius: var(--wbs-radius-lg);
+    border: 1px solid var(--wbs-border);
+    box-shadow: var(--wbs-shadow-md);
+    padding: 36px 32px;
     position: relative;
     overflow: hidden;
 }
@@ -156,106 +930,43 @@ main {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #b72935 0%, #e53e3e 50%, #f97316 100%);
+    background: linear-gradient(90deg, var(--wbs-blue) 0%, #1e88e5 50%, #00ab56 100%);
 }
 
 .auth-icon-circle {
-    width: 56px;
-    height: 56px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    background: var(--primary-light);
-    color: var(--primary);
+    background: var(--wbs-blue-light);
+    color: var(--wbs-blue);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    margin-bottom: 14px;
-    border: 1px solid #fecaca;
+    font-size: 26px;
+    margin-bottom: 16px;
 }
 
-.password-wrapper {
-    position: relative;
-}
-
-.password-wrapper input {
-    padding-right: 44px;
-}
-
-.btn-toggle-eye {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #94a3b8;
-    padding: 6px;
-    cursor: pointer;
-}
-
-.btn-toggle-eye:hover {
-    color: var(--primary);
-}
-
-/* Category Sidebar Pills */
-.category-pill {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 14px;
-    border-radius: 8px;
-    color: var(--dark);
-    text-decoration: none;
-    transition: all 0.15s;
-    margin-bottom: 4px;
-    font-size: 14px;
-}
-
-.category-pill:hover, .category-pill.active {
-    background: var(--primary-light);
-    color: var(--primary);
-    font-weight: 600;
-}
-
-/* Cart Table */
-.cart-table th {
-    background: #f8fafc;
-    border-bottom: 2px solid var(--border);
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.cart-table td {
-    vertical-align: middle;
-}
-
-/* Footer */
-footer {
-    background: #ffffff;
-    border-top: 1px solid var(--border);
-    padding: 30px 0 20px 0;
-    margin-top: 50px;
-    font-size: 14px;
-    color: var(--muted);
-}
-
-/* Payment Method & Credit Card Styles */
+/* ====================================================================
+   10. WEBBANSACH PAYMENT OPTIONS & CREDIT CARD PREVIEW
+   ==================================================================== */
 .payment-option {
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
+    border: 1px solid var(--wbs-border);
+    border-radius: var(--wbs-radius);
+    padding: 14px 16px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: var(--wbs-transition);
     background: #ffffff;
 }
 
 .payment-option:hover {
-    border-color: #cbd5e1;
+    border-color: #b9d7fb;
+    background: #fafafc;
 }
 
 .payment-option.active {
-    border-color: var(--primary);
-    background-color: #fffafb;
+    border-color: var(--wbs-blue);
+    background-color: var(--wbs-blue-bg);
+    box-shadow: 0 0 0 1px var(--wbs-blue);
 }
 
 .credit-card-preview {
@@ -297,146 +1008,645 @@ footer {
     margin-bottom: 16px;
 }
 
-.card-info-display {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-
-/* The category sidebar expands left of the centered product area. */
-.catalog-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 0fr) minmax(0, 1fr);
-    gap: 0;
-    align-items: stretch;
-    transition: grid-template-columns .3s ease, gap .3s ease;
-}
-#bookCatalog.categories-open .catalog-layout {
-    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
-    gap: 24px;
-}
-.catalog-sidebar {
-    min-width: 0;
-    width: 100%;
-    visibility: hidden;
-    max-height: 0;
-    pointer-events: none;
-    overflow: hidden;
-    align-self: stretch;
+/* ====================================================================
+   11. WEBBANSACH FOOTER
+   ==================================================================== */
+footer {
     background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 8px 22px rgba(30, 41, 59, .06);
+    border-top: 1px solid var(--wbs-border);
+    padding: 40px 0 20px 0;
+    margin-top: 50px;
+    font-size: 13px;
+    color: var(--wbs-muted);
 }
-#bookCatalog.categories-open .catalog-sidebar {
-    visibility: visible;
-    max-height: none;
-    pointer-events: auto;
+
+footer h6 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--wbs-dark);
+    margin-bottom: 14px;
 }
-.catalog-sidebar-inner {
-    min-width: 220px;
-    height: 100%;
-    padding: 18px 14px 12px;
+
+footer ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
-.catalog-sidebar-heading {
-    padding: 0 4px 12px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 10px !important;
+
+footer ul li {
+    margin-bottom: 8px;
 }
-.catalog-sidebar-heading h5 { font-size: 15px; }
-.catalog-sidebar-close { border: 0; color: var(--muted); }
-.catalog-sidebar-close:hover { color: var(--primary); background: var(--primary-light); }
-.catalog-products {
-    min-width: 0;
+
+footer ul li a {
+    color: var(--wbs-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+footer ul li a:hover {
+    color: var(--wbs-blue);
+}
+
+.footer-payment-icons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 24px;
+    color: var(--wbs-muted);
+}
+
+/* ====================================================================
+   12. PASSWORD INPUT WITH INSIDE EYE TOGGLE
+   ==================================================================== */
+.password-wrapper {
+    position: relative;
     width: 100%;
-    max-width: 960px;
-    justify-self: center;
-}
-.catalog-chevron { transition: transform .3s ease; }
-.catalog-menu .catalog-toggle[aria-expanded="true"] .catalog-chevron { transform: rotate(180deg); }
-@media (max-width: 767.98px) {
-    .catalog-layout,
-    #bookCatalog.categories-open .catalog-layout { grid-template-columns: minmax(0, 1fr); }
-    #bookCatalog.categories-open .catalog-layout { gap: 12px; }
-}
-@media (prefers-reduced-motion: reduce) {
-    .catalog-layout, .catalog-chevron { transition: none; }
 }
 
-.catalog-toggle { flex-shrink: 0; }
-@media (max-width: 575.98px) {
-    .navbar-custom .navbar-brand { font-size: 17px; margin-right: 8px; }
-    .catalog-toggle { font-size: 12px; padding: 6px 8px; }
-    .catalog-toggle .catalog-chevron { margin-left: 4px !important; }
+.password-wrapper .form-control {
+    padding-right: 44px !important;
 }
 
-/* Compact storefront navigation and left category rail. */
-.catalog-toggle {
-    padding: 8px 0;
-    border: 0;
-    border-radius: 0;
-    color: var(--dark);
-    background: transparent;
+.password-wrapper .btn-toggle-eye {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 42px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: var(--wbs-muted);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    z-index: 5;
+    transition: color 0.15s ease;
+}
+
+.password-wrapper .btn-toggle-eye:hover {
+    color: var(--wbs-blue);
+}
+
+.password-wrapper .btn-toggle-eye:focus {
+    color: var(--wbs-blue);
+    outline: none;
     box-shadow: none;
 }
-.catalog-toggle:hover, .catalog-toggle[aria-expanded="true"] { color: var(--primary); }
-.catalog-toggle:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
-.catalog-products { max-width: 1200px; }
-.category-pill {
-    min-height: 42px;
-    padding: 9px 10px;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    margin-bottom: 3px;
-    font-size: 13px;
-}
-.catalog-sidebar .category-pill:hover { background: #f8fafc; border-color: var(--border); }
-.catalog-sidebar .category-pill.active {
-    background: var(--primary-light);
-    border-color: #f3c5ca;
-    border-left: 3px solid var(--primary);
-    padding-left: 8px;
-    color: var(--primary);
-}
-.catalog-sidebar .category-pill .badge { font-size: 11px; font-weight: 600; }
-@media (max-width: 767.98px) {
-    #bookCatalog.categories-open .catalog-layout { grid-template-columns: minmax(0, 1fr); }
-    .navbar-custom .container-fluid { gap: 8px !important; }
-    .catalog-toggle { font-size: 12px; padding: 6px 0; }
+
+/* ====================================================================
+   13. SKELETON PLACEHOLDER LOADING & SHIMMER
+   ==================================================================== */
+@keyframes wbsShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
-/* Preserve the banner artwork proportions on wide and small screens. */
-.storefront-slideshow {
-    width: 100%;
-    max-width: 720px;
-    margin: 0 auto;
-    overflow: hidden;
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 4px 18px rgba(30, 41, 59, .08);
-}
-.storefront-slideshow .carousel-item img {
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f4 25%, #fafafc 37%, #f0f0f4 63%);
+    background-size: 400% 100%;
+    animation: wbsShimmer 1.4s ease infinite;
+    border-radius: 4px;
     display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 85 / 48;
-    object-fit: contain;
-}
-.storefront-slideshow .carousel-control-prev,
-.storefront-slideshow .carousel-control-next { width: 10%; }
-.storefront-slideshow .carousel-control-prev-icon,
-.storefront-slideshow .carousel-control-next-icon {
-    width: 36px;
-    height: 36px;
-    background-size: 55%;
-    background-color: rgba(15, 23, 42, .45);
-    border-radius: 50%;
-}
-.storefront-slideshow .carousel-indicators { margin-bottom: 12px; }
-@media (prefers-reduced-motion: reduce) {
-    .storefront-slideshow .carousel-item { transition: none; }
 }
 
-.catalog-menu { position: relative; flex-shrink: 0; }
-#bookCatalog .catalog-products { margin-inline: auto; }
+.skeleton-card {
+    pointer-events: none;
+    border-color: #f2f2f5 !important;
+}
+
+.skeleton-card .skeleton-img {
+    height: 190px;
+    width: 100%;
+    border-radius: var(--wbs-radius-sm);
+    background: linear-gradient(90deg, #eaeaf0 25%, #f6f6f9 37%, #eaeaf0 63%);
+    background-size: 400% 100%;
+    animation: wbsShimmer 1.4s ease infinite;
+}
+
+.skeleton-line {
+    height: 14px;
+    margin-bottom: 8px;
+    border-radius: 3px;
+}
+
+/* ====================================================================
+   14. MODERN FLOATING TOAST NOTIFICATION SYSTEM
+   ==================================================================== */
+.wbs-toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 380px;
+    width: calc(100% - 48px);
+    pointer-events: none;
+}
+
+.wbs-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #ffffff;
+    border-radius: var(--wbs-radius);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--wbs-border);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--wbs-dark);
+}
+
+.wbs-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.wbs-toast.hide {
+    transform: translateX(120%);
+    opacity: 0;
+}
+
+.wbs-toast-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wbs-toast-msg {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.wbs-toast-close {
+    background: transparent;
+    border: none;
+    color: var(--wbs-muted);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+}
+
+.wbs-toast-close:hover {
+    opacity: 1;
+    color: var(--wbs-dark);
+}
+
+.wbs-toast-success {
+    border-left: 4px solid var(--wbs-green);
+}
+.wbs-toast-success .wbs-toast-icon {
+    color: var(--wbs-green);
+}
+
+.wbs-toast-danger {
+    border-left: 4px solid var(--wbs-red);
+}
+.wbs-toast-danger .wbs-toast-icon {
+    color: var(--wbs-red);
+}
+
+.wbs-toast-warning {
+    border-left: 4px solid var(--wbs-orange);
+}
+.wbs-toast-warning .wbs-toast-icon {
+    color: var(--wbs-orange);
+}
+
+.wbs-toast-info {
+    border-left: 4px solid var(--wbs-blue);
+}
+.wbs-toast-info .wbs-toast-icon {
+    color: var(--wbs-blue);
+}
+
+/* ====================================================================
+   15. BACK-TO-TOP BUTTON & SEARCH CLEAR
+   ==================================================================== */
+.wbs-back-to-top {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--wbs-blue);
+    border: 1px solid var(--wbs-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wbs-back-to-top.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.wbs-back-to-top:hover {
+    background: var(--wbs-blue);
+    color: #ffffff;
+    border-color: var(--wbs-blue);
+    box-shadow: 0 6px 16px rgba(11, 116, 229, 0.35);
+    transform: translateY(-2px);
+}
+
+.wbs-search-clear {
+    position: absolute;
+    right: 102px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #f0f0f4;
+    border: none;
+    color: var(--wbs-muted);
+    font-size: 11px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 6;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.wbs-search-clear:hover {
+    background: #e4e4e7;
+    color: var(--wbs-dark);
+}
+
+/* ====================================================================
+   16. HYPER-CARE RESPONSIVE SYSTEM (MOBILE, TABLET, FHD, 2K, 4K)
+   ==================================================================== */
+
+/* --- A. ULTRA-WIDE 4K UHD (>= 3200px - 3840px+) --- */
+@media (min-width: 3200px) {
+    html {
+        font-size: 20px;
+    }
+    .container, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
+        max-width: 3000px !important;
+    }
+    .wbs-header-search-wrap {
+        max-width: 1200px !important;
+    }
+    .wbs-search-input {
+        height: 52px;
+        font-size: 17px;
+        padding-left: 52px;
+    }
+    .wbs-search-icon-inside {
+        left: 20px;
+        font-size: 18px;
+    }
+    .wbs-search-btn {
+        height: 52px;
+        font-size: 17px;
+        padding: 0 32px;
+    }
+    .wbs-search-clear {
+        right: 140px;
+        width: 26px;
+        height: 26px;
+        font-size: 13px;
+    }
+    .wbs-logo-icon {
+        width: 52px;
+        height: 52px;
+        font-size: 26px;
+        border-radius: 14px;
+    }
+    .wbs-logo-text {
+        font-size: 28px;
+    }
+    .catalog-sidebar {
+        min-width: 380px;
+        padding: 24px;
+    }
+    .book-card {
+        min-height: 520px;
+        max-height: 570px;
+        padding: 20px;
+        border-radius: 14px;
+    }
+    .book-img-wrapper {
+        height: 260px;
+    }
+    .book-title {
+        font-size: 17px;
+        height: 48px;
+    }
+    .book-current-price {
+        font-size: 22px;
+    }
+    .wbs-back-to-top {
+        width: 58px;
+        height: 58px;
+        font-size: 22px;
+        right: 36px;
+        bottom: 36px;
+    }
+    .col-4k-16 {
+        flex: 0 0 auto !important;
+        width: 16.666667% !important; /* 6 items per row on 4K */
+    }
+}
+
+/* --- B. 2K QHD (>= 2000px - 2560px - 3199.98px) --- */
+@media (min-width: 2000px) and (max-width: 3199.98px) {
+    html {
+        font-size: 17px;
+    }
+    .container, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
+        max-width: 2200px !important;
+    }
+    .wbs-header-search-wrap {
+        max-width: 950px !important;
+    }
+    .catalog-sidebar {
+        min-width: 320px;
+        padding: 20px;
+    }
+    .book-card {
+        min-height: 460px;
+        max-height: 500px;
+        padding: 16px;
+    }
+    .book-img-wrapper {
+        height: 220px;
+    }
+    .book-title {
+        font-size: 15px;
+        height: 42px;
+    }
+    .book-current-price {
+        font-size: 19px;
+    }
+    .col-2k-20 {
+        flex: 0 0 auto !important;
+        width: 20% !important; /* 5 items per row on 2K */
+    }
+}
+
+/* --- C. FULL HD (>= 1400px - 1999.98px) --- */
+@media (min-width: 1400px) and (max-width: 1999.98px) {
+    .container, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
+        max-width: 1640px !important;
+    }
+    .wbs-header-search-wrap {
+        max-width: 760px !important;
+    }
+    .catalog-sidebar {
+        min-width: 270px;
+    }
+}
+
+/* --- D. TABLET & LAPTOP (992px - 1399.98px) --- */
+@media (min-width: 992px) and (max-width: 1399.98px) {
+    .catalog-sidebar {
+        min-width: 230px;
+    }
+    .book-card {
+        min-height: 400px;
+        max-height: 440px;
+        padding: 12px;
+    }
+    .book-img-wrapper {
+        height: 175px;
+    }
+    .book-title {
+        font-size: 13.5px;
+        height: 38px;
+    }
+}
+
+/* --- E. MOBILE & TABLET PORTRAIT (< 991.98px) --- */
+@media (max-width: 991.98px) {
+    /* Reorder: Hero & Catalog come first so mobile users see books immediately */
+    .catalog-main-content {
+        order: 1 !important;
+    }
+    .catalog-sidebar-col {
+        order: 2 !important;
+        margin-top: 20px !important;
+    }
+    .catalog-sidebar {
+        margin-bottom: 24px;
+    }
+}
+
+/* --- F. MOBILE HEADER & NAVIGATION (< 767.98px) --- */
+@media (max-width: 767.98px) {
+    .navbar-custom {
+        padding: 8px 0;
+    }
+    .navbar-custom .container {
+        flex-wrap: wrap !important;
+        row-gap: 8px;
+    }
+    .wbs-logo-wrap {
+        order: 1;
+        gap: 8px;
+    }
+    .wbs-logo-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+    .wbs-logo-text {
+        font-size: 18px;
+    }
+    .wbs-logo-slogan {
+        display: none !important;
+    }
+    .wbs-header-actions {
+        order: 2;
+        margin-left: auto !important;
+        gap: 6px;
+    }
+    .wbs-header-action {
+        padding: 6px 8px;
+        font-size: 13px;
+        gap: 4px;
+    }
+    .wbs-header-search-wrap {
+        order: 3;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 2px 0 0 0 !important;
+    }
+    .wbs-search-input {
+        font-size: 13px;
+        padding: 8px 30px 8px 34px;
+        height: 38px;
+    }
+    .wbs-search-icon-inside {
+        left: 10px;
+        font-size: 12px;
+    }
+    .wbs-search-clear {
+        right: 88px;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+    .wbs-search-btn {
+        padding: 0 14px;
+        font-size: 13px;
+        height: 38px;
+    }
+    /* Swipeable category tags carousel under mobile search */
+    .wbs-quick-tags {
+        display: flex !important;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 6px;
+        margin-top: 4px;
+        padding-bottom: 2px;
+    }
+    .wbs-quick-tags::-webkit-scrollbar {
+        display: none;
+    }
+    .wbs-quick-tag {
+        font-size: 11.5px;
+        padding: 3px 8px;
+        flex-shrink: 0;
+    }
+    /* Compact benefits bar on mobile */
+    .wbs-benefits-bar {
+        padding: 10px 12px;
+    }
+    .wbs-benefit-item {
+        gap: 8px;
+        font-size: 11.5px;
+    }
+    .wbs-benefit-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+    }
+    .wbs-benefit-title {
+        font-size: 12px;
+    }
+}
+
+/* --- G. MOBILE SMALL & ULTRA-COMPACT (< 575.98px) --- */
+@media (max-width: 575.98px) {
+    /* 2-Column Mobile Book Cards Grid */
+    .book-card {
+        padding: 8px;
+        min-height: 340px;
+        max-height: 390px;
+        border-radius: 6px;
+    }
+    .book-img-wrapper {
+        height: 135px;
+        margin-bottom: 6px;
+    }
+    .book-title {
+        font-size: 12px;
+        height: 32px;
+        line-height: 1.35;
+        margin-bottom: 4px;
+        -webkit-line-clamp: 2;
+    }
+    .book-author {
+        font-size: 10.5px;
+        margin-bottom: 3px;
+    }
+    .wbs-rating-wrap {
+        font-size: 10.5px;
+        gap: 3px;
+        margin-bottom: 3px;
+    }
+    .wbs-stars {
+        font-size: 9px;
+    }
+    .wbs-sold-count {
+        display: none; /* Hide sold count on small screens for cleaner card */
+    }
+    .wbs-shipping-tag {
+        font-size: 9px;
+        padding: 1px 4px;
+        margin-bottom: 4px;
+    }
+    .book-current-price {
+        font-size: 13.5px;
+    }
+    .book-original-price {
+        font-size: 10.5px;
+    }
+    .book-stock-tag {
+        font-size: 10px;
+        margin-bottom: 6px;
+    }
+    .btn-book-detail {
+        font-size: 11px;
+        padding: 4px 6px;
+    }
+    .btn-book-cart {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    /* Mobile Cart Table */
+    .table > :not(caption) > * > * {
+        padding: 8px 4px;
+    }
+    .cart-row img {
+        width: 50px !important;
+        height: 62px !important;
+    }
+    .wbs-stepper-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+    }
+    .wbs-stepper-input {
+        width: 32px;
+        height: 24px;
+        font-size: 11.5px;
+    }
+
+    /* Mobile Book Details */
+    .wbs-quantity-stepper {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 8px;
+    }
+    .btn-cart-detail-action {
+        width: 100%;
+    }
+}

@@ -4,40 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giỏ hàng - WebBanSach</title>
+    <!-- Google Font: Inter (Crisp Vietnamese Typography) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome 4.7 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Custom WebBanSach Theme CSS -->
     <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Header & Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="index.html">
-                <i class="fa fa-book"></i> WEBBANSACH
+    <!-- WebBanSach Header & Navigation -->
+    <header class="navbar navbar-custom sticky-top py-2">
+        <div class="container d-flex align-items-center justify-content-between flex-nowrap gap-2 gap-lg-3">
+            <a class="wbs-logo-wrap flex-shrink-0" href="index.html">
+                <div class="wbs-logo-icon">
+                    <i class="fa fa-book"></i>
+                </div>
+                <div>
+                    <div class="wbs-logo-text">WEBBANSACH</div>
+                    <span class="wbs-logo-slogan d-none d-sm-block">Tốt & Nhanh • 100% Chính hãng</span>
+                </div>
             </a>
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav align-items-center ms-auto">
-                    <li class="nav-item me-3">
-                        <a class="nav-link text-dark" href="index.html"><i class="fa fa-home"></i> Trang chủ</a>
-                    </li>
-                    <div id="navbar-auth-links" class="d-flex align-items-center"></div>
-                </ul>
+
+            <!-- Search Bar -->
+            <div class="wbs-header-search-wrap flex-grow-1 mx-2 mx-xl-3" style="min-width: 0; max-width: 680px;">
+                <form class="wbs-search-box" action="index.html" method="GET">
+                    <div class="input-group">
+                        <span class="wbs-search-icon-inside"><i class="fa fa-search"></i></span>
+                        <input name="search" class="form-control wbs-search-input" type="search" placeholder="Bạn tìm sách, tác giả, thể loại gì hôm nay?">
+                        <button class="btn wbs-search-btn" type="submit">Tìm kiếm</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="wbs-header-actions d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
+                <a href="index.html" class="wbs-header-action d-none d-md-flex">
+                    <i class="fa fa-home"></i>
+                    <span>Trang chủ</span>
+                </a>
+                
+                <div id="navbar-auth-links" class="d-flex align-items-center flex-shrink-0"></div>
+
+                <a class="wbs-header-action position-relative flex-shrink-0" href="cart.html">
+                    <i class="fa fa-shopping-cart"></i>
+                    <span class="d-none d-sm-inline">Giỏ hàng</span>
+                    <span id="cart-badge" class="wbs-cart-badge">0</span>
+                </a>
             </div>
         </div>
-    </nav>
+    </header>
 
+    <!-- Main Content -->
     <main class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold m-0"><i class="fa fa-shopping-cart text-danger me-2"></i> Giỏ hàng của bạn</h3>
-            <span id="cartItemBadge" class="badge bg-danger rounded-pill px-3 py-2">0 sản phẩm</span>
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="wbs-breadcrumbs">
+            <a href="index.html" class="text-muted"><i class="fa fa-home me-1"></i>Trang chủ</a>
+            <span class="mx-2 text-muted">/</span>
+            <span class="text-dark fw-semibold">Giỏ hàng</span>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold m-0 text-dark">
+                GIỎ HÀNG <span id="cartItemBadge" class="text-muted fw-normal fs-6">(0 sản phẩm)</span>
+            </h4>
         </div>
 
         <div id="cartContent">
-            <div class="text-center py-5 text-muted">
-                <i class="fa fa-spinner fa-spin fa-2x mb-3"></i>
+            <div class="wbs-card text-center py-5 text-muted">
+                <i class="fa fa-spinner fa-spin fa-2x mb-3 text-primary"></i>
                 <p>Đang tải giỏ hàng...</p>
             </div>
         </div>
@@ -45,8 +83,46 @@
 
     <!-- Footer -->
     <footer>
-        <div class="container text-center small text-muted">
-            <p class="mb-0">&copy; 2026 WebBanSach - Nhà sách trực tuyến uy tín.</p>
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="wbs-logo-wrap mb-3">
+                        <div class="wbs-logo-icon" style="width: 32px; height: 32px; font-size: 16px;">
+                            <i class="fa fa-book"></i>
+                        </div>
+                        <div class="wbs-logo-text" style="font-size: 18px;">WEBBANSACH</div>
+                    </div>
+                    <p class="small text-muted mb-2">Hệ thống phân phối sách trực tuyến chất lượng cao, cam kết 100% chính hãng từ các nhà xuất bản hàng đầu.</p>
+                    <p class="small text-muted mb-0">&copy; 2026 WebBanSach. Tất cả các quyền được bảo lưu.</p>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6>Hỗ trợ khách hàng</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="javascript:void(0)">Hotline: 1900 1234 (1.000đ/phút)</a></li>
+                        <li><a href="javascript:void(0)">Chính sách đổi trả 30 ngày</a></li>
+                        <li><a href="javascript:void(0)">Chính sách giao hàng siêu tốc 2h</a></li>
+                        <li><a href="javascript:void(0)">Phương thức thanh toán COD & Online</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6>Về WebBanSach</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="javascript:void(0)">Giới thiệu WebBanSach</a></li>
+                        <li><a href="javascript:void(0)">Tuyển dụng</a></li>
+                        <li><a href="javascript:void(0)">Chính sách bảo mật</a></li>
+                        <li><a href="javascript:void(0)">Điều khoản sử dụng</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6>Phương thức thanh toán</h6>
+                    <div class="footer-payment-icons mb-3">
+                        <i class="fa fa-cc-visa text-primary" title="Visa"></i>
+                        <i class="fa fa-cc-mastercard text-danger" title="MasterCard"></i>
+                        <i class="fa fa-money text-success" title="COD"></i>
+                        <i class="fa fa-credit-card text-info" title="ATM"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
 
@@ -57,6 +133,10 @@
     <script>
         let cartData = { items: [], total: 0, totalQuantity: 0 };
         let syncTimeout = null;
+
+        function formatVND(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
 
         async function loadCart() {
             try {
@@ -72,58 +152,89 @@
             const badge = document.getElementById('cartItemBadge');
 
             if (!cartData.items || cartData.items.length === 0) {
-                badge.textContent = '0 sản phẩm';
+                badge.textContent = '(0 sản phẩm)';
                 container.innerHTML = `
-                    <div class="card p-5 text-center border-0 shadow-sm rounded-4">
-                        <div class="mx-auto mb-3" style="width: 70px; height: 70px; border-radius: 50%; background: #fee2e2; color: #b72935; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                    <div class="wbs-card p-5 text-center">
+                        <div class="mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; background: #fee2e2; color: #ff424e; display: flex; align-items: center; justify-content: center; font-size: 36px;">
                             <i class="fa fa-shopping-basket"></i>
                         </div>
                         <h4 class="fw-bold text-dark mb-2">Giỏ hàng của bạn đang trống</h4>
-                        <p class="text-muted mb-4">Chưa có sản phẩm nào trong giỏ hàng. Hãy quay lại tìm kiếm cuốn sách yêu thích!</p>
-                        <a href="index.html" class="btn btn-danger px-4 py-2 mx-auto" style="border-radius: 8px;">
-                            <i class="fa fa-arrow-left me-1"></i> Mua sắm ngay
+                        <p class="text-muted mb-4 small">Hãy khám phá hàng ngàn tựa sách hay và giá ưu đãi tại WebBanSach ngay hôm nay!</p>
+                        <a href="index.html" class="btn btn-primary px-4 py-2 mx-auto fw-bold" style="border-radius: 8px;">
+                            <i class="fa fa-shopping-bag me-1"></i> Mua sắm ngay
                         </a>
                     </div>
                 `;
                 return;
             }
 
-            badge.textContent = `${cartData.items.length} sản phẩm`;
+            badge.textContent = `(${cartData.items.length} sản phẩm)`;
+
+            let originalTotal = 0;
+            let finalTotal = 0;
+            let totalQty = 0;
+
+            cartData.items.forEach(item => {
+                const qty = parseInt(item.quantity, 10) || 0;
+                const origPrice = (item.originalPrice && item.originalPrice > 0) ? item.originalPrice : item.price;
+                const salePrice = item.price;
+
+                originalTotal += origPrice * qty;
+                finalTotal += salePrice * qty;
+                totalQty += qty;
+            });
+
+            const discount = Math.max(0, originalTotal - finalTotal);
+            const freeShipThreshold = 150000;
+            const remainingForFreeship = Math.max(0, freeShipThreshold - finalTotal);
+            const shippingFee = (finalTotal > 0 && remainingForFreeship > 0) ? 25000 : 0;
+            const freeshipHtml = remainingForFreeship === 0
+                ? `<div class="wbs-free-shipping-progress text-success bg-success-subtle border-success-subtle">
+                        <i class="fa fa-check-circle fs-5"></i>
+                        <span><strong>Đã đạt Freeship!</strong> Bạn được MIỄN PHÍ VẬN CHUYỂN cho toàn bộ đơn hàng này.</span>
+                   </div>`
+                : `<div class="wbs-free-shipping-progress">
+                        <i class="fa fa-truck text-warning fs-5"></i>
+                        <span>Mua thêm <strong>${formatVND(remainingForFreeship)}</strong> để được <strong>MIỄN PHÍ VẬN CHUYỂN</strong> toàn quốc!</span>
+                   </div>`;
 
             let rows = '';
             cartData.items.forEach(item => {
                 rows += `
-                    <tr class="cart-row" data-id="${item.id}" data-price="${item.price}">
+                    <tr class="cart-row align-middle" data-id="${item.id}" data-price="${item.price}">
                         <td style="width: 45%;">
-                            <div class="d-flex align-items-center">
-                                <img src="images/${item.image}" alt="${item.title}" class="rounded border p-1 me-3" style="width: 65px; height: 80px; object-fit: contain;" onerror="this.src='images/topSach.png'">
+                            <div class="d-flex align-items-center py-2">
+                                <a href="book-details.html?id=${item.id}" class="me-3 flex-shrink-0">
+                                    <img src="images/${item.image}" alt="${item.title}" class="rounded border p-1" style="width: 70px; height: 85px; object-fit: contain; background: #fafafa;" onerror="this.src='images/topSach.png'">
+                                </a>
                                 <div>
-                                    <a href="book-details.html?id=${item.id}" class="text-dark fw-bold text-decoration-none mb-1 d-block">${item.title}</a>
-                                    <small class="text-muted">Mã sách: #${item.id} · ${item.stock > 0 ? `Còn ${item.stock} cuốn` : 'Hết hàng'}</small>
+                                    <span class="wbs-badge-official mb-1" style="font-size: 9px;"><i class="fa fa-check-circle"></i> CHÍNH HÃNG</span>
+                                    <a href="book-details.html?id=${item.id}" class="text-dark fw-semibold text-decoration-none d-block mb-1" style="font-size: 14px; line-height: 1.3;">${item.title}</a>
+                                    <div class="small text-muted">Mã: #${item.id} · ${item.stock > 0 ? `<span class="text-success">Còn ${item.stock} cuốn</span>` : '<span class="text-danger">Hết hàng</span>'}</div>
                                 </div>
                             </div>
                         </td>
                         <td class="text-center" style="width: 15%;">
-                            ${item.discountPercent > 0 ? `<div><del class="text-muted small">${item.originalPriceFormatted}</del> <span class="badge bg-danger">-${item.discountPercent}%</span></div>` : ''}
-                            <span class="fw-semibold text-secondary">${formatVND(item.price)}</span>
+                            <div class="fw-bold text-dark">${formatVND(item.price)}</div>
+                            ${item.discountPercent > 0 ? `<div><del class="text-muted small">${item.originalPriceFormatted}</del> <span class="badge bg-danger-subtle text-danger" style="font-size: 10px;">-${item.discountPercent}%</span></div>` : ''}
                         </td>
                         <td class="text-center" style="width: 15%;">
-                            <div class="input-group mx-auto" style="width: 125px;">
-                                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="changeQty(${item.id}, -1)" ${item.stock > 0 ? '' : 'disabled'}>-</button>
-                                <input type="number" class="form-control form-control-sm text-center fw-bold item-qty-input" 
-                                        data-id="${item.id}" value="${item.quantity}" min="1" max="${Math.max(1, Math.min(999, item.stock || 0))}" ${item.stock > 0 ? '' : 'disabled'}
-                                        oninput="handleInputQty(${item.id}, this)" onblur="handleInputQty(${item.id}, this)">
-                                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="changeQty(${item.id}, 1)" ${item.stock > 0 ? '' : 'disabled'}>+</button>
+                            <div class="wbs-quantity-stepper mx-auto">
+                                <button class="wbs-stepper-btn" type="button" onclick="changeQty(${item.id}, -1)" ${item.stock > 0 ? '' : 'disabled'}>-</button>
+                                <input type="number" class="wbs-stepper-input item-qty-input" 
+                                       data-id="${item.id}" value="${item.quantity}" min="1" max="${Math.max(1, Math.min(999, item.stock || 0))}" ${item.stock > 0 ? '' : 'disabled'}
+                                       oninput="handleInputQty(${item.id}, this)" onblur="handleInputQty(${item.id}, this)">
+                                <button class="wbs-stepper-btn" type="button" onclick="changeQty(${item.id}, 1)" ${item.stock > 0 ? '' : 'disabled'}>+</button>
                             </div>
                         </td>
                         <td class="text-end" style="width: 15%;">
-                            <span class="fw-bold text-danger item-subtotal" id="subtotal-${item.id}">
+                            <span class="fw-bold text-danger fs-6 item-subtotal" id="subtotal-${item.id}">
                                 ${formatVND(item.price * item.quantity)}
                             </span>
                         </td>
                         <td class="text-center" style="width: 10%;">
-                            <button class="btn btn-outline-danger btn-sm" onclick="handleDeleteItem(${item.id})" title="Xóa cuốn sách này">
-                                <i class="fa fa-trash-o"></i>
+                            <button class="btn btn-link text-muted p-1" onclick="handleDeleteItem(${item.id})" title="Xóa cuốn sách này">
+                                <i class="fa fa-trash-o fs-5 text-secondary hover-danger"></i>
                             </button>
                         </td>
                     </tr>
@@ -131,61 +242,170 @@
             });
 
             container.innerHTML = `
-                <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
-                    <div class="table-responsive">
-                        <table class="table cart-table align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="ps-4">Sản phẩm</th>
-                                    <th class="text-center">Đơn giá</th>
-                                    <th class="text-center">Số lượng</th>
-                                    <th class="text-end">Thành tiền</th>
-                                    <th class="text-center pe-4">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${rows}
-                            </tbody>
-                            <tfoot class="bg-light">
-                                <tr>
-                                    <td colspan="2" class="ps-4 py-3">
-                                        <a href="index.html" class="btn btn-outline-secondary btn-sm me-2">
-                                            <i class="fa fa-arrow-left me-1"></i> Tiếp tục chọn sách
-                                        </a>
-                                        <button class="btn btn-outline-danger btn-sm" onclick="handleClearCart()">
-                                            <i class="fa fa-trash me-1"></i> Xóa tất cả
-                                        </button>
-                                    </td>
-                                    <td colspan="2" class="text-end py-3">
-                                        <span class="small text-muted text-uppercase fw-bold">Tổng thanh toán:</span><br>
-                                        <strong id="cartTotalText" class="text-danger fs-4">${formatVND(cartData.total)}</strong>
-                                    </td>
-                                    <td class="pe-4 py-3 text-center">
-                                        <a href="checkout.html" class="btn btn-danger w-100 fw-bold py-2">
-                                            Thanh toán <i class="fa fa-angle-right ms-1"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                <div class="row g-4">
+                    <!-- Left: Free ship bar & Items Table -->
+                    <div class="col-lg-8">
+                        <div id="freeshipContainer">
+                            ${freeshipHtml}
+                        </div>
+
+                        <div class="wbs-card p-0 overflow-hidden mb-3">
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr class="text-muted small">
+                                            <th class="ps-3 py-3" id="tableHeaderItemsCount">Tất cả (${cartData.items.length} sản phẩm)</th>
+                                            <th class="text-center py-3">Đơn giá</th>
+                                            <th class="text-center py-3">Số lượng</th>
+                                            <th class="text-end py-3">Thành tiền</th>
+                                            <th class="text-center py-3 pe-3">Xóa</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rows}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="index.html" class="btn btn-outline-secondary btn-sm" style="border-radius: 6px;">
+                                <i class="fa fa-arrow-left me-1"></i> Tiếp tục chọn sách
+                            </a>
+                            <button class="btn btn-outline-danger btn-sm" onclick="handleClearCart()" style="border-radius: 6px;">
+                                <i class="fa fa-trash-o me-1"></i> Xóa tất cả giỏ hàng
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Sticky Order Summary Card -->
+                    <div class="col-lg-4">
+                        <div class="wbs-summary-card">
+                            <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">Thông tin đơn hàng</h5>
+                            
+                            <div class="d-flex justify-content-between mb-2 small">
+                                <span class="text-muted" id="summarySubtotalLabel">Tạm tính (${totalQty} cuốn):</span>
+                                <span class="fw-semibold text-dark" id="summarySubtotal">${formatVND(originalTotal)}</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-2 small">
+                                <span class="text-muted">Giảm giá:</span>
+                                <span class="text-success fw-semibold" id="summaryDiscount">${discount > 0 ? `-${formatVND(discount)}` : '0 ₫'}</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-3 small">
+                                <span class="text-muted">Phí giao hàng:</span>
+                                <span id="summaryShipping" class="${shippingFee === 0 ? 'text-success fw-semibold' : 'text-dark fw-semibold'}">
+                                    ${shippingFee === 0 ? 'Miễn phí' : '25.000 ₫'}
+                                </span>
+                            </div>
+
+                            <hr class="my-3">
+
+                            <div class="d-flex justify-content-between align-items-baseline mb-4">
+                                <span class="fw-bold text-dark">Tổng tiền:</span>
+                                <div class="text-end">
+                                    <div class="text-danger fw-bold fs-4" id="cartTotalText">${formatVND(finalTotal + shippingFee)}</div>
+                                    <small class="text-muted">(Đã bao gồm VAT nếu có)</small>
+                                    <div id="cartSavingText" class="text-success small fw-semibold mt-1" style="${discount > 0 ? '' : 'display: none;'}">
+                                        (Tiết kiệm ${formatVND(discount)})
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn wbs-btn-checkout text-center w-100 border-0" id="btnCheckout" onclick="handleProceedToCheckout(event)">
+                                Mua Hàng (${totalQty})
+                            </button>
+                            <div id="checkoutLoginPrompt" class="small text-muted text-center mt-2"></div>
+
+                            <div class="mt-4 pt-3 border-top small text-muted">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fa fa-shield text-primary"></i> Cam kết 100% sách chính hãng
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fa fa-refresh text-success"></i> Miễn phí đổi trả 30 ngày
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-lock text-info"></i> Bảo mật thanh toán tuyệt đối
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
+            updateCheckoutAuthPrompt();
         }
 
-        // Auto update calculation logic (0ms instantaneous client update)
+        async function updateCheckoutAuthPrompt() {
+            const promptEl = document.getElementById('checkoutLoginPrompt');
+            if (!promptEl) return;
+            try {
+                const me = auth.user || (await api.getMe()).user;
+                if (me) {
+                    const name = me.name || me.username || '';
+                    promptEl.className = 'small text-success text-center mt-2';
+                    promptEl.innerHTML = `<i class="fa fa-check-circle me-1"></i> Đã đăng nhập: <strong>${name}</strong>`;
+                } else {
+                    promptEl.className = 'small text-muted text-center mt-2';
+                    promptEl.innerHTML = `<i class="fa fa-lock text-warning me-1"></i> Cần đăng nhập để tiến hành mua hàng`;
+                }
+            } catch (e) {
+                promptEl.className = 'small text-muted text-center mt-2';
+                promptEl.innerHTML = `<i class="fa fa-lock text-warning me-1"></i> Cần đăng nhập để tiến hành mua hàng`;
+            }
+        }
+
+        async function handleProceedToCheckout(event) {
+            if (event) event.preventDefault();
+
+            // 1. Kiểm tra giỏ hàng có sách hay không
+            if (!cartData.items || cartData.items.length === 0) {
+                showToast("Giỏ hàng của bạn đang trống. Vui lòng chọn sách trước khi mua hàng.", "warning");
+                return;
+            }
+
+            const btn = document.getElementById('btnCheckout');
+            const originalHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i> Đang kiểm tra đăng nhập...';
+            }
+
+            try {
+                // 2. Kiểm tra trạng thái đăng nhập với server
+                const me = await api.getMe();
+                if (!me || !me.isLoggedIn) {
+                    showToast("Vui lòng đăng nhập để tiến hành mua hàng.", "warning");
+                    setTimeout(() => {
+                        window.location.href = "login.html?redirect=checkout.html";
+                    }, 400);
+                    return;
+                }
+
+                // 3. Đã đăng nhập -> Cho phép chuyển tới trang thanh toán checkout.html
+                window.location.href = "checkout.html";
+            } catch (err) {
+                console.error("Auth check failed:", err);
+                window.location.href = "login.html?redirect=checkout.html";
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            }
+        }
+
         function changeQty(id, delta) {
             const item = cartData.items.find(x => x.id === id);
             if (!item) return;
 
             const maxQty = Math.min(999, item.stock || 0);
             if (maxQty < 1) { showToast('Sách đã hết hàng. Vui lòng xoá khỏi giỏ.', 'error'); return; }
-            if (!Number.isSafeInteger(item.quantity + delta)) { showToast("Số lượng vượt giới hạn nhập chính xác của trình duyệt.", "error"); return; }
-            if (delta > 0 && item.quantity >= maxQty) { showToast(`Sách chỉ còn tối đa ${maxQty} cuốn cho mỗi giỏ.`, 'error'); return; }
+            if (!Number.isSafeInteger(item.quantity + delta)) { showToast("Số lượng vượt giới hạn.", "error"); return; }
+            if (delta > 0 && item.quantity >= maxQty) { showToast(`Sách chỉ còn tối đa ${maxQty} cuốn.`, 'error'); return; }
             let newQty = Math.max(1, Math.min(maxQty, item.quantity + delta));
             item.quantity = newQty;
 
-            // Update UI immediately
             const input = document.querySelector(`.item-qty-input[data-id="${id}"]`);
             if (input) input.value = newQty;
 
@@ -200,37 +420,96 @@
             if (isNaN(val) || val < 1) val = 1;
             const maxQty = Math.min(999, item.stock || 0);
             if (maxQty < 1) { showToast('Sách đã hết hàng. Vui lòng xoá khỏi giỏ.', 'error'); inputEl.value = item.quantity; return; }
-            if (val > maxQty) { showToast(`Sách chỉ còn tối đa ${maxQty} cuốn cho mỗi giỏ.`, 'error'); val = maxQty; }
+            if (val > maxQty) { showToast(`Sách chỉ còn tối đa ${maxQty} cuốn.`, 'error'); val = maxQty; }
             inputEl.value = val;
-            if (!Number.isSafeInteger(val)) { showToast("Số lượng vượt giới hạn nhập chính xác của trình duyệt.", "error"); inputEl.value = item.quantity; return; }
             item.quantity = val;
 
             recalculateAndSync();
         }
 
         function recalculateAndSync() {
-            let total = 0;
+            let originalTotal = 0;
+            let finalTotal = 0;
             let totalQty = 0;
 
             cartData.items.forEach(item => {
-                const sub = item.price * item.quantity;
-                total += sub;
-                totalQty += item.quantity;
+                const qty = parseInt(item.quantity, 10) || 0;
+                const origPrice = (item.originalPrice && item.originalPrice > 0) ? item.originalPrice : item.price;
+                const salePrice = item.price;
+
+                const sub = salePrice * qty;
+                originalTotal += origPrice * qty;
+                finalTotal += sub;
+                totalQty += qty;
 
                 const subEl = document.getElementById(`subtotal-${item.id}`);
                 if (subEl) subEl.textContent = formatVND(sub);
             });
 
-            cartData.total = total;
+            const discount = Math.max(0, originalTotal - finalTotal);
+            const freeShipThreshold = 150000;
+            const remainingForFreeship = Math.max(0, freeShipThreshold - finalTotal);
+            const shippingFee = (finalTotal > 0 && remainingForFreeship > 0) ? 25000 : 0;
+
+            cartData.total = finalTotal;
             cartData.totalQuantity = totalQty;
 
-            const totalText = document.getElementById('cartTotalText');
-            if (totalText) totalText.textContent = formatVND(total);
-
+            // Update Header Cart Badge
             const badge = document.getElementById('cart-badge');
             if (badge) badge.textContent = totalQty;
 
-            // Debounced sync to server session
+            // Update Items Count Badges
+            const mainBadge = document.getElementById('cartItemBadge');
+            if (mainBadge) mainBadge.textContent = `(${cartData.items.length} sản phẩm)`;
+            const tableHeader = document.getElementById('tableHeaderItemsCount');
+            if (tableHeader) tableHeader.textContent = `Tất cả (${cartData.items.length} sản phẩm)`;
+
+            // Update Freeship Bar
+            const freeshipContainer = document.getElementById('freeshipContainer');
+            if (freeshipContainer) {
+                freeshipContainer.innerHTML = remainingForFreeship === 0
+                    ? `<div class="wbs-free-shipping-progress text-success bg-success-subtle border-success-subtle">
+                            <i class="fa fa-check-circle fs-5"></i>
+                            <span><strong>Đã đạt Freeship!</strong> Bạn được MIỄN PHÍ VẬN CHUYỂN cho toàn bộ đơn hàng này.</span>
+                       </div>`
+                    : `<div class="wbs-free-shipping-progress">
+                            <i class="fa fa-truck text-warning fs-5"></i>
+                            <span>Mua thêm <strong>${formatVND(remainingForFreeship)}</strong> để được <strong>MIỄN PHÍ VẬN CHUYỂN</strong> toàn quốc!</span>
+                       </div>`;
+            }
+
+            // Update Order Summary
+            const subtotalLabel = document.getElementById('summarySubtotalLabel');
+            if (subtotalLabel) subtotalLabel.textContent = `Tạm tính (${totalQty} cuốn):`;
+
+            const summarySubtotal = document.getElementById('summarySubtotal');
+            if (summarySubtotal) summarySubtotal.textContent = formatVND(originalTotal);
+
+            const summaryDiscount = document.getElementById('summaryDiscount');
+            if (summaryDiscount) summaryDiscount.textContent = discount > 0 ? `-${formatVND(discount)}` : '0 ₫';
+
+            const summaryShipping = document.getElementById('summaryShipping');
+            if (summaryShipping) {
+                summaryShipping.className = shippingFee === 0 ? 'text-success fw-semibold' : 'text-dark fw-semibold';
+                summaryShipping.textContent = shippingFee === 0 ? 'Miễn phí' : '25.000 ₫';
+            }
+
+            const totalText = document.getElementById('cartTotalText');
+            if (totalText) totalText.textContent = formatVND(finalTotal + shippingFee);
+
+            const savingText = document.getElementById('cartSavingText');
+            if (savingText) {
+                if (discount > 0) {
+                    savingText.style.display = 'block';
+                    savingText.textContent = `(Tiết kiệm ${formatVND(discount)})`;
+                } else {
+                    savingText.style.display = 'none';
+                }
+            }
+
+            const btnCheckout = document.getElementById('btnCheckout');
+            if (btnCheckout) btnCheckout.textContent = `Mua Hàng (${totalQty})`;
+
             clearTimeout(syncTimeout);
             syncTimeout = setTimeout(async () => {
                 const payload = cartData.items.map(x => ({
@@ -243,9 +522,6 @@
                         showToast(serverRes.message || 'Không đủ tồn kho.', 'error');
                         await loadCart();
                         return;
-                    }
-                    if (serverRes.status && serverRes.totalFormatted) {
-                        if (totalText) totalText.textContent = serverRes.totalFormatted;
                     }
                 } catch (e) {
                     console.error("Sync error:", e);
@@ -281,9 +557,27 @@
             }
         }
 
+        function setupBackToTop() {
+            const btn = document.getElementById('btnBackToTop');
+            if (!btn) return;
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 280) {
+                    btn.classList.add('show');
+                } else {
+                    btn.classList.remove('show');
+                }
+            }, { passive: true });
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             loadCart();
+            setupBackToTop();
         });
     </script>
+
+    <!-- Floating Back-To-Top Button -->
+    <button id="btnBackToTop" class="wbs-back-to-top" title="Lên đầu trang" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <i class="fa fa-arrow-up"></i>
+    </button>
 </body>
 </html>
