@@ -365,7 +365,7 @@ namespace WebBanSach.Controllers
             }
             decimal total = cart.Sum(x => x.Total).GetValueOrDefault(0);
             long count = cart.Sum(x => x.Quantity);
-            decimal originalTotal = cart.Sum(x => ((x.sach.GiaBan ?? x.sach.GiaSauGiam) * x.Quantity)).GetValueOrDefault(0);
+            decimal originalTotal = cart.Sum(x => (x.sach.GiaBan ?? x.sach.GiaSauGiam) * x.Quantity);
             decimal discount = Math.Max(0, originalTotal - total);
 
             return Json(new
@@ -1049,32 +1049,9 @@ namespace WebBanSach.Controllers
                 }
 
                 var customer = db.KhachHangs.FirstOrDefault(x => x.TaiKhoan == username);
-                var order = db.DonDatHangs.FirstOrDefault(o => o.MaDDH == id && o.MaKH == customer.MaKH);
-                if (order == null)
-                {
-                    return Json(new { status = false, message = "Không tìm thấy đơn hàng." });
-                }
-
-                if ((order.Tracking ?? 0) != 0)
-                {
-                    return Json(new { status = false, message = "Chỉ có thể hủy đơn hàng khi đang ở trạng thái 'Chờ xử lý'." });
-                }
-
-                // Trả lại số lượng tồn kho
-                var details = db.ChiTietDDHs.Where(d => d.MaDDH == id).ToList();
-                foreach (var item in details)
-                {
-                    var book = db.Saches.Find(item.MaSach);
-                    if (book != null)
-                    {
-                        book.SoLuongTon = (book.SoLuongTon ?? 0) + item.SoLuong;
-                    }
-                }
-
-                order.Tracking = 4; // 4: Đã hủy
-                db.SaveChanges();
-
-                return Json(new { status = true, message = "Đã hủy đơn hàng #" + id + " thành công." });
+                if (customer == null)
+                    return Json(new { status = false, message = "Không tìm thấy khách hàng." });
+                return ChangeOrderStatus(id, 4, customer.MaKH);
             }
             catch (Exception ex)
             {
@@ -1598,10 +1575,50 @@ namespace WebBanSach.Controllers
             {
                 if (status < 0 || status > 4)
                     return Json(new { status = false, message = "Trạng thái đơn hàng không hợp lệ." });
-                var order = db.DonDatHangs.Find(id);
-                if (order == null)
+                return ChangeOrderStatus(id, status);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message });
+            }
+        }
+
+        private JsonResult ChangeOrderStatus(int id, int status, int? customerId = null)
+        {
+            using (var transaction = db.Database.BeginTransaction())
+            {
+                // Serialize status changes for this order, including requests from different sessions.
+                var order = db.DonDatHangs.SqlQuery(
+                    "SELECT * FROM dbo.DonDatHang WITH (UPDLOCK, HOLDLOCK) WHERE MaDDH = @p0", id)
+                    .SingleOrDefault();
+                if (order == null || (customerId.HasValue && order.MaKH != customerId.Value))
                 {
                     return Json(new { status = false, message = "Không tìm thấy đơn hàng." });
+                }
+
+                var previousStatus = order.Tracking ?? 0;
+                if (previousStatus == status)
+                    return Json(new { status = true, message = "Đơn hàng đã ở trạng thái này." });
+                if (previousStatus == 4)
+                    return Json(new { status = false, message = "Đơn đã hủy không thể đổi trạng thái. Vui lòng tạo đơn mới." });
+                if (customerId.HasValue && previousStatus != 0)
+                    return Json(new { status = false, message = "Chỉ có thể hủy đơn hàng khi đang ở trạng thái 'Chờ xử lý'." });
+
+                if (status == 4)
+                {
+                    var details = db.ChiTietDDHs.AsNoTracking().Where(d => d.MaDDH == id)
+                        .OrderBy(d => d.MaSach).ToList();
+                    foreach (var detail in details)
+                    {
+                        var quantity = detail.SoLuong.GetValueOrDefault();
+                        if (quantity <= 0)
+                            throw new InvalidOperationException("Số lượng trong đơn hàng không hợp lệ.");
+                        var updated = db.Database.ExecuteSqlCommand(
+                            "UPDATE dbo.Sach SET SoLuongTon = COALESCE(SoLuongTon, 0) + @p0 WHERE MaSach = @p1",
+                            quantity, detail.MaSach);
+                        if (updated != 1)
+                            throw new InvalidOperationException("Không tìm thấy sách để hoàn kho.");
+                    }
                 }
 
                 order.Tracking = status;
@@ -1611,12 +1628,9 @@ namespace WebBanSach.Controllers
                     order.ThanhToan = 1;
                 }
                 db.SaveChanges();
+                transaction.Commit();
 
                 return Json(new { status = true, message = "Cập nhật trạng thái đơn hàng thành công." });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { status = false, message = ex.Message });
             }
         }
 

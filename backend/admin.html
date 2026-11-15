@@ -552,6 +552,7 @@
                     if (order) order.status = Number(newStatus);
                     updateCounts();
                     renderOrders();
+                    loadAdminBooks(catalogPage);
                 } else {
                     alert(res.message || "Không thể cập nhật trạng thái!");
                     loadAdminOrders();

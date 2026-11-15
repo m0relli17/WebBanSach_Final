@@ -419,6 +419,9 @@
                 if (currentSearch) params.search = currentSearch;
 
                 const res = await api.getBooks(params);
+                if (!res.status || !res.data) {
+                    throw new Error(res.message || 'Không thể tải danh sách sách.');
+                }
                 if (res.status && res.data) {
                     document.getElementById('bookCount').textContent = `${res.data.length} / ${res.totalItems} cuốn`;
 
@@ -480,6 +483,9 @@
                     renderPagination(res.page, res.totalPages);
                 }
             } catch (e) {
+                console.error('Không thể tải danh sách sách:', e);
+                document.getElementById('bookCount').textContent = 'Không thể tải sách';
+                document.getElementById('paginationContainer').innerHTML = '';
                 container.innerHTML = `<div class="col-12 text-center text-danger py-4">Có lỗi khi kết nối tới máy chủ.</div>`;
             }
         }
