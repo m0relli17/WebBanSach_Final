@@ -1113,6 +1113,43 @@ namespace WebBanSach.Controllers
         }
 
         [HttpGet]
+        public JsonResult AdminDashboard(string from = null, string to = null)
+        {
+            DateTime start, end;
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            if (from == null) start = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            else if (!DateTime.TryParseExact(from, "yyyy-MM-dd", culture, System.Globalization.DateTimeStyles.None, out start))
+                return Json(new { status = false, message = "Ngày bắt đầu không hợp lệ." }, JsonRequestBehavior.AllowGet);
+            if (to == null) end = DateTime.Today;
+            else if (!DateTime.TryParseExact(to, "yyyy-MM-dd", culture, System.Globalization.DateTimeStyles.None, out end))
+                return Json(new { status = false, message = "Ngày kết thúc không hợp lệ." }, JsonRequestBehavior.AllowGet);
+            if (end < start || (end - start).TotalDays > 365 || end == DateTime.MaxValue.Date)
+                return Json(new { status = false, message = "Chọn khoảng thời gian từ 1 đến 366 ngày." }, JsonRequestBehavior.AllowGet);
+            var until = end.AddDays(1);
+            var orders = db.DonDatHangs.AsNoTracking().Where(o => o.NgayDat >= start && o.NgayDat < until)
+                .Select(o => new { date = o.NgayDat, state = o.Tracking ?? 0,
+                    amount = o.ChiTietDDHs.Sum(d => (decimal?)((d.DonGia ?? 0) * (d.SoLuong ?? 0))) ?? 0,
+                    quantity = o.ChiTietDDHs.Sum(d => d.SoLuong) ?? 0 }).ToList();
+            var delivered = orders.Where(o => o.state == 3).ToList();
+            var revenue = delivered.Sum(o => o.amount);
+            var daily = delivered.GroupBy(o => o.date.Date).ToDictionary(g => g.Key, g => g.Sum(o => o.amount));
+            var series = Enumerable.Range(0, (end - start).Days + 1).Select(i => start.AddDays(i))
+                .Select(day => new { date = day.ToString("yyyy-MM-dd"), revenue = daily.ContainsKey(day) ? daily[day] : 0 }).ToList();
+            var topBooks = db.ChiTietDDHs.AsNoTracking()
+                .Where(d => d.DonDatHang.NgayDat >= start && d.DonDatHang.NgayDat < until && d.DonDatHang.Tracking == 3)
+                .GroupBy(d => new { d.MaSach, d.Sach.TenSach })
+                .Select(g => new { id = g.Key.MaSach, title = g.Key.TenSach, quantity = g.Sum(d => d.SoLuong) ?? 0,
+                    revenue = g.Sum(d => (decimal?)((d.DonGia ?? 0) * (d.SoLuong ?? 0))) ?? 0 })
+                .OrderByDescending(b => b.quantity).ThenByDescending(b => b.revenue).ThenBy(b => b.id).Take(5).ToList();
+            return Json(new { status = true, revenue, totalOrders = orders.Count, deliveredOrders = delivered.Count,
+                soldBooks = delivered.Sum(o => o.quantity), averageOrder = delivered.Count == 0 ? 0 : revenue / delivered.Count,
+                pendingRevenue = orders.Where(o => o.state >= 0 && o.state <= 2).Sum(o => o.amount),
+                lowStock = db.Saches.Count(b => (b.SoLuongTon ?? 0) <= 5), series, topBooks,
+                statuses = Enumerable.Range(0, 5).Select(state => new { state, count = orders.Count(o => o.state == state) }).ToList()
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
         public JsonResult AdminCatalog()
         {
             if (!IsAdminAuthenticated())
