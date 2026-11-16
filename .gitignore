@@ -363,3 +363,10 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Local submission archives and private configuration
+/.local-archive/
+/backend/Web.local.config
+/backend/App_Data/OtpEmails/
+/.vscode/
+/Bookshop.sql
+*.bak
