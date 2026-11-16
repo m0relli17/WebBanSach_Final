@@ -57,25 +57,22 @@ Clone repository về máy, sau đó mở `WebBanSach.sln`.
 
 ### 2. Khởi tạo database
 
-Trong SSMS, kết nối SQL Server và chạy các file theo thứ tự:
+Database được đóng gói trong một file duy nhất: [database/BSDB2.sql](database/BSDB2.sql), gồm cấu trúc bảng, các nâng cấp, lịch sử kho/đơn hàng và dữ liệu mẫu.
 
-| Thứ tự | File | Nội dung |
-| --- | --- | --- |
-| 1 | [00_TaoDatabaseMoi.sql](database/00_TaoDatabaseMoi.sql) | Tạo database `BSDB2`, các bảng và dữ liệu nền |
-| 2 | [01_NangCapDatabase.sql](database/01_NangCapDatabase.sql) | Nâng cấp cột dữ liệu và chỉ mục |
-| 3 | [05_LichSuKhoVaDonHang.sql](database/05_LichSuKhoVaDonHang.sql) | Tạo lịch sử kho và trạng thái đơn |
-| 4 | [06_BaremMvc.sql](database/06_BaremMvc.sql) | Bổ sung thông tin giao hàng, phí ship và mở rộng cột mật khẩu admin |
-| 5 | [02_DuLieuMau.sql](database/02_DuLieuMau.sql) | Nạp tài khoản và dữ liệu trình diễn |
+Trong SSMS:
 
-Giữ số hiệu các script nâng cấp để đối chiếu các phiên bản database cũ. Các bản sửa riêng 03/04 đã được tích hợp trong script 01.
+1. Kết nối SQL Server bằng tài khoản có quyền tạo database.
+2. Mở `database/BSDB2.sql`.
+3. Nhấn **Execute / F5** và đợi script hoàn tất. Không cần bật SQLCMD Mode.
+4. Refresh mục **Databases** để thấy database `BSDB2`.
 
-Có thể chạy toàn bộ bằng `sqlcmd` từ **thư mục gốc repository**:
+Hoặc chạy từ thư mục gốc repository:
 
 ```powershell
-sqlcmd -S .\SQLEXPRESS -E -b -f 65001 -i database/setup.sql
+sqlcmd -S .\SQLEXPRESS -E -b -f 65001 -i database/BSDB2.sql
 ```
 
-Lệnh này dành cho **database mới**, khi `BSDB2` chưa tồn tại. Với database đang sử dụng, sao lưu trước và chỉ chạy các script nâng cấp cần thiết (01, 05, 06). Dữ liệu mẫu có cập nhật lại tài khoản và danh mục, nên chỉ dùng cho môi trường demo.
+File dành cho **cài đặt mới**. Nếu `BSDB2` đã tồn tại, script báo lỗi và bỏ qua phần cài đặt để giữ dữ liệu hiện có. Không cần chạy lại khi máy bạn đã có database đầy đủ. Dữ liệu kèm theo dành cho demo; đây không phải script nâng cấp database đang vận hành.
 
 ### 3. Cấu hình kết nối
 
@@ -108,7 +105,7 @@ Thay `Data Source` nếu SQL Server trên máy bạn có tên khác. Tài khoả
 
 ### 5. Tài khoản demo
 
-Sau khi chạy script dữ liệu mẫu:
+Sau khi chạy `database/BSDB2.sql`:
 
 | Vai trò | Tài khoản | Mật khẩu |
 | --- | --- | --- |
